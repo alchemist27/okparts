@@ -1,0 +1,192 @@
+const CAFE24_API_VERSION = "2025-09-01";
+
+export interface Cafe24TokenResponse {
+  access_token: string;
+  expires_at: string;
+  refresh_token: string;
+  refresh_token_expires_at: string;
+  client_id: string;
+  mall_id: string;
+  user_id: string;
+  scopes: string[];
+  issued_at: string;
+}
+
+export class Cafe24ApiClient {
+  private mallId: string;
+  private accessToken: string;
+
+  constructor(mallId: string, accessToken: string) {
+    this.mallId = mallId;
+    this.accessToken = accessToken;
+  }
+
+  private getBaseUrl(): string {
+    return `https://${this.mallId}.cafe24api.com/api/v2`;
+  }
+
+  private async request<T>(
+    method: string,
+    endpoint: string,
+    data?: any
+  ): Promise<T> {
+    const url = `${this.getBaseUrl()}${endpoint}`;
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${this.accessToken}`,
+      "Content-Type": "application/json",
+      "X-Cafe24-Api-Version": CAFE24_API_VERSION,
+    };
+
+    const options: RequestInit = {
+      method,
+      headers,
+      ...(data && { body: JSON.stringify(data) }),
+    };
+
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Cafe24 API Error: ${response.status} - ${errorText}`
+      );
+    }
+
+    return response.json();
+  }
+
+  // Token refresh
+  async refreshAccessToken(
+    clientId: string,
+    clientSecret: string,
+    refreshToken: string
+  ): Promise<Cafe24TokenResponse> {
+    const url = `https://${this.mallId}.cafe24api.com/api/v2/oauth/token`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        client_id: clientId,
+        client_secret: clientSecret,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Token refresh failed: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // Categories
+  async getCategories(): Promise<any> {
+    return this.request("GET", "/admin/categories");
+  }
+
+  // Products
+  async createProduct(productData: any): Promise<any> {
+    return this.request("POST", "/admin/products", {
+      request: {
+        shop_no: 1,
+        ...productData,
+      },
+    });
+  }
+
+  async getProduct(productNo: string): Promise<any> {
+    return this.request("GET", `/admin/products/${productNo}`);
+  }
+
+  async updateProduct(productNo: string, productData: any): Promise<any> {
+    return this.request("PUT", `/admin/products/${productNo}`, {
+      request: {
+        shop_no: 1,
+        ...productData,
+      },
+    });
+  }
+
+  async getProducts(params?: {
+    limit?: number;
+    offset?: number;
+  }): Promise<any> {
+    const queryParams = new URLSearchParams({
+      shop_no: "1",
+      ...(params?.limit && { limit: params.limit.toString() }),
+      ...(params?.offset && { offset: params.offset.toString() }),
+    });
+
+    return this.request("GET", `/admin/products?${queryParams}`);
+  }
+
+  // Suppliers
+  async createSupplier(supplierData: {
+    supplier_name: string;
+    user_id: string;
+  }): Promise<any> {
+    return this.request("POST", "/admin/suppliers", {
+      request: supplierData,
+    });
+  }
+
+  async getSuppliers(): Promise<any> {
+    return this.request("GET", "/admin/suppliers");
+  }
+}
+
+// OAuth helper functions
+export function getOAuthUrl(
+  mallId: string,
+  clientId: string,
+  redirectUri: string,
+  state: string
+): string {
+  const scope = [
+    "mall.read_product",
+    "mall.write_product",
+    "mall.read_supplier",
+    "mall.write_supplier",
+    "mall.read_category",
+  ].join(",");
+
+  return `https://${mallId}.cafe24api.com/api/v2/oauth/authorize?response_type=code&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(
+    redirectUri
+  )}&scope=${encodeURIComponent(scope)}`;
+}
+
+export async function exchangeCodeForToken(
+  mallId: string,
+  code: string,
+  clientId: string,
+  clientSecret: string,
+  redirectUri: string
+): Promise<Cafe24TokenResponse> {
+  const url = `https://${mallId}.cafe24api.com/api/v2/oauth/token`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: redirectUri,
+      client_id: clientId,
+      client_secret: clientSecret,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+  }
+
+  return response.json();
+}
