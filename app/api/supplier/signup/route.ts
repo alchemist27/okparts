@@ -106,6 +106,7 @@ export async function POST(request: NextRequest) {
     console.log("[SIGNUP Step 5] Firestore 계정 생성 완료, ID:", supplierDoc.id);
 
     // 카페24 연동
+    let supplierCode: string | null = null;
     try {
       console.log("\n[SIGNUP Step 6] 카페24 공급사 생성 시작");
 
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest) {
       });
 
       const cafe24SupplierResponse = await cafe24Client.createSupplier(cafe24SupplierData);
-      const supplierCode = cafe24SupplierResponse.supplier?.supplier_code;
+      supplierCode = cafe24SupplierResponse.supplier?.supplier_code;
 
       if (!supplierCode) {
         throw new Error("카페24 공급사 코드를 받지 못했습니다");
