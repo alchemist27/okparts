@@ -148,15 +148,24 @@ export class Cafe24ApiClient {
   async createSupplierUser(supplierCode: string, userData: {
     user_id: string;
     user_name: string;
-    user_password: string;
-    use_admin: string;
+    password: string;
     phone: string;
+    email: string;
   }): Promise<any> {
-    console.log("[Cafe24 API] 공급사 사용자 생성 요청:", `/admin/suppliers/${supplierCode}/users`);
-    return this.request("POST", `/admin/suppliers/${supplierCode}/users`, {
-      shop_no: 1,
+    console.log("[Cafe24 API] 공급사 사용자 생성 요청:", `/admin/suppliers/users`);
+    return this.request("POST", `/admin/suppliers/users`, {
       request: {
-        ...userData,
+        supplier_code: supplierCode,
+        user_id: userData.user_id,
+        user_name: [
+          {
+            shop_no: 1,
+            user_name: userData.user_name,
+          },
+        ],
+        password: userData.password,
+        email: userData.email,
+        phone: userData.phone,
       },
     });
   }

@@ -179,9 +179,9 @@ export async function POST(request: NextRequest) {
       const cafe24UserResponse = await cafe24Client.createSupplierUser(supplierCode, {
         user_id: email,
         user_name: name,
-        user_password: password, // 원본 비밀번호 사용
-        use_admin: "T",
-        phone: phone
+        password: password, // 원본 비밀번호 사용
+        phone: phone,
+        email: email
       });
 
       console.log("[SIGNUP Step 7] 카페24 사용자 생성 완료, ID:", email);
