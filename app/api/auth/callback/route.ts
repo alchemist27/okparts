@@ -8,7 +8,6 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
   const state = searchParams.get("state");
-  const mall_id = searchParams.get("mall_id");
 
   // state 검증
   const savedState = request.cookies.get("oauth_state")?.value;
@@ -20,10 +19,20 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if (!code || !mall_id) {
+  if (!code) {
     return NextResponse.json(
-      { error: "Missing code or mall_id" },
+      { error: "Missing authorization code" },
       { status: 400 }
+    );
+  }
+
+  // mall_id는 환경 변수에서 가져옴
+  const mall_id = process.env.NEXT_PUBLIC_CAFE24_MALL_ID;
+
+  if (!mall_id) {
+    return NextResponse.json(
+      { error: "Mall ID not configured" },
+      { status: 500 }
     );
   }
 
