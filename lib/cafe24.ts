@@ -164,6 +164,7 @@ export class Cafe24ApiClient {
         ],
         password: userData.password,
         phone: userData.phone,
+        permission_shop_no: [1],
       },
     });
   }
