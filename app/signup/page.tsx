@@ -95,15 +95,7 @@ export default function SignupPage() {
       <div className="max-w-4xl mx-auto">
         {/* 진행 단계 표시 */}
         <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '1rem',
-            fontSize: '1.5rem',
-            sm: { fontSize: '2rem' },
-            fontWeight: 'bold'
-          }}>
+          <div className="flex justify-center items-center gap-4 text-xl sm:text-2xl font-bold">
             <div style={{
               color: step >= 1 ? 'white' : 'rgba(255,255,255,0.5)',
               background: step >= 1 ? 'rgba(255,255,255,0.2)' : 'transparent',
