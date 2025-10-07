@@ -91,8 +91,8 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 py-8" style={{ fontSize: '18px' }}>
-      <div className="container-sm">
+    <main className="min-h-screen py-8 px-4" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
+      <div className="max-w-4xl mx-auto">
         {/* 진행 단계 표시 */}
         <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
           <div style={{
@@ -101,18 +101,25 @@ export default function SignupPage() {
             alignItems: 'center',
             gap: '1rem',
             fontSize: '1.5rem',
+            sm: { fontSize: '2rem' },
             fontWeight: 'bold'
           }}>
             <div style={{
-              color: step >= 1 ? '#3b82f6' : '#9ca3af',
-              opacity: step >= 1 ? 1 : 0.5
+              color: step >= 1 ? 'white' : 'rgba(255,255,255,0.5)',
+              background: step >= 1 ? 'rgba(255,255,255,0.2)' : 'transparent',
+              padding: '0.5rem 1.5rem',
+              borderRadius: '2rem',
+              border: step >= 1 ? '2px solid white' : '2px solid rgba(255,255,255,0.3)'
             }}>
               1. 회원유형
             </div>
-            <div style={{ color: '#9ca3af' }}>→</div>
+            <div style={{ color: 'white', fontSize: '2rem' }}>→</div>
             <div style={{
-              color: step >= 2 ? '#3b82f6' : '#9ca3af',
-              opacity: step >= 2 ? 1 : 0.5
+              color: step >= 2 ? 'white' : 'rgba(255,255,255,0.5)',
+              background: step >= 2 ? 'rgba(255,255,255,0.2)' : 'transparent',
+              padding: '0.5rem 1.5rem',
+              borderRadius: '2rem',
+              border: step >= 2 ? '2px solid white' : '2px solid rgba(255,255,255,0.3)'
             }}>
               2. 정보입력
             </div>
@@ -121,25 +128,31 @@ export default function SignupPage() {
 
         {/* STEP 1: 회원 유형 선택 */}
         {step === 1 && (
-          <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
-            {/* 로고 */}
-            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
-              <Image
-                src="/logo.png"
-                alt="OK중고부품"
-                width={280}
-                height={112}
-                priority
-                className="w-full max-w-[240px] sm:max-w-[280px] h-auto"
-              />
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-10 text-center">
+              {/* 로고 */}
+              <div className="mb-6 flex justify-center">
+                <div className="bg-white rounded-xl px-6 py-4 shadow-lg">
+                  <Image
+                    src="/logo.png"
+                    alt="OK중고부품"
+                    width={750}
+                    height={300}
+                    priority
+                    style={{ width: "100%", height: "auto", maxWidth: "350px" }}
+                  />
+                </div>
+              </div>
+
+              <h1 className="text-white text-3xl sm:text-4xl font-bold mb-2">
+                회원가입
+              </h1>
+              <p className="text-white/90 text-lg sm:text-xl">
+                회원 유형을 선택해주세요
+              </p>
             </div>
 
-            <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-              회원가입
-            </h1>
-            <p style={{ fontSize: '1.25rem', color: '#6b7280', marginBottom: '3rem' }}>
-              회원 유형을 선택해주세요
-            </p>
+            <div style={{ padding: '3rem', textAlign: 'center' }}>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '500px', margin: '0 auto' }}>
               <button
@@ -204,32 +217,28 @@ export default function SignupPage() {
                 ← 홈으로 돌아가기
               </a>
             </div>
+            </div>
           </div>
         )}
 
         {/* STEP 2: 정보 입력 */}
         {step === 2 && (
-          <div className="card" style={{ padding: '2rem' }}>
-            <div style={{ marginBottom: '2rem' }}>
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-6 flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                style={{
-                  fontSize: '1.125rem',
-                  color: '#6b7280',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '0.5rem'
-                }}
+                className="text-white text-xl font-semibold hover:bg-white/20 px-4 py-2 rounded-lg transition-all"
               >
                 ← 이전
               </button>
+              <h2 className="text-white text-2xl sm:text-3xl font-bold">
+                {accountType === "individual" ? "개인회원" : "사업자회원"} 정보 입력
+              </h2>
+              <div style={{ width: '80px' }}></div>
             </div>
 
-            <h2 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem', textAlign: 'center' }}>
-              {accountType === "individual" ? "개인회원" : "사업자회원"} 정보 입력
-            </h2>
+            <div style={{ padding: '2rem' }}>
             <p style={{ fontSize: '1.125rem', color: '#6b7280', marginBottom: '2rem', textAlign: 'center' }}>
               * 표시는 필수 입력 항목입니다
             </p>
@@ -408,9 +417,10 @@ export default function SignupPage() {
 
             <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '1.125rem' }}>
               <span style={{ color: '#6b7280' }}>이미 계정이 있으신가요? </span>
-              <a href="/login" style={{ color: '#3b82f6', fontWeight: '600' }}>
+              <a href="/login" style={{ color: '#667eea', fontWeight: '600' }}>
                 로그인
               </a>
+            </div>
             </div>
           </div>
         )}

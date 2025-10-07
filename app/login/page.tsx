@@ -59,43 +59,33 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="card" style={{ padding: "2rem" }}>
-          {/* 로고 */}
-          <div className="mb-8 flex justify-center">
-            <Image
-              src="/logo.png"
-              alt="OK중고부품"
-              width={240}
-              height={96}
-              priority
-              className="w-full max-w-[240px] h-auto"
-            />
+    <main className="min-h-screen flex items-center justify-center px-4 py-8" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
+      <div className="w-full max-w-lg">
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+          {/* 헤더 영역 */}
+          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-10 text-center">
+            <div className="mb-6 flex justify-center">
+              <div className="bg-white rounded-xl px-6 py-4 shadow-lg">
+                <Image
+                  src="/logo.png"
+                  alt="OK중고부품"
+                  width={750}
+                  height={300}
+                  priority
+                  style={{ width: "100%", height: "auto", maxWidth: "300px" }}
+                />
+              </div>
+            </div>
+            <h1 className="text-white text-3xl sm:text-4xl font-bold mb-2">
+              로그인
+            </h1>
+            <p className="text-white/90 text-lg sm:text-xl">
+              공급사 계정으로 로그인하세요
+            </p>
           </div>
 
-          <h1
-            style={{
-              fontSize: "2rem",
-              fontWeight: "bold",
-              marginBottom: "0.5rem",
-              textAlign: "center",
-            }}
-          >
-            로그인
-          </h1>
-          <p
-            style={{
-              fontSize: "1.125rem",
-              color: "#6b7280",
-              marginBottom: "2rem",
-              textAlign: "center",
-            }}
-          >
-            공급사 계정으로 로그인하세요
-          </p>
-
-          {error && (
+          {/* 폼 영역 */}
+          <div className="px-8 py-10">{error && (
             <div
               className="alert alert-error"
               style={{ fontSize: "1.125rem", marginBottom: "1.5rem" }}
@@ -178,7 +168,7 @@ export default function LoginPage() {
             }}
           >
             <span style={{ color: "#6b7280" }}>계정이 없으신가요? </span>
-            <a href="/signup" style={{ color: "#3b82f6", fontWeight: "600" }}>
+            <a href="/signup" style={{ color: "#667eea", fontWeight: "600" }}>
               회원가입
             </a>
           </div>
@@ -188,6 +178,7 @@ export default function LoginPage() {
               ← 홈으로 돌아가기
             </a>
           </div>
+        </div>
         </div>
       </div>
     </main>
