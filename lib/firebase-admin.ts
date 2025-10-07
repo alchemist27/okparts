@@ -1,7 +1,7 @@
 // Server-side Firebase (lazy initialization)
-import { initializeApp, getApps } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { initializeApp, getApps, FirebaseApp } from "firebase/app";
+import { getFirestore, Firestore } from "firebase/firestore";
+import { getStorage, FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
@@ -12,11 +12,11 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
 };
 
-let app: any = null;
-let _db: any = null;
-let _storage: any = null;
+let app: FirebaseApp | null = null;
+let _db: Firestore | null = null;
+let _storage: FirebaseStorage | null = null;
 
-function getApp() {
+function getApp(): FirebaseApp {
   if (!app) {
     if (getApps().length === 0) {
       app = initializeApp(firebaseConfig);
@@ -27,20 +27,38 @@ function getApp() {
   return app;
 }
 
-export const db = new Proxy({} as any, {
+function getDb(): Firestore {
+  if (!_db) {
+    _db = getFirestore(getApp());
+  }
+  return _db;
+}
+
+function getStorageInstance(): FirebaseStorage {
+  if (!_storage) {
+    _storage = getStorage(getApp());
+  }
+  return _storage;
+}
+
+export const db = new Proxy({} as Firestore, {
   get(_target, prop) {
-    if (!_db) {
-      _db = getFirestore(getApp());
+    const instance = getDb();
+    const value = (instance as any)[prop];
+    if (typeof value === 'function') {
+      return value.bind(instance);
     }
-    return _db[prop];
+    return value;
   },
 });
 
-export const storage = new Proxy({} as any, {
+export const storage = new Proxy({} as FirebaseStorage, {
   get(_target, prop) {
-    if (!_storage) {
-      _storage = getStorage(getApp());
+    const instance = getStorageInstance();
+    const value = (instance as any)[prop];
+    if (typeof value === 'function') {
+      return value.bind(instance);
     }
-    return _storage[prop];
+    return value;
   },
 });
