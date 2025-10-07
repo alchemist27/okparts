@@ -125,7 +125,7 @@ export default function SignupPage() {
             {/* 로고 */}
             <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
               <Image
-                src="/logo.svg"
+                src="/logo.png"
                 alt="OK중고부품"
                 width={280}
                 height={112}

@@ -65,7 +65,7 @@ export default function LoginPage() {
           {/* 로고 */}
           <div className="mb-8 flex justify-center">
             <Image
-              src="/logo.svg"
+              src="/logo.png"
               alt="OK중고부품"
               width={240}
               height={96}
