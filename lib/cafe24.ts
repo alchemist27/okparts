@@ -67,14 +67,16 @@ export class Cafe24ApiClient {
     const params = new URLSearchParams({
       grant_type: "refresh_token",
       refresh_token: refreshToken,
-      client_id: clientId,
-      client_secret: clientSecret,
     });
+
+    // Basic Auth: Base64 encode of "clientId:clientSecret"
+    const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": `Basic ${credentials}`,
       },
       body: params.toString(),
     });
@@ -178,14 +180,16 @@ export async function exchangeCodeForToken(
     grant_type: "authorization_code",
     code,
     redirect_uri: redirectUri,
-    client_id: clientId,
-    client_secret: clientSecret,
   });
+
+  // Basic Auth: Base64 encode of "clientId:clientSecret"
+  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
   const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": `Basic ${credentials}`,
     },
     body: params.toString(),
   });
