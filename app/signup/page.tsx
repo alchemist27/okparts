@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type AccountType = "individual" | "business" | null;
 
@@ -121,6 +122,18 @@ export default function SignupPage() {
         {/* STEP 1: 회원 유형 선택 */}
         {step === 1 && (
           <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
+            {/* 로고 */}
+            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
+              <Image
+                src="/logo.svg"
+                alt="OK중고부품"
+                width={280}
+                height={112}
+                priority
+                className="w-full max-w-[240px] sm:max-w-[280px] h-auto"
+              />
+            </div>
+
             <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
               회원가입
             </h1>
