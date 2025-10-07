@@ -6,9 +6,11 @@ import { Cafe24ApiClient } from "@/lib/cafe24";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: productId } = await params;
+
     // 토큰 검증
     const authHeader = request.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -21,8 +23,6 @@ export async function PUT(
     if (!payload) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
-
-    const productId = params.id;
 
     // 상품 정보 조회
     const productDoc = await getDoc(doc(db, "products", productId));
