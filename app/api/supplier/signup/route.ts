@@ -125,7 +125,6 @@ export async function POST(request: NextRequest) {
       const cafe24Client = new Cafe24ApiClient(mallId, installData.accessToken);
 
       // 카페24 공급사 생성 데이터
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD 형식
       const cafe24SupplierData: any = {
         supplier_name: companyName || name,
         use_supplier: "T",
@@ -137,7 +136,8 @@ export async function POST(request: NextRequest) {
         commission: accountType === "business" ? "10.00" : "0.00",
         payment_period: "A",
         payment_method: "30",
-        settlement_start_date: today,
+        payment_start_date: 9,
+        payment_end_date: 30,
         phone: phone,
         country_code: "KOR",
         zipcode: "00000",
