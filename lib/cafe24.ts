@@ -64,17 +64,19 @@ export class Cafe24ApiClient {
   ): Promise<Cafe24TokenResponse> {
     const url = `https://${this.mallId}.cafe24api.com/api/v2/oauth/token`;
 
+    const params = new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+      client_id: clientId,
+      client_secret: clientSecret,
+    });
+
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
-        grant_type: "refresh_token",
-        refresh_token: refreshToken,
-        client_id: clientId,
-        client_secret: clientSecret,
-      }),
+      body: params.toString(),
     });
 
     if (!response.ok) {
@@ -172,18 +174,20 @@ export async function exchangeCodeForToken(
 ): Promise<Cafe24TokenResponse> {
   const url = `https://${mallId}.cafe24api.com/api/v2/oauth/token`;
 
+  const params = new URLSearchParams({
+    grant_type: "authorization_code",
+    code,
+    redirect_uri: redirectUri,
+    client_id: clientId,
+    client_secret: clientSecret,
+  });
+
   const response = await fetch(url, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: JSON.stringify({
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: redirectUri,
-      client_id: clientId,
-      client_secret: clientSecret,
-    }),
+    body: params.toString(),
   });
 
   if (!response.ok) {
