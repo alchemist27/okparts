@@ -150,7 +150,6 @@ export class Cafe24ApiClient {
     user_name: string;
     password: string;
     phone: string;
-    email: string;
   }): Promise<any> {
     console.log("[Cafe24 API] 공급사 사용자 생성 요청:", `/admin/suppliers/users`);
     return this.request("POST", `/admin/suppliers/users`, {
@@ -164,7 +163,6 @@ export class Cafe24ApiClient {
           },
         ],
         password: userData.password,
-        email: userData.email,
         phone: userData.phone,
       },
     });

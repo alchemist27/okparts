@@ -155,8 +155,7 @@ export async function POST(request: NextRequest) {
         manager_information: [{
           no: 1,
           name: name,
-          phone: phone,
-          email: email
+          phone: phone
         }]
       };
 
@@ -189,8 +188,7 @@ export async function POST(request: NextRequest) {
         user_id: userId,
         user_name: name,
         password: password, // 원본 비밀번호 사용
-        phone: phone,
-        email: `${userId}@okparts.local` // 임시 이메일 생성
+        phone: phone
       });
 
       console.log("[SIGNUP Step 7] 카페24 사용자 생성 완료, ID:", userId);
