@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exchangeCodeForToken } from "@/lib/cafe24";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-admin";
 import { doc, setDoc } from "firebase/firestore";
 
 // 카페24 OAuth 콜백 처리

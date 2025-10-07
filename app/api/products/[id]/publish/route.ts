@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-admin";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { verifyToken } from "@/lib/auth";
 import { Cafe24ApiClient } from "@/lib/cafe24";
