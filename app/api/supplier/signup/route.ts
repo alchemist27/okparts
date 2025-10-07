@@ -176,15 +176,18 @@ export async function POST(request: NextRequest) {
       // 카페24 공급사 사용자 생성
       console.log("[SIGNUP Step 7] 카페24 공급사 사용자 생성 시작");
 
+      // user_id는 소문자와 숫자만 가능 - 이메일에서 @ 와 . 제거
+      const cafe24UserId = email.toLowerCase().replace(/[@.]/g, '');
+
       const cafe24UserResponse = await cafe24Client.createSupplierUser(supplierCode, {
-        user_id: email,
+        user_id: cafe24UserId,
         user_name: name,
         password: password, // 원본 비밀번호 사용
         phone: phone,
         email: email
       });
 
-      console.log("[SIGNUP Step 7] 카페24 사용자 생성 완료, ID:", email);
+      console.log("[SIGNUP Step 7] 카페24 사용자 생성 완료, ID:", cafe24UserId);
 
       // Firestore 업데이트 (active 상태)
       console.log("[SIGNUP Step 8] Firestore 계정 활성화");
@@ -192,7 +195,7 @@ export async function POST(request: NextRequest) {
       await updateDoc(doc(firestore, "suppliers", supplierDoc.id), {
         status: "active",
         cafe24SupplierNo: supplierCode,
-        cafe24UserId: email,
+        cafe24UserId: cafe24UserId,
         updatedAt: new Date().toISOString(),
       });
 
