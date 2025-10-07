@@ -133,8 +133,10 @@ export class Cafe24ApiClient {
   async createSupplier(supplierData: any): Promise<any> {
     console.log("[Cafe24 API] 공급사 생성 요청:", `/admin/suppliers`);
     return this.request("POST", "/admin/suppliers", {
-      shop_no: 1,
-      ...supplierData,
+      request: {
+        shop_no: 1,
+        ...supplierData,
+      },
     });
   }
 
@@ -152,8 +154,10 @@ export class Cafe24ApiClient {
   }): Promise<any> {
     console.log("[Cafe24 API] 공급사 사용자 생성 요청:", `/admin/suppliers/${supplierCode}/users`);
     return this.request("POST", `/admin/suppliers/${supplierCode}/users`, {
-      shop_no: 1,
-      ...userData,
+      request: {
+        shop_no: 1,
+        ...userData,
+      },
     });
   }
 }
