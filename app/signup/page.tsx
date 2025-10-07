@@ -1,26 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 type AccountType = "individual" | "business" | null;
+
+// 랜덤 더미 데이터 생성
+function generateDummyData() {
+  const randomNum = Math.floor(Math.random() * 10000);
+  return {
+    userId: `user${randomNum}`,
+    password: "test1234",
+    passwordConfirm: "test1234",
+    name: `테스터${randomNum}`,
+    companyName: `테스트회사${randomNum}`,
+    phone: `010-${String(randomNum).padStart(4, '0')}-${String(randomNum).padStart(4, '0')}`,
+    businessNumber: `${randomNum}-${randomNum}-${randomNum}`,
+    presidentName: `대표${randomNum}`,
+  };
+}
 
 export default function SignupPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [accountType, setAccountType] = useState<AccountType>(null);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    passwordConfirm: "",
-    name: "",
-    companyName: "",
-    phone: "",
-    businessNumber: "",
-    presidentName: "",
-  });
+  const [formData, setFormData] = useState(generateDummyData());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // 페이지 로드시 더미 데이터 재생성
+  useEffect(() => {
+    setFormData(generateDummyData());
+  }, []);
 
   const handleAccountTypeSelect = (type: AccountType) => {
     setAccountType(type);
@@ -47,7 +58,7 @@ export default function SignupPage() {
         },
         body: JSON.stringify({
           accountType,
-          email: formData.email,
+          userId: formData.userId,
           password: formData.password,
           name: formData.name,
           companyName: accountType === "individual" ? formData.name : formData.companyName,
@@ -215,18 +226,24 @@ export default function SignupPage() {
             )}
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {/* 이메일 */}
+              {/* 아이디 */}
               <div>
                 <label style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', display: 'block' }}>
-                  이메일 *
+                  아이디 *
                 </label>
                 <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  type="text"
+                  value={formData.userId}
+                  onChange={(e) => setFormData({ ...formData, userId: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') })}
                   style={{ fontSize: '1.25rem', padding: '1rem' }}
+                  placeholder="영문 소문자, 숫자만 가능"
                   required
+                  pattern="[a-z0-9]+"
+                  minLength={4}
                 />
+                <p style={{ fontSize: '1rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                  영문 소문자와 숫자만 사용 가능 (최소 4자)
+                </p>
               </div>
 
               {/* 비밀번호 */}

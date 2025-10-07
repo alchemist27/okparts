@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log("[SIGNUP Step 1] 요청 데이터 수신:", {
       accountType: body.accountType,
-      email: body.email,
+      userId: body.userId,
       name: body.name,
       companyName: body.companyName,
       phone: body.phone,
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     const {
       accountType,
-      email,
+      userId,
       password,
       companyName,
       name,
@@ -33,10 +33,19 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // 유효성 검사
-    if (!email || !password || !name || !phone || !accountType) {
+    if (!userId || !password || !name || !phone || !accountType) {
       console.error("[SIGNUP] 필수 필드 누락");
       return NextResponse.json(
         { error: "모든 필수 필드를 입력해주세요" },
+        { status: 400 }
+      );
+    }
+
+    // 아이디 형식 검사 (영문 소문자, 숫자만)
+    if (!/^[a-z0-9]+$/.test(userId)) {
+      console.error("[SIGNUP] 아이디 형식 오류");
+      return NextResponse.json(
+        { error: "아이디는 영문 소문자와 숫자만 사용 가능합니다" },
         { status: 400 }
       );
     }
@@ -66,16 +75,16 @@ export async function POST(request: NextRequest) {
       firestore = getFirestore(getApps()[0]);
     }
 
-    // 이메일 중복 체크
-    console.log("[SIGNUP Step 3] 이메일 중복 체크:", email);
+    // 아이디 중복 체크
+    console.log("[SIGNUP Step 3] 아이디 중복 체크:", userId);
     const suppliersRef = collection(firestore, "suppliers");
-    const q = query(suppliersRef, where("email", "==", email));
+    const q = query(suppliersRef, where("userId", "==", userId));
     const existingSuppliers = await getDocs(q);
 
     if (!existingSuppliers.empty) {
-      console.error("[SIGNUP] 이메일 중복:", email);
+      console.error("[SIGNUP] 아이디 중복:", userId);
       return NextResponse.json(
-        { error: "이미 등록된 이메일입니다" },
+        { error: "이미 사용 중인 아이디입니다" },
         { status: 400 }
       );
     }
@@ -88,7 +97,7 @@ export async function POST(request: NextRequest) {
     console.log("[SIGNUP Step 5] Firestore에 임시 계정 생성 (status: pending)");
     const supplierData = {
       accountType,
-      email,
+      userId,
       password: hashedPassword,
       companyName: companyName || name,
       name,
@@ -176,18 +185,15 @@ export async function POST(request: NextRequest) {
       // 카페24 공급사 사용자 생성
       console.log("[SIGNUP Step 7] 카페24 공급사 사용자 생성 시작");
 
-      // user_id는 소문자와 숫자만 가능 - 이메일에서 @ 와 . 제거
-      const cafe24UserId = email.toLowerCase().replace(/[@.]/g, '');
-
       const cafe24UserResponse = await cafe24Client.createSupplierUser(supplierCode, {
-        user_id: cafe24UserId,
+        user_id: userId,
         user_name: name,
         password: password, // 원본 비밀번호 사용
         phone: phone,
-        email: email
+        email: `${userId}@okparts.local` // 임시 이메일 생성
       });
 
-      console.log("[SIGNUP Step 7] 카페24 사용자 생성 완료, ID:", cafe24UserId);
+      console.log("[SIGNUP Step 7] 카페24 사용자 생성 완료, ID:", userId);
 
       // Firestore 업데이트 (active 상태)
       console.log("[SIGNUP Step 8] Firestore 계정 활성화");
@@ -195,7 +201,7 @@ export async function POST(request: NextRequest) {
       await updateDoc(doc(firestore, "suppliers", supplierDoc.id), {
         status: "active",
         cafe24SupplierNo: supplierCode,
-        cafe24UserId: cafe24UserId,
+        cafe24UserId: userId,
         updatedAt: new Date().toISOString(),
       });
 
@@ -222,14 +228,14 @@ export async function POST(request: NextRequest) {
     console.log("[SIGNUP Step 9] JWT 토큰 생성");
     const token = generateToken({
       supplierId: supplierDoc.id,
-      email: email,
+      email: userId,
     });
 
     const response: AuthResponse = {
       token,
       supplier: {
         id: supplierDoc.id,
-        email: email,
+        email: userId,
         companyName: companyName || name,
         phone: phone,
         status: "active",
