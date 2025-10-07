@@ -8,10 +8,12 @@ type AccountType = "individual" | "business" | null;
 // 랜덤 더미 데이터 생성
 function generateDummyData() {
   const randomNum = Math.floor(Math.random() * 10000);
+  // 비밀번호: 4개 이상 연속된 문자 불가
+  const password = `pw${randomNum}ab!`;
   return {
     userId: `user${randomNum}`,
-    password: "test1234",
-    passwordConfirm: "test1234",
+    password: password,
+    passwordConfirm: password,
     name: `테스터${randomNum}`,
     companyName: `테스트회사${randomNum}`,
     phone: `010-${String(randomNum).padStart(4, '0')}-${String(randomNum).padStart(4, '0')}`,
