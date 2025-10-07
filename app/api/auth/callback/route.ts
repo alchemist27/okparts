@@ -48,6 +48,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    console.log("[OAuth Debug] Starting token exchange...");
+    console.log("[OAuth Debug] Mall ID:", mall_id);
+    console.log("[OAuth Debug] Client ID:", clientId);
+    console.log("[OAuth Debug] Redirect URI:", redirectUri);
+    console.log("[OAuth Debug] Code length:", code.length);
+    console.log("[OAuth Debug] Client Secret exists:", !!clientSecret);
+
     // Authorization code를 access token으로 교환
     const tokenResponse = await exchangeCodeForToken(
       mall_id,
@@ -56,6 +63,8 @@ export async function GET(request: NextRequest) {
       clientSecret,
       redirectUri
     );
+
+    console.log("[OAuth Debug] Token exchange successful!");
 
     // Firestore에 토큰 저장
     const installDoc = doc(db, "installs", mall_id);

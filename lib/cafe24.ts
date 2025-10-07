@@ -185,6 +185,10 @@ export async function exchangeCodeForToken(
   // Basic Auth: Base64 encode of "clientId:clientSecret"
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
+  console.log("[Cafe24 Debug] Token exchange URL:", url);
+  console.log("[Cafe24 Debug] Request body:", params.toString());
+  console.log("[Cafe24 Debug] Auth header (first 20 chars):", `Basic ${credentials}`.substring(0, 26) + "...");
+
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -194,10 +198,15 @@ export async function exchangeCodeForToken(
     body: params.toString(),
   });
 
+  console.log("[Cafe24 Debug] Response status:", response.status);
+
   if (!response.ok) {
     const errorText = await response.text();
+    console.error("[Cafe24 Debug] Error response:", errorText);
     throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log("[Cafe24 Debug] Token received, mall_id:", result.mall_id);
+  return result;
 }
