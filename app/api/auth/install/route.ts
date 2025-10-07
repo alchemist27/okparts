@@ -17,8 +17,7 @@ export async function GET(request: NextRequest) {
   // state: CSRF 방지용 랜덤 문자열
   const state = Math.random().toString(36).substring(7);
 
-  // state를 세션에 저장 (실제로는 Redis나 DB에 저장해야 함)
-  // 여기서는 간단히 쿠키에 저장
+  // state와 mall_id를 쿠키에 저장
   const oauthUrl = getOAuthUrl(mallId, clientId, redirectUri, state);
 
   const response = NextResponse.redirect(oauthUrl);
@@ -28,6 +27,14 @@ export async function GET(request: NextRequest) {
     sameSite: "lax",
     maxAge: 600, // 10분
   });
+  response.cookies.set("mall_id", mallId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 600, // 10분
+  });
+
+  console.log("[Install Debug] Redirecting to OAuth with mall_id:", mallId);
 
   return response;
 }

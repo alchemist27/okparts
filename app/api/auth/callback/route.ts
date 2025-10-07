@@ -26,8 +26,15 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // mall_id는 환경 변수에서 가져옴
-  const mall_id = process.env.NEXT_PUBLIC_CAFE24_MALL_ID;
+  // mall_id를 여러 방법으로 시도
+  let mall_id = searchParams.get("mall_id") ||
+                request.cookies.get("mall_id")?.value ||
+                process.env.NEXT_PUBLIC_CAFE24_MALL_ID;
+
+  console.log("[OAuth Debug] Mall ID from query:", searchParams.get("mall_id"));
+  console.log("[OAuth Debug] Mall ID from cookie:", request.cookies.get("mall_id")?.value);
+  console.log("[OAuth Debug] Mall ID from env:", process.env.NEXT_PUBLIC_CAFE24_MALL_ID);
+  console.log("[OAuth Debug] Final mall_id:", mall_id);
 
   if (!mall_id) {
     return NextResponse.json(
