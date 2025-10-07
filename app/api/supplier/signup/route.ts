@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       presidentName: presidentName || null,
       commission: accountType === "business" ? "10.00" : "0.00",
       status: "pending",
-      cafe24SupplierCode: null,
+      cafe24SupplierNo: null,
       cafe24UserId: null,
       createdAt: new Date().toISOString(),
     };
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
       const { updateDoc } = await import("firebase/firestore");
       await updateDoc(doc(firestore, "suppliers", supplierDoc.id), {
         status: "active",
-        cafe24SupplierCode: supplierCode,
+        cafe24SupplierNo: supplierCode,
         cafe24UserId: email,
         updatedAt: new Date().toISOString(),
       });
@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
         companyName: companyName || name,
         phone: phone,
         status: "active",
-        cafe24SupplierCode: supplierData.cafe24SupplierCode,
+        cafe24SupplierNo: supplierCode,
         createdAt: supplierData.createdAt,
       },
     };
