@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exchangeCodeForToken } from "@/lib/cafe24";
-import { db } from "@/lib/firebase-admin";
 import { doc, setDoc } from "firebase/firestore";
 
 // 카페24 OAuth 콜백 처리
@@ -74,7 +73,25 @@ export async function GET(request: NextRequest) {
     console.log("[OAuth Debug] Token exchange successful!");
 
     // Firestore에 토큰 저장
-    const installDoc = doc(db, "installs", mall_id);
+    const { getFirestore } = await import("firebase/firestore");
+    const { initializeApp, getApps } = await import("firebase/app");
+
+    let firestore;
+    if (getApps().length === 0) {
+      const app = initializeApp({
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+      });
+      firestore = getFirestore(app);
+    } else {
+      firestore = getFirestore(getApps()[0]);
+    }
+
+    const installDoc = doc(firestore, "installs", mall_id);
     await setDoc(installDoc, {
       mallId: mall_id,
       accessToken: tokenResponse.access_token,
