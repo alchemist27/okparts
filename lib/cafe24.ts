@@ -148,11 +148,9 @@ export function getOAuthUrl(
   state: string
 ): string {
   const scope = [
+    "mall.read_category",
     "mall.read_product",
     "mall.write_product",
-    "mall.read_supplier",
-    "mall.write_supplier",
-    "mall.read_category",
   ].join(",");
 
   return `https://${mallId}.cafe24api.com/api/v2/oauth/authorize?response_type=code&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(
