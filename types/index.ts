@@ -16,10 +16,13 @@ export interface Product {
   supplierId: string;
   cafe24ProductNo?: string;
   name: string;
-  price: number;
+  price?: number; // 기존 price (하위 호환)
+  sellingPrice?: number; // 판매가
+  supplyPrice?: number; // 공급가
   status: "draft" | "pending" | "active" | "rejected";
-  stockQty: number;
-  categoryIds: string[];
+  stockQty?: number;
+  categoryNo?: number;
+  categoryIds?: string[];
   images: {
     cover: string;
     gallery: string[];
