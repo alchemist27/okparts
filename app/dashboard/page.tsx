@@ -99,12 +99,18 @@ export default function DashboardPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* CTA Section */}
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={() => router.push("/products")}
+            className="flex-1 px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-medium transition-colors"
+          >
+            📦 상품 조회
+          </button>
           <button
             onClick={() => router.push("/products/new")}
-            className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
           >
-            + 새 상품 등록
+            + 상품 등록
           </button>
         </div>
 

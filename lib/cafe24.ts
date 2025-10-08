@@ -142,8 +142,17 @@ export class Cafe24ApiClient {
   }
 
   // Categories
-  async getCategories(): Promise<any> {
-    return this.request("GET", "/admin/categories");
+  async getCategories(params?: {
+    limit?: number;
+    offset?: number;
+  }): Promise<any> {
+    const queryParams = new URLSearchParams({
+      shop_no: "1",
+      ...(params?.limit && { limit: params.limit.toString() }),
+      ...(params?.offset && { offset: params.offset.toString() }),
+    });
+
+    return this.request("GET", `/admin/categories?${queryParams}`);
   }
 
   // Products
