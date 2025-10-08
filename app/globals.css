@@ -26,15 +26,22 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  line-height: 1.6;
+  line-height: 1.7;
+  font-size: 18px; /* 50-60대 가독성을 위한 기본 글자 크기 상향 */
   color: var(--gray-900);
   background: var(--gray-50);
 }
 
 /* Typography */
-h1 { font-size: 1.875rem; font-weight: 700; line-height: 1.2; }
-h2 { font-size: 1.5rem; font-weight: 600; line-height: 1.3; }
-h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.4; }
+h1 { font-size: 2.25rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; }
+h2 { font-size: 1.75rem; font-weight: 700; line-height: 1.2; }
+h3 { font-size: 1.375rem; font-weight: 700; line-height: 1.3; }
+
+/* 링크 포커스 가시성 강화 */
+a:focus {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+}
 
 /* Layout */
 .container {
@@ -174,8 +181,8 @@ label {
 button,
 .btn {
   display: inline-block;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+  padding: 0.875rem 1.5rem;
+  font-size: 1.125rem; /* 버튼 텍스트 확대 */
   font-weight: 500;
   text-align: center;
   text-decoration: none;
@@ -210,6 +217,15 @@ button:disabled {
   opacity: 0.6;
 }
 
+/* 버튼 변형 - 크기/외곽선/블록 */
+.btn-xl { padding: 1rem 2rem; font-size: 1.375rem; font-weight: 700; }
+.btn-lg { padding: 0.875rem 1.75rem; font-size: 1.25rem; font-weight: 700; }
+.btn-block { display: block; width: 100%; }
+.btn-outline { background: transparent; border: 2px solid white; color: white; }
+.btn-outline.gray { border-color: var(--gray-300); color: var(--gray-900); }
+.btn-outline.primary { border-color: var(--primary); color: var(--primary); background: white; }
+.btn-outline.primary:hover { background: var(--primary); color: white; }
+
 /* Card */
 .card {
   background: white;
@@ -223,6 +239,20 @@ header {
   background: white;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   padding: 1rem 0;
+}
+
+/* Skip link (키보드 사용자 접근성) */
+.skip-link {
+  position: absolute;
+  left: 0;
+  top: -40px;
+  background: var(--primary);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  z-index: 1000;
+}
+.skip-link:focus {
+  top: 0;
 }
 
 /* Alert */
@@ -328,11 +358,28 @@ header {
 
 /* Responsive */
 @media (max-width: 768px) {
-  h1 { font-size: 1.5rem; }
-  h2 { font-size: 1.25rem; }
-  h3 { font-size: 1.125rem; }
+  h1 { font-size: 1.875rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
 
   .container {
     padding: 0 0.75rem;
   }
+}
+
+/* 홈 히어로 섹션 */
+.hero {
+  background: linear-gradient(135deg, #2563eb 0%, #764ba2 100%);
+}
+.hero-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+}
+.hero-title { color: var(--gray-900); }
+.hero-subtitle { color: var(--gray-600); font-size: 1.25rem; }
+.btn-row { display: flex; gap: 1rem; justify-content: center; }
+@media (max-width: 640px) {
+  .btn-row { flex-direction: column; }
 }

@@ -24,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
+        <a href="#main" className="skip-link">본문 바로가기</a>
         <RegisterServiceWorker />
         {children}
       </body>
