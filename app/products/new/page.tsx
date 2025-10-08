@@ -122,57 +122,58 @@ export default function NewProductPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen hero">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center">
-          <button
-            onClick={() => router.back()}
-            className="mr-4 text-gray-600 hover:text-gray-900"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+      <div className="container py-6">
+        <div className="hero-card">
+          <div className="flex items-center mb-6">
+            <button
+              onClick={() => router.back()}
+              className="btn btn-outline primary mr-4"
+              style={{ padding: '0.75rem 1rem', fontSize: '1.125rem' }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-          <h1 className="text-xl font-bold text-gray-900">새 상품 등록</h1>
-        </div>
-      </header>
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                style={{ display: 'inline-block' }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              뒤로가기
+            </button>
+            <h1 className="hero-title" style={{ fontSize: '1.875rem', margin: 0 }}>새 상품 등록</h1>
+          </div>
 
-      {/* Form */}
-      <div className="max-w-3xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-lg shadow p-6">
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="alert alert-error mb-6" style={{ fontSize: '1.25rem' }}>
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {/* 대표 이미지 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
                 대표 이미지 *
               </label>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center gap-4">
                 {coverImagePreview ? (
                   <img
                     src={coverImagePreview}
                     alt="Preview"
-                    className="w-32 h-32 object-cover rounded border"
+                    className="image-preview"
+                    style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }}
                   />
                 ) : (
-                  <div className="w-32 h-32 bg-gray-100 rounded border flex items-center justify-center">
-                    <span className="text-gray-400 text-sm">No Image</span>
+                  <div className="image-placeholder" style={{ width: '150px', height: '150px', borderRadius: '12px', border: '2px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9fafb' }}>
+                    <span style={{ color: '#6b7280', fontSize: '1rem' }}>이미지 없음</span>
                   </div>
                 )}
                 <div className="flex-1">
@@ -181,9 +182,9 @@ export default function NewProductPage() {
                     accept="image/*"
                     capture="environment"
                     onChange={handleImageChange}
-                    className="w-full text-sm"
+                    style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', width: '100%' }}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p style={{ fontSize: '1.125rem', color: '#6b7280', marginTop: '0.5rem' }}>
                     모바일에서는 카메라로 직접 촬영할 수 있습니다
                   </p>
                 </div>
@@ -192,57 +193,53 @@ export default function NewProductPage() {
 
             {/* 상품명 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
                 상품명 *
               </label>
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px', width: '100%' }}
                 required
               />
             </div>
 
             {/* 판매가 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
                 판매가 *
               </label>
               <input
                 type="number"
                 value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px', width: '100%' }}
                 required
                 min="0"
+                placeholder="원"
               />
             </div>
 
             {/* 재고 수량 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
                 재고 수량 *
               </label>
               <input
                 type="number"
                 value={formData.stockQty}
-                onChange={(e) =>
-                  setFormData({ ...formData, stockQty: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => setFormData({ ...formData, stockQty: e.target.value })}
+                style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px', width: '100%' }}
                 required
                 min="0"
+                placeholder="개"
               />
             </div>
 
             {/* 카테고리 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
                 카테고리
               </label>
               <select
@@ -253,7 +250,7 @@ export default function NewProductPage() {
                     categoryIds: e.target.value ? [e.target.value] : [],
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px', width: '100%' }}
               >
                 <option value="">선택안함</option>
                 {categories.map((category) => (
@@ -266,16 +263,14 @@ export default function NewProductPage() {
 
             {/* 상품 설명 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
                 간단 설명
               </label>
               <textarea
                 value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px', width: '100%', resize: 'vertical' }}
                 placeholder="상품에 대한 간단한 설명을 입력하세요"
               />
             </div>
@@ -284,7 +279,8 @@ export default function NewProductPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+              className="btn btn-primary btn-xl btn-block"
+              style={{ marginTop: '1.5rem' }}
             >
               {loading ? "등록 중..." : "상품 등록"}
             </button>
