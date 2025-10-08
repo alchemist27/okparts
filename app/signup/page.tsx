@@ -105,33 +105,6 @@ export default function SignupPage() {
           />
         </div>
 
-        {/* 진행 단계 표시 */}
-        <div className="text-center mb-6">
-          <div className="flex justify-center items-center gap-3 text-lg font-bold">
-            <div style={{
-              color: step >= 1 ? 'white' : 'rgba(255,255,255,0.5)',
-              background: step >= 1 ? 'rgba(255,255,255,0.2)' : 'transparent',
-              padding: '0.5rem 1rem',
-              borderRadius: '1.5rem',
-              border: step >= 1 ? '2px solid white' : '2px solid rgba(255,255,255,0.3)',
-              fontSize: '1.125rem'
-            }}>
-              1. 회원유형
-            </div>
-            <div style={{ color: 'white', fontSize: '1.25rem' }}>→</div>
-            <div style={{
-              color: step >= 2 ? 'white' : 'rgba(255,255,255,0.5)',
-              background: step >= 2 ? 'rgba(255,255,255,0.2)' : 'transparent',
-              padding: '0.5rem 1rem',
-              borderRadius: '1.5rem',
-              border: step >= 2 ? '2px solid white' : '2px solid rgba(255,255,255,0.3)',
-              fontSize: '1.125rem'
-            }}>
-              2. 정보입력
-            </div>
-          </div>
-        </div>
-
         {/* STEP 1: 회원 유형 선택 */}
         {step === 1 && (
           <div className="hero-card" style={{ padding: '2rem' }}>
@@ -144,19 +117,21 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={() => handleAccountTypeSelect("individual")}
-                className="btn btn-outline gray btn-xl"
+                className="btn btn-xl"
                 style={{
                   textAlign: 'center',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  padding: '1.5rem 1rem'
+                  padding: '1.5rem 1rem',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  border: 'none'
                 }}
               >
-                <div style={{ fontSize: '2rem' }}>👤</div>
                 <div style={{ fontSize: '1.375rem', fontWeight: '700' }}>개인회원</div>
-                <div style={{ fontSize: '1.125rem', color: '#6b7280', fontWeight: 'normal' }}>
+                <div style={{ fontSize: '1.125rem', color: 'rgba(255,255,255,0.9)', fontWeight: 'normal' }}>
                   수수료 없음 (0%)
                 </div>
               </button>
@@ -164,19 +139,21 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={() => handleAccountTypeSelect("business")}
-                className="btn btn-outline gray btn-xl"
+                className="btn btn-xl"
                 style={{
                   textAlign: 'center',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  padding: '1.5rem 1rem'
+                  padding: '1.5rem 1rem',
+                  backgroundColor: '#f59e0b',
+                  color: 'white',
+                  border: 'none'
                 }}
               >
-                <div style={{ fontSize: '2rem' }}>🏢</div>
                 <div style={{ fontSize: '1.375rem', fontWeight: '700' }}>사업자회원</div>
-                <div style={{ fontSize: '1.125rem', color: '#6b7280', fontWeight: 'normal' }}>
+                <div style={{ fontSize: '1.125rem', color: 'rgba(255,255,255,0.9)', fontWeight: 'normal' }}>
                   수수료 10%
                 </div>
               </button>
