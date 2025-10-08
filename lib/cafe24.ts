@@ -15,10 +15,27 @@ export interface Cafe24TokenResponse {
 export class Cafe24ApiClient {
   private mallId: string;
   private accessToken: string;
+  private refreshToken?: string;
+  private clientId?: string;
+  private clientSecret?: string;
+  private onTokenRefresh?: (newAccessToken: string, newRefreshToken: string, expiresAt: string) => Promise<void>;
 
-  constructor(mallId: string, accessToken: string) {
+  constructor(
+    mallId: string,
+    accessToken: string,
+    options?: {
+      refreshToken?: string;
+      clientId?: string;
+      clientSecret?: string;
+      onTokenRefresh?: (newAccessToken: string, newRefreshToken: string, expiresAt: string) => Promise<void>;
+    }
+  ) {
     this.mallId = mallId;
     this.accessToken = accessToken;
+    this.refreshToken = options?.refreshToken;
+    this.clientId = options?.clientId;
+    this.clientSecret = options?.clientSecret;
+    this.onTokenRefresh = options?.onTokenRefresh;
   }
 
   private getBaseUrl(): string {
@@ -28,7 +45,8 @@ export class Cafe24ApiClient {
   private async request<T>(
     method: string,
     endpoint: string,
-    data?: any
+    data?: any,
+    isRetry: boolean = false
   ): Promise<T> {
     const url = `${this.getBaseUrl()}${endpoint}`;
 
@@ -48,6 +66,41 @@ export class Cafe24ApiClient {
 
     if (!response.ok) {
       const errorText = await response.text();
+
+      // 401 에러이고 아직 재시도하지 않았으며 리프레시 토큰이 있는 경우
+      if (response.status === 401 && !isRetry && this.refreshToken && this.clientId && this.clientSecret) {
+        console.log("[Cafe24 API] Access token expired, attempting refresh...");
+
+        try {
+          const tokenData = await this.refreshAccessToken(
+            this.clientId,
+            this.clientSecret,
+            this.refreshToken
+          );
+
+          // 새 토큰으로 업데이트
+          this.accessToken = tokenData.access_token;
+          this.refreshToken = tokenData.refresh_token;
+
+          console.log("[Cafe24 API] Token refreshed successfully");
+
+          // 콜백 함수가 있으면 Firestore 업데이트
+          if (this.onTokenRefresh) {
+            await this.onTokenRefresh(
+              tokenData.access_token,
+              tokenData.refresh_token,
+              tokenData.expires_at
+            );
+          }
+
+          // 새 토큰으로 재시도
+          return this.request<T>(method, endpoint, data, true);
+        } catch (refreshError) {
+          console.error("[Cafe24 API] Token refresh failed:", refreshError);
+          throw new Error(`Token refresh failed: ${refreshError}`);
+        }
+      }
+
       throw new Error(
         `Cafe24 API Error: ${response.status} - ${errorText}`
       );

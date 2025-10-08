@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebase-admin";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { Cafe24ApiClient } from "@/lib/cafe24";
 
 export async function GET(request: NextRequest) {
@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const installDoc = await getDoc(doc(db, "installs", mallId));
+    const installDocRef = doc(db, "installs", mallId);
+    const installDoc = await getDoc(installDocRef);
 
     if (!installDoc.exists()) {
       return NextResponse.json(
@@ -25,7 +26,24 @@ export async function GET(request: NextRequest) {
     }
 
     const installData = installDoc.data();
-    const client = new Cafe24ApiClient(mallId, installData.accessToken);
+
+    // 토큰 갱신 시 Firestore 업데이트 콜백
+    const onTokenRefresh = async (newAccessToken: string, newRefreshToken: string, expiresAt: string) => {
+      await updateDoc(installDocRef, {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        expiresAt: expiresAt,
+        updatedAt: new Date().toISOString(),
+      });
+      console.log("[Categories] Firestore 토큰 업데이트 완료");
+    };
+
+    const client = new Cafe24ApiClient(mallId, installData.accessToken, {
+      refreshToken: installData.refreshToken,
+      clientId: process.env.CAFE24_CLIENT_ID,
+      clientSecret: process.env.CAFE24_CLIENT_SECRET,
+      onTokenRefresh,
+    });
 
     // 카테고리 조회
     const categoriesResponse = await client.getCategories();

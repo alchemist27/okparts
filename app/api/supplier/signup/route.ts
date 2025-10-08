@@ -125,13 +125,32 @@ export async function POST(request: NextRequest) {
         throw new Error("Mall ID not configured");
       }
 
-      const installDoc = await getDoc(doc(firestore, "installs", mallId));
+      const installDocRef = doc(firestore, "installs", mallId);
+      const installDoc = await getDoc(installDocRef);
       if (!installDoc.exists()) {
         throw new Error("카페24 앱이 설치되지 않았습니다");
       }
 
       const installData = installDoc.data();
-      const cafe24Client = new Cafe24ApiClient(mallId, installData.accessToken);
+
+      // 토큰 갱신 시 Firestore 업데이트 콜백
+      const onTokenRefresh = async (newAccessToken: string, newRefreshToken: string, expiresAt: string) => {
+        const { updateDoc } = await import("firebase/firestore");
+        await updateDoc(installDocRef, {
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+          expiresAt: expiresAt,
+          updatedAt: new Date().toISOString(),
+        });
+        console.log("[SIGNUP] Firestore 토큰 업데이트 완료");
+      };
+
+      const cafe24Client = new Cafe24ApiClient(mallId, installData.accessToken, {
+        refreshToken: installData.refreshToken,
+        clientId: process.env.CAFE24_CLIENT_ID,
+        clientSecret: process.env.CAFE24_CLIENT_SECRET,
+        onTokenRefresh,
+      });
 
       // 카페24 공급사 생성 데이터
       const cafe24SupplierData: any = {

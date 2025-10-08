@@ -234,7 +234,7 @@ export default function SignupPage() {
                   minLength={6}
                 />
                 <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                  최소 6자 이상
+                  영문/숫자/특수문자 조합 최소 6자 이상
                 </p>
               </div>
 
