@@ -388,6 +388,13 @@ header {
     0 0 0 1px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(59, 130, 246, 0.1);
 }
+
+/* 데스크탑에서 hero-card 최소 너비 설정 */
+@media (min-width: 768px) {
+  .hero-card {
+    min-width: 450px;
+  }
+}
 .hero-title { color: var(--gray-900); }
 .hero-subtitle { color: var(--gray-600); font-size: 1.25rem; }
 .btn-row { display: flex; gap: 1rem; justify-content: center; }
