@@ -59,58 +59,58 @@ export default function LoginPage() {
   };
 
   return (
-    <main id="main" className="min-h-screen hero flex items-center justify-center">
+    <main id="main" className="min-h-screen hero flex items-center justify-center py-4">
       <div className="container">
-        <div className="hero-card">
-          {/* 로고 */}
-          <div className="text-center mb-6">
-            <Image
-              src="/logo.png"
-              alt="OK중고부품"
-              width={750}
-              height={300}
-              priority
-              style={{ width: "100%", height: "auto", maxWidth: "350px" }}
-            />
-          </div>
+        {/* 로고 - 최상단 배치 */}
+        <div className="text-center mb-6">
+          <Image
+            src="/logo.png"
+            alt="OK중고부품"
+            width={750}
+            height={300}
+            priority
+            style={{ width: "100%", height: "auto", maxWidth: "280px" }}
+          />
+        </div>
 
+        <div className="hero-card" style={{ padding: '2rem' }}>
           {/* 제목 */}
-          <h1 className="text-center hero-title mb-2">로그인</h1>
-          <p className="text-center hero-subtitle mb-6">공급사 계정으로 로그인하세요</p>
+          <h1 className="text-center hero-title mb-2" style={{ fontSize: '1.75rem' }}>로그인</h1>
+          <p className="text-center hero-subtitle mb-4" style={{ fontSize: '1.125rem' }}>공급사 계정으로 로그인하세요</p>
 
           {/* 에러 메시지 */}
           {error && (
-            <div className="alert alert-error mb-6" style={{ fontSize: "1.25rem" }}>
+            <div className="alert alert-error mb-4" style={{ fontSize: '1.125rem' }}>
               {error}
             </div>
           )}
 
           {/* 로그인 폼 */}
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             {/* 아이디 */}
             <div>
-              <label style={{ fontSize: "1.375rem", fontWeight: "700", marginBottom: "0.75rem", display: "block" }}>
+              <label style={{ fontSize: "1.25rem", fontWeight: "700", marginBottom: "0.5rem", display: "block" }}>
                 아이디
               </label>
               <input
                 type="text"
                 value={formData.userId}
                 onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
-                style={{ fontSize: "1.375rem", padding: "1.25rem", borderRadius: "12px" }}
+                style={{ fontSize: "1.25rem", padding: "1rem", borderRadius: "12px" }}
                 required
               />
             </div>
 
             {/* 비밀번호 */}
             <div>
-              <label style={{ fontSize: "1.375rem", fontWeight: "700", marginBottom: "0.75rem", display: "block" }}>
+              <label style={{ fontSize: "1.25rem", fontWeight: "700", marginBottom: "0.5rem", display: "block" }}>
                 비밀번호
               </label>
               <input
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                style={{ fontSize: "1.375rem", padding: "1.25rem", borderRadius: "12px" }}
+                style={{ fontSize: "1.25rem", padding: "1rem", borderRadius: "12px" }}
                 required
               />
             </div>
@@ -120,15 +120,15 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
               className="btn btn-primary btn-xl btn-block"
-              style={{ marginTop: "1rem" }}
+              style={{ marginTop: "0.75rem" }}
             >
               {loading ? "로그인 중..." : "로그인"}
             </button>
           </form>
 
           {/* 하단 링크 */}
-          <div className="text-center" style={{ marginTop: "2rem", fontSize: "1.25rem" }}>
-            <div style={{ marginBottom: "1rem" }}>
+          <div className="text-center" style={{ marginTop: "1.5rem", fontSize: "1.125rem" }}>
+            <div style={{ marginBottom: "0.75rem" }}>
               <span style={{ color: "#6b7280" }}>계정이 없으신가요? </span>
               <a href="/signup" style={{ color: "var(--primary)", fontWeight: "700" }}>
                 회원가입

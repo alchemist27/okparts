@@ -91,29 +91,41 @@ export default function SignupPage() {
   };
 
   return (
-    <main id="main" className="min-h-screen hero flex items-center justify-center py-8">
+    <main id="main" className="min-h-screen hero flex items-center justify-center py-4">
       <div className="container">
+        {/* 로고 - 최상단 배치 */}
+        <div className="text-center mb-4">
+          <Image
+            src="/logo.png"
+            alt="OK중고부품"
+            width={750}
+            height={300}
+            priority
+            style={{ width: "100%", height: "auto", maxWidth: "280px" }}
+          />
+        </div>
+
         {/* 진행 단계 표시 */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center items-center gap-4 text-xl font-bold">
+        <div className="text-center mb-6">
+          <div className="flex justify-center items-center gap-3 text-lg font-bold">
             <div style={{
               color: step >= 1 ? 'white' : 'rgba(255,255,255,0.5)',
               background: step >= 1 ? 'rgba(255,255,255,0.2)' : 'transparent',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '2rem',
+              padding: '0.5rem 1rem',
+              borderRadius: '1.5rem',
               border: step >= 1 ? '2px solid white' : '2px solid rgba(255,255,255,0.3)',
-              fontSize: '1.25rem'
+              fontSize: '1.125rem'
             }}>
               1. 회원유형
             </div>
-            <div style={{ color: 'white', fontSize: '1.5rem' }}>→</div>
+            <div style={{ color: 'white', fontSize: '1.25rem' }}>→</div>
             <div style={{
               color: step >= 2 ? 'white' : 'rgba(255,255,255,0.5)',
               background: step >= 2 ? 'rgba(255,255,255,0.2)' : 'transparent',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '2rem',
+              padding: '0.5rem 1rem',
+              borderRadius: '1.5rem',
               border: step >= 2 ? '2px solid white' : '2px solid rgba(255,255,255,0.3)',
-              fontSize: '1.25rem'
+              fontSize: '1.125rem'
             }}>
               2. 정보입력
             </div>
@@ -122,22 +134,10 @@ export default function SignupPage() {
 
         {/* STEP 1: 회원 유형 선택 */}
         {step === 1 && (
-          <div className="hero-card">
-            {/* 로고 */}
-            <div className="text-center mb-6">
-              <Image
-                src="/logo.png"
-                alt="OK중고부품"
-                width={750}
-                height={300}
-                priority
-                style={{ width: "100%", height: "auto", maxWidth: "350px" }}
-              />
-            </div>
-
+          <div className="hero-card" style={{ padding: '2rem' }}>
             {/* 제목 */}
-            <h1 className="text-center hero-title mb-2">회원가입</h1>
-            <p className="text-center hero-subtitle mb-8">회원 유형을 선택해주세요</p>
+            <h1 className="text-center hero-title mb-2" style={{ fontSize: '1.75rem' }}>회원가입</h1>
+            <p className="text-center hero-subtitle mb-6" style={{ fontSize: '1.125rem' }}>회원 유형을 선택해주세요</p>
 
             {/* 회원 유형 선택 버튼 */}
             <div className="btn-mobile-stack">
@@ -150,13 +150,13 @@ export default function SignupPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '2rem 1.5rem'
+                  gap: '0.5rem',
+                  padding: '1.5rem 1rem'
                 }}
               >
-                <div style={{ fontSize: '2.5rem' }}>👤</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>개인회원</div>
-                <div style={{ fontSize: '1.25rem', color: '#6b7280', fontWeight: 'normal' }}>
+                <div style={{ fontSize: '2rem' }}>👤</div>
+                <div style={{ fontSize: '1.375rem', fontWeight: '700' }}>개인회원</div>
+                <div style={{ fontSize: '1.125rem', color: '#6b7280', fontWeight: 'normal' }}>
                   수수료 없음 (0%)
                 </div>
               </button>
@@ -170,20 +170,20 @@ export default function SignupPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '2rem 1.5rem'
+                  gap: '0.5rem',
+                  padding: '1.5rem 1rem'
                 }}
               >
-                <div style={{ fontSize: '2.5rem' }}>🏢</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>사업자회원</div>
-                <div style={{ fontSize: '1.25rem', color: '#6b7280', fontWeight: 'normal' }}>
+                <div style={{ fontSize: '2rem' }}>🏢</div>
+                <div style={{ fontSize: '1.375rem', fontWeight: '700' }}>사업자회원</div>
+                <div style={{ fontSize: '1.125rem', color: '#6b7280', fontWeight: 'normal' }}>
                   수수료 10%
                 </div>
               </button>
             </div>
 
             {/* 하단 링크 */}
-            <div className="text-center" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>
+            <div className="text-center" style={{ marginTop: '1.5rem', fontSize: '1.125rem' }}>
               <a href="/" style={{ color: '#6b7280', fontWeight: '600' }}>
                 ← 홈으로 돌아가기
               </a>
@@ -193,84 +193,84 @@ export default function SignupPage() {
 
         {/* STEP 2: 정보 입력 */}
         {step === 2 && (
-          <div className="hero-card">
+          <div className="hero-card" style={{ padding: '1.5rem', maxHeight: '85vh', overflowY: 'auto' }}>
             {/* 헤더 */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
               <button
                 type="button"
                 onClick={() => setStep(1)}
                 className="btn btn-outline primary"
-                style={{ padding: '0.75rem 1.5rem', fontSize: '1.125rem' }}
+                style={{ padding: '0.5rem 1rem', fontSize: '1rem' }}
               >
                 ← 이전
               </button>
-              <h2 className="hero-title text-center" style={{ fontSize: '1.75rem' }}>
+              <h2 className="hero-title text-center" style={{ fontSize: '1.5rem', margin: 0 }}>
                 {accountType === "individual" ? "개인회원" : "사업자회원"} 정보 입력
               </h2>
-              <div style={{ width: '100px' }}></div>
+              <div style={{ width: '80px' }}></div>
             </div>
 
-            <p className="text-center hero-subtitle mb-6">
+            <p className="text-center hero-subtitle mb-4" style={{ fontSize: '1rem' }}>
               * 표시는 필수 입력 항목입니다
             </p>
 
             {/* 에러 메시지 */}
             {error && (
-              <div className="alert alert-error mb-6" style={{ fontSize: '1.25rem' }}>
+              <div className="alert alert-error mb-4" style={{ fontSize: '1rem' }}>
                 {error}
               </div>
             )}
 
             {/* 폼 */}
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {/* 아이디 */}
               <div>
-                <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
+                <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   아이디 *
                 </label>
                 <input
                   type="text"
                   value={formData.userId}
                   onChange={(e) => setFormData({ ...formData, userId: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') })}
-                  style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px' }}
+                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
                   placeholder="영문 소문자, 숫자만 가능"
                   required
                   pattern="[a-z0-9]+"
                   minLength={4}
                 />
-                <p style={{ fontSize: '1.125rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
                   영문 소문자와 숫자만 사용 가능 (최소 4자)
                 </p>
               </div>
 
               {/* 비밀번호 */}
               <div>
-                <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
+                <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   비밀번호 *
                 </label>
                 <input
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px' }}
+                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
                   required
                   minLength={6}
                 />
-                <p style={{ fontSize: '1.125rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
                   최소 6자 이상
                 </p>
               </div>
 
               {/* 비밀번호 확인 */}
               <div>
-                <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
+                <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   비밀번호 확인 *
                 </label>
                 <input
                   type="password"
                   value={formData.passwordConfirm}
                   onChange={(e) => setFormData({ ...formData, passwordConfirm: e.target.value })}
-                  style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px' }}
+                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
                   required
                 />
               </div>
@@ -278,41 +278,41 @@ export default function SignupPage() {
               {/* 개인회원: 회원명 / 사업자회원: 상호명 */}
               {accountType === "individual" ? (
                 <div>
-                  <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
+                  <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                     회원명 *
                   </label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px' }}
+                    style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
                     required
                   />
                 </div>
               ) : (
                 <>
                   <div>
-                    <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
+                    <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                       상호명 *
                     </label>
                     <input
                       type="text"
                       value={formData.companyName}
                       onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                      style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px' }}
+                      style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
                       required
                     />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
+                    <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                       담당자명 *
                     </label>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px' }}
+                      style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
                       required
                     />
                   </div>
@@ -321,7 +321,7 @@ export default function SignupPage() {
 
               {/* 휴대폰 */}
               <div>
-                <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
+                <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   휴대폰 *
                 </label>
                 <input
@@ -329,7 +329,7 @@ export default function SignupPage() {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="010-1234-5678"
-                  style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px' }}
+                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
                   required
                 />
               </div>
@@ -337,14 +337,14 @@ export default function SignupPage() {
               {/* 사업자회원 추가 정보 */}
               {accountType === "business" && (
                 <>
-                  <div style={{ borderTop: '2px solid #e5e7eb', paddingTop: '1.5rem', marginTop: '1rem' }}>
-                    <h3 style={{ fontSize: '1.75rem', fontWeight: '700', marginBottom: '1rem', textAlign: 'center' }}>
+                  <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.75rem', textAlign: 'center' }}>
                       사업자 정보
                     </h3>
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
+                    <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                       사업자등록번호 *
                     </label>
                     <input
@@ -352,20 +352,20 @@ export default function SignupPage() {
                       value={formData.businessNumber}
                       onChange={(e) => setFormData({ ...formData, businessNumber: e.target.value })}
                       placeholder="123-45-67890"
-                      style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px' }}
+                      style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
                       required
                     />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '1.375rem', fontWeight: '700', marginBottom: '0.75rem', display: 'block' }}>
+                    <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                       대표자명 *
                     </label>
                     <input
                       type="text"
                       value={formData.presidentName}
                       onChange={(e) => setFormData({ ...formData, presidentName: e.target.value })}
-                      style={{ fontSize: '1.375rem', padding: '1.25rem', borderRadius: '12px' }}
+                      style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
                       required
                     />
                   </div>
@@ -377,15 +377,15 @@ export default function SignupPage() {
                 type="submit"
                 disabled={loading}
                 className="btn btn-primary btn-xl btn-block"
-                style={{ marginTop: '1.5rem' }}
+                style={{ marginTop: '1rem' }}
               >
                 {loading ? "처리 중..." : "회원가입 완료"}
               </button>
             </form>
 
             {/* 하단 링크 */}
-            <div className="text-center" style={{ marginTop: '2rem', fontSize: '1.25rem' }}>
-              <div style={{ marginBottom: '1rem' }}>
+            <div className="text-center" style={{ marginTop: '1rem', fontSize: '1rem' }}>
+              <div style={{ marginBottom: '0.5rem' }}>
                 <span style={{ color: '#6b7280' }}>이미 계정이 있으신가요? </span>
                 <a href="/login" style={{ color: 'var(--primary)', fontWeight: '700' }}>
                   로그인
