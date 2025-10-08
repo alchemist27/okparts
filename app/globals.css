@@ -387,6 +387,37 @@ header {
 .hero-title { color: var(--gray-900); }
 .hero-subtitle { color: var(--gray-600); font-size: 1.25rem; }
 .btn-row { display: flex; gap: 1rem; justify-content: center; }
+
+/* 모바일 우선 버튼 레이아웃 */
+.btn-mobile-stack { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 1rem; 
+  width: 100%;
+}
+
+.btn-mobile-stack .btn {
+  width: 100%;
+  min-height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 데스크탑에서는 좌우 배치 */
+@media (min-width: 768px) {
+  .btn-mobile-stack { 
+    flex-direction: row; 
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .btn-mobile-stack .btn {
+    flex: 1;
+    min-height: 3.5rem;
+  }
+}
+
 @media (max-width: 640px) {
   .btn-row { flex-direction: column; }
 }

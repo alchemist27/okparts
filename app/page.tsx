@@ -16,8 +16,8 @@ export default function Home() {
             />
           </div>
           <h1 className="text-center mb-2">공급사 상품 등록 시스템</h1>
-          <p className="text-center hero-subtitle mb-6">쉽고 빠른 상품 관리 솔루션</p>
-          <div className="btn-row">
+          <p className="text-center hero-subtitle mb-8">쉽고 빠른 상품 관리 솔루션</p>
+          <div className="btn-mobile-stack">
             <a href="/login" className="btn btn-primary btn-xl">로그인</a>
             <a href="/signup" className="btn btn-outline primary btn-xl">회원가입</a>
           </div>

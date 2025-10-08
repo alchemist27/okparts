@@ -140,23 +140,23 @@ export default function SignupPage() {
             <p className="text-center hero-subtitle mb-8">회원 유형을 선택해주세요</p>
 
             {/* 회원 유형 선택 버튼 */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '500px', margin: '0 auto' }}>
+            <div className="btn-mobile-stack">
               <button
                 type="button"
                 onClick={() => handleAccountTypeSelect("individual")}
                 className="btn btn-outline gray btn-xl"
                 style={{
-                  padding: '2rem',
                   textAlign: 'center',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '0.5rem'
+                  gap: '0.75rem',
+                  padding: '2rem 1.5rem'
                 }}
               >
-                <div style={{ fontSize: '2rem' }}>👤</div>
+                <div style={{ fontSize: '2.5rem' }}>👤</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>개인회원</div>
-                <div style={{ fontSize: '1.125rem', color: '#6b7280', fontWeight: 'normal' }}>
+                <div style={{ fontSize: '1.25rem', color: '#6b7280', fontWeight: 'normal' }}>
                   수수료 없음 (0%)
                 </div>
               </button>
@@ -166,17 +166,17 @@ export default function SignupPage() {
                 onClick={() => handleAccountTypeSelect("business")}
                 className="btn btn-outline gray btn-xl"
                 style={{
-                  padding: '2rem',
                   textAlign: 'center',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '0.5rem'
+                  gap: '0.75rem',
+                  padding: '2rem 1.5rem'
                 }}
               >
-                <div style={{ fontSize: '2rem' }}>🏢</div>
+                <div style={{ fontSize: '2.5rem' }}>🏢</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>사업자회원</div>
-                <div style={{ fontSize: '1.125rem', color: '#6b7280', fontWeight: 'normal' }}>
+                <div style={{ fontSize: '1.25rem', color: '#6b7280', fontWeight: 'normal' }}>
                   수수료 10%
                 </div>
               </button>
