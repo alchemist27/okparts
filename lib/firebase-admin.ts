@@ -12,24 +12,15 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
 };
 
-let app: FirebaseApp | null = null;
-let _db: Firestore | null = null;
-let _storage: FirebaseStorage | null = null;
-
 function initializeFirebase() {
-  if (!app) {
-    if (getApps().length === 0) {
-      app = initializeApp(firebaseConfig);
-    } else {
-      app = getApps()[0];
-    }
-    _db = getFirestore(app);
-    _storage = getStorage(app);
+  if (getApps().length === 0) {
+    return initializeApp(firebaseConfig);
   }
+  return getApps()[0];
 }
 
 // 즉시 초기화
-initializeFirebase();
+const app = initializeFirebase();
 
-export const db = _db as Firestore;
-export const storage = _storage as FirebaseStorage;
+export const db = getFirestore(app);
+export const storage = getStorage(app);
