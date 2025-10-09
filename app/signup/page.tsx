@@ -170,16 +170,16 @@ export default function SignupPage() {
 
         {/* STEP 2: 정보 입력 */}
         {step === 2 && (
-          <div className="hero-card" style={{ padding: '1.5rem', maxHeight: '85vh', overflowY: 'auto' }}>
+          <div className="hero-card" style={{ padding: '1.5rem', overflowY: 'auto' }}>
             {/* 헤더 */}
             <div className="flex items-center justify-between mb-4">
               <button
                 type="button"
                 onClick={() => setStep(1)}
                 className="btn btn-outline primary"
-                style={{ padding: '0.5rem 1rem', fontSize: '1rem' }}
+                style={{ padding: '0.5rem 1rem', fontSize: '0.7rem' }}
               >
-                ← 이전
+                이전
               </button>
               <h2 className="hero-title text-center" style={{ fontSize: '1.5rem', margin: 0 }}>
                 {accountType === "individual" ? "개인회원" : "사업자회원"} 정보 입력
@@ -356,7 +356,7 @@ export default function SignupPage() {
                 className="btn btn-primary btn-xl btn-block"
                 style={{ marginTop: '1rem' }}
               >
-                {loading ? "처리 중..." : "회원가입 완료"}
+                {loading ? "처리 중..." : "회원가입"}
               </button>
             </form>
 
