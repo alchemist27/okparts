@@ -172,19 +172,18 @@ export default function SignupPage() {
         {step === 2 && (
           <div className="hero-card" style={{ padding: '1.5rem', overflowY: 'auto' }}>
             {/* 헤더 */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center mb-4" style={{ gap: '1rem' }}>
               <button
                 type="button"
                 onClick={() => setStep(1)}
                 className="btn btn-outline primary"
-                style={{ padding: '0.5rem 1rem', fontSize: '0.7rem' }}
+                style={{ padding: '0.5rem 1rem', fontSize: '1rem', flexShrink: 0 }}
               >
-                이전
+                ← 이전
               </button>
-              <h2 className="hero-title text-center" style={{ fontSize: '1.5rem', margin: 0 }}>
+              <h2 className="hero-title" style={{ fontSize: '1.5rem', margin: 0, flex: 1, textAlign: 'center' }}>
                 {accountType === "individual" ? "개인회원" : "사업자회원"} 정보 입력
               </h2>
-              <div style={{ width: '80px' }}></div>
             </div>
 
             <p className="text-center hero-subtitle mb-4" style={{ fontSize: '1rem' }}>
