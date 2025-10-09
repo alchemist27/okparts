@@ -11,6 +11,10 @@ function generateDummyData() {
   const randomNum = Math.floor(Math.random() * 10000);
   // 비밀번호: 4개 이상 연속된 문자 불가
   const password = `pw${randomNum}ab!`;
+  // 사업자등록번호: 000-00-00000 형식
+  const bizNum1 = String(randomNum).padStart(3, '1').substring(0, 3);
+  const bizNum2 = String(randomNum).padStart(2, '0').substring(0, 2);
+  const bizNum3 = String(randomNum).padStart(5, '0');
   return {
     userId: `user${randomNum}`,
     password: password,
@@ -18,7 +22,7 @@ function generateDummyData() {
     name: `테스터${randomNum}`,
     companyName: `테스트회사${randomNum}`,
     phone: `010-${String(randomNum).padStart(4, '0')}-${String(randomNum).padStart(4, '0')}`,
-    businessNumber: `${randomNum}-${randomNum}-${randomNum}`,
+    businessNumber: `${bizNum1}-${bizNum2}-${bizNum3}`,
     presidentName: `대표${randomNum}`,
   };
 }
@@ -327,7 +331,7 @@ export default function SignupPage() {
                       type="text"
                       value={formData.businessNumber}
                       onChange={(e) => setFormData({ ...formData, businessNumber: e.target.value })}
-                      placeholder="123-45-67890"
+                      placeholder="000-00-00000"
                       style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
                       required
                     />
