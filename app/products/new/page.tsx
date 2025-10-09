@@ -361,17 +361,43 @@ export default function NewProductPage() {
                     style={{ width: '100%', maxWidth: '300px', height: 'auto', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }}
                   />
                 )}
+
+                {/* 숨겨진 파일 입력 필드 */}
                 <input
+                  id="albumInput"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  style={{ display: 'none' }}
+                />
+                <input
+                  id="cameraInput"
                   type="file"
                   accept="image/*"
                   capture="environment"
                   onChange={handleImageChange}
-                  required
-                  style={{ fontSize: '1.125rem', padding: '0.75rem', borderRadius: '12px', width: '100%', border: '2px solid #e5e7eb' }}
+                  style={{ display: 'none' }}
                 />
-                <p style={{ fontSize: '0.875rem', color: '#6b7280', textAlign: 'center', margin: 0 }}>
-                  모바일에서는 카메라로 직접 촬영 가능
-                </p>
+
+                {/* 버튼 2개 */}
+                <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('albumInput')?.click()}
+                    className="btn btn-outline primary"
+                    style={{ flex: 1, fontSize: '1.125rem', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  >
+                    <span style={{ fontSize: '1.25rem' }}>📁</span> 앨범에서 선택
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('cameraInput')?.click()}
+                    className="btn btn-outline primary"
+                    style={{ flex: 1, fontSize: '1.125rem', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  >
+                    <span style={{ fontSize: '1.25rem' }}>📷</span> 카메라 촬영
+                  </button>
+                </div>
               </div>
             </div>
 

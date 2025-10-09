@@ -45,16 +45,33 @@ export async function GET(request: NextRequest) {
       onTokenRefresh,
     });
 
-    // 카테고리 조회 (모든 카테고리 가져오기)
-    const categoriesResponse = await client.getCategories({ limit: 500 });
+    // 카테고리 조회 (페이지네이션으로 모든 카테고리 가져오기)
+    let allCategories: any[] = [];
+    let offset = 0;
+    const limit = 100;
+    let hasMore = true;
+
+    while (hasMore) {
+      const categoriesResponse = await client.getCategories({ limit, offset });
+      const fetchedCategories = categoriesResponse.categories || [];
+
+      allCategories = allCategories.concat(fetchedCategories);
+
+      // 더 가져올 카테고리가 있는지 확인
+      if (fetchedCategories.length < limit) {
+        hasMore = false;
+      } else {
+        offset += limit;
+      }
+    }
 
     // 카테고리 데이터 변환 (원본 필드명 유지)
-    const categories = categoriesResponse.categories?.map((cat: any) => ({
+    const categories = allCategories.map((cat: any) => ({
       category_no: cat.category_no,
       category_name: cat.category_name,
       parent_category_no: cat.parent_category_no,
       category_depth: cat.category_depth,
-    })) || [];
+    }));
 
     console.log(`[Categories] Loaded ${categories.length} categories`);
 
