@@ -355,11 +355,38 @@ export default function NewProductPage() {
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
                 {coverImagePreview && (
-                  <img
-                    src={coverImagePreview}
-                    alt="Preview"
-                    style={{ width: '100%', maxWidth: '300px', height: 'auto', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }}
-                  />
+                  <div style={{ width: '100%', position: 'relative' }}>
+                    <img
+                      src={coverImagePreview}
+                      alt="Preview"
+                      style={{ width: '100%', height: 'auto', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCoverImage(null);
+                        setCoverImagePreview('');
+                        const albumInput = document.getElementById('albumInput') as HTMLInputElement;
+                        const cameraInput = document.getElementById('cameraInput') as HTMLInputElement;
+                        if (albumInput) albumInput.value = '';
+                        if (cameraInput) cameraInput.value = '';
+                      }}
+                      className="btn btn-outline"
+                      style={{
+                        position: 'absolute',
+                        top: '0.5rem',
+                        right: '0.5rem',
+                        backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                        color: 'white',
+                        padding: '0.5rem 1rem',
+                        fontSize: '1rem',
+                        fontWeight: '700',
+                        border: 'none'
+                      }}
+                    >
+                      🗑️ 삭제
+                    </button>
+                  </div>
                 )}
 
                 {/* 숨겨진 파일 입력 필드 */}
@@ -379,13 +406,13 @@ export default function NewProductPage() {
                   style={{ display: 'none' }}
                 />
 
-                {/* 버튼 2개 */}
-                <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
+                {/* 버튼 2개 (상하 배치) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
                   <button
                     type="button"
                     onClick={() => document.getElementById('albumInput')?.click()}
                     className="btn btn-outline primary"
-                    style={{ flex: 1, fontSize: '1.125rem', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                    style={{ fontSize: '1.125rem', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
                   >
                     <span style={{ fontSize: '1.25rem' }}>📁</span> 앨범에서 선택
                   </button>
@@ -393,7 +420,7 @@ export default function NewProductPage() {
                     type="button"
                     onClick={() => document.getElementById('cameraInput')?.click()}
                     className="btn btn-outline primary"
-                    style={{ flex: 1, fontSize: '1.125rem', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                    style={{ fontSize: '1.125rem', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
                   >
                     <span style={{ fontSize: '1.25rem' }}>📷</span> 카메라 촬영
                   </button>
