@@ -4,7 +4,7 @@ import { getOAuthUrl } from "@/lib/cafe24";
 // 대표운영자가 앱을 설치할 때 OAuth 플로우 시작
 export async function GET(request: NextRequest) {
   const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID;
-  const clientId = process.env.NEXT_PUBLIC_CAFE24_CLIENT_ID;
+  const clientId = process.env.CAFE24_CLIENT_ID;
   const redirectUri = process.env.NEXT_PUBLIC_CAFE24_REDIRECT_URI;
 
   if (!mallId || !clientId || !redirectUri) {

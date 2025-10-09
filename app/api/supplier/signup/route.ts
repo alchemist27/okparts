@@ -180,7 +180,8 @@ export async function POST(request: NextRequest) {
 
       // 사업자회원만 추가 정보
       if (accountType === "business") {
-        cafe24SupplierData.company_registration_no = businessNumber;
+        // 사업자등록번호에서 하이픈 제거 (10자리 숫자만)
+        cafe24SupplierData.company_registration_no = businessNumber.replace(/-/g, '');
         cafe24SupplierData.company_name = companyName;
         cafe24SupplierData.president_name = presidentName;
       }

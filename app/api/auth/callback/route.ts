@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const clientId = process.env.NEXT_PUBLIC_CAFE24_CLIENT_ID;
+  const clientId = process.env.CAFE24_CLIENT_ID;
   const clientSecret = process.env.CAFE24_CLIENT_SECRET;
   const redirectUri = process.env.NEXT_PUBLIC_CAFE24_REDIRECT_URI;
 

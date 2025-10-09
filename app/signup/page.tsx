@@ -331,6 +331,9 @@ export default function SignupPage() {
                       style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
                       required
                     />
+                    <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                      10자리 숫자 (하이픈 포함 가능)
+                    </p>
                   </div>
 
                   <div>
