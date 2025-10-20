@@ -260,9 +260,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 카페24 CDN URL을 상대 경로로 변환
+    // 예: https://ecimg.cafe24img.com/pg.../okayparts/web/upload/... → /web/upload/...
+    const convertToRelativePath = (url: string): string => {
+      const match = url.match(/\/web\/upload\/.+$/);
+      return match ? match[0] : url;
+    };
+
+    const relativeImagePaths = cafe24ImageUrls.map(convertToRelativePath);
+
+    console.log("[Product Create] 상대 경로로 변환:", {
+      original: cafe24ImageUrls[0],
+      relative: relativeImagePaths[0]
+    });
+
     // 카페24 상품 생성 (이미지 포함)
     try {
-      console.log("[Product Create] Step 4: 카페24 상품 생성");
+      console.log("[Product Create] Step 4: 카페24 상품 생성 시작");
 
       const { Cafe24ApiClient } = await import("@/lib/cafe24");
 
@@ -287,20 +301,6 @@ export async function POST(request: NextRequest) {
         onTokenRefresh,
       });
 
-      // 카페24 CDN URL을 상대 경로로 변환
-      // 예: https://ecimg.cafe24img.com/pg.../okayparts/web/upload/... → /web/upload/...
-      const convertToRelativePath = (url: string): string => {
-        const match = url.match(/\/web\/upload\/.+$/);
-        return match ? match[0] : url;
-      };
-
-      const relativeImagePaths = cafe24ImageUrls.map(convertToRelativePath);
-
-      console.log("[Product Create] 상대 경로로 변환:", {
-        original: cafe24ImageUrls[0],
-        relative: relativeImagePaths[0]
-      });
-
       // 카페24 상품 데이터 (이미지 포함)
       const cafe24ProductData: any = {
         product_name: productName,
@@ -320,7 +320,17 @@ export async function POST(request: NextRequest) {
         additional_image: relativeImagePaths, // 추가 이미지 (상대 경로)
       };
 
+      console.log("[Product Create] 카페24 상품 데이터:", {
+        product_name: cafe24ProductData.product_name,
+        price: cafe24ProductData.price,
+        detail_image: cafe24ProductData.detail_image,
+        additional_image_count: cafe24ProductData.additional_image.length,
+        additional_images: cafe24ProductData.additional_image
+      });
+
+      console.log("[Product Create] 카페24 API 호출 중...");
       const cafe24Response = await cafe24Client.createProduct(cafe24ProductData);
+      console.log("[Product Create] 카페24 API 응답 받음");
 
       const cafe24ProductNo =
         cafe24Response.product?.product_no ||
