@@ -196,6 +196,7 @@ export class Cafe24ApiClient {
     return this.request("PUT", `/admin/products/${productNo}`, {
       request: {
         shop_no: 1,
+        image_upload_type: "A", // A = Additional (외부 URL 사용)
         detail_image: imageUrl, // 상세 페이지 이미지
         additional_image: [imageUrl], // 리스트 썸네일 이미지
       },
@@ -207,8 +208,9 @@ export class Cafe24ApiClient {
     return this.request("PUT", `/admin/products/${productNo}`, {
       request: {
         shop_no: 1,
+        image_upload_type: "A", // A = Additional (외부 URL 사용)
         detail_image: imageUrls[0], // 첫 번째 이미지를 상세 페이지 이미지로
-        additional_image: imageUrls, // 모든 이미지를 리스트/갤러리로
+        additional_image: imageUrls, // 모든 이미지를 추가 이미지로
       },
     });
   }

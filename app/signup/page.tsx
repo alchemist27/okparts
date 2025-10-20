@@ -117,8 +117,8 @@ export default function SignupPage() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("supplier", JSON.stringify(data.supplier));
 
-      // 대시보드로 이동
-      router.push("/dashboard");
+      // 상품등록 페이지로 이동
+      router.push("/products/new");
     } catch (err: any) {
       setError(err.message);
     } finally {

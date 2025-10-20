@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = "okparts-v2"; // 버전 업데이트로 강제 갱신
+const CACHE_NAME = "okparts-v3"; // 버전 업데이트로 강제 갱신
 const urlsToCache = [
   "/",
   "/login",
@@ -38,13 +38,17 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // POST, PUT, DELETE 등 변경 요청은 캐싱하지 않고 바로 통과
+  if (event.request.method !== "GET") {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
         // GET 요청이고 응답이 유효하면 캐시에 저장
-        // POST/PUT/DELETE 등은 캐싱하지 않음
         if (
-          event.request.method === "GET" &&
           response &&
           response.status === 200 &&
           response.type === "basic"
@@ -57,10 +61,8 @@ self.addEventListener("fetch", (event) => {
         return response;
       })
       .catch(() => {
-        // 네트워크 실패 시 캐시에서 반환 (GET 요청만)
-        if (event.request.method === "GET") {
-          return caches.match(event.request);
-        }
+        // 네트워크 실패 시 캐시에서 반환
+        return caches.match(event.request);
       })
   );
 });
