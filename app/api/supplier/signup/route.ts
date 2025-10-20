@@ -180,22 +180,13 @@ export async function POST(request: NextRequest) {
 
       // 사업자회원만 추가 정보
       if (accountType === "business") {
-        // 사업자등록번호에서 하이픈 및 공백 제거 (10자리 숫자만)
-        const cleanedBusinessNumber = businessNumber.replace(/[-\s]/g, '').trim();
-
+        // 사업자등록번호를 하이픈 포함 형식으로 전송 (예: 118-81-20586)
         console.log("[SIGNUP Step 6-0] 사업자등록번호 처리:", {
-          original: businessNumber,
-          cleaned: cleanedBusinessNumber,
-          length: cleanedBusinessNumber.length,
-          isNumericOnly: /^\d+$/.test(cleanedBusinessNumber)
+          businessNumber: businessNumber,
+          format: "하이픈 포함 형식으로 전송"
         });
 
-        // 10자리 숫자인지 확인
-        if (cleanedBusinessNumber.length !== 10 || !/^\d{10}$/.test(cleanedBusinessNumber)) {
-          throw new Error(`사업자등록번호는 10자리 숫자여야 합니다 (입력값: ${cleanedBusinessNumber}, 길이: ${cleanedBusinessNumber.length})`);
-        }
-
-        cafe24SupplierData.company_registration_no = cleanedBusinessNumber;
+        cafe24SupplierData.company_registration_no = businessNumber;
         cafe24SupplierData.company_name = companyName;
         cafe24SupplierData.president_name = presidentName;
       }

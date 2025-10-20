@@ -55,6 +55,26 @@ export default function SignupPage() {
       return;
     }
 
+    // 사업자회원 유효성 검사
+    if (accountType === "business") {
+      // 사업자등록번호 형식 검사 (XXX-XX-XXXXX)
+      const businessNumberPattern = /^\d{3}-\d{2}-\d{5}$/;
+      if (!businessNumberPattern.test(formData.businessNumber)) {
+        setError("사업자등록번호는 XXX-XX-XXXXX 형식으로 입력해주세요 (예: 118-81-20586)");
+        return;
+      }
+
+      if (!formData.companyName || formData.companyName.trim() === "") {
+        setError("회사명을 입력해주세요");
+        return;
+      }
+
+      if (!formData.presidentName || formData.presidentName.trim() === "") {
+        setError("대표자명을 입력해주세요");
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
@@ -78,7 +98,19 @@ export default function SignupPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "회원가입에 실패했습니다");
+        // 서버 에러 메시지를 더 자세히 표시
+        let errorMessage = data.error || "회원가입에 실패했습니다";
+
+        // 카페24 연동 실패 시 상세 정보 추가
+        if (data.details) {
+          errorMessage += `\n\n상세 정보: ${data.details}`;
+        }
+
+        if (data.note) {
+          errorMessage += `\n\n${data.note}`;
+        }
+
+        throw new Error(errorMessage);
       }
 
       // 토큰 저장
@@ -196,7 +228,11 @@ export default function SignupPage() {
 
             {/* 에러 메시지 */}
             {error && (
-              <div className="alert alert-error mb-4" style={{ fontSize: '1rem' }}>
+              <div className="alert alert-error mb-4" style={{
+                fontSize: '1rem',
+                whiteSpace: 'pre-line',
+                lineHeight: '1.6'
+              }}>
                 {error}
               </div>
             )}
@@ -331,12 +367,12 @@ export default function SignupPage() {
                       type="text"
                       value={formData.businessNumber}
                       onChange={(e) => setFormData({ ...formData, businessNumber: e.target.value })}
-                      placeholder="000-00-00000"
+                      placeholder="118-81-20586"
                       style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
                       required
                     />
                     <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                      10자리 숫자 (하이픈 포함 가능)
+                      XXX-XX-XXXXX 형식으로 입력해주세요 (예: 118-81-20586)
                     </p>
                   </div>
 
