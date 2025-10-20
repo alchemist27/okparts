@@ -160,7 +160,11 @@ export async function POST(request: NextRequest) {
         selling: selling || "T",
         product_condition: "U", // 중고
         supplier_code: supplierCode,
-        category: [{ category_no: categoryNo }],
+        add_category_no: [{
+          category_no: parseInt(categoryNo.toString()),
+          recommend: "F",
+          new: "F"
+        }],
       };
 
       const cafe24Response = await cafe24Client.createProduct(cafe24ProductData);

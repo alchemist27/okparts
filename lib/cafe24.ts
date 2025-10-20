@@ -191,6 +191,28 @@ export class Cafe24ApiClient {
     return this.request("GET", `/admin/products?${queryParams}`);
   }
 
+  // Product Images (단일 이미지)
+  async updateProductImage(productNo: string, imageUrl: string): Promise<any> {
+    return this.request("PUT", `/admin/products/${productNo}`, {
+      request: {
+        shop_no: 1,
+        detail_image: imageUrl, // 상세 페이지 이미지
+        additional_image: [imageUrl], // 리스트 썸네일 이미지
+      },
+    });
+  }
+
+  // Product Images (여러 이미지)
+  async updateProductImages(productNo: string, imageUrls: string[]): Promise<any> {
+    return this.request("PUT", `/admin/products/${productNo}`, {
+      request: {
+        shop_no: 1,
+        detail_image: imageUrls[0], // 첫 번째 이미지를 상세 페이지 이미지로
+        additional_image: imageUrls, // 모든 이미지를 리스트/갤러리로
+      },
+    });
+  }
+
   // Suppliers
   async createSupplier(supplierData: any): Promise<any> {
     console.log("[Cafe24 API] 공급사 생성 요청:", `/admin/suppliers`);

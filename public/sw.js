@@ -41,8 +41,14 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // 응답이 유효하면 캐시에 저장
-        if (response && response.status === 200 && response.type === "basic") {
+        // GET 요청이고 응답이 유효하면 캐시에 저장
+        // POST/PUT/DELETE 등은 캐싱하지 않음
+        if (
+          event.request.method === "GET" &&
+          response &&
+          response.status === 200 &&
+          response.type === "basic"
+        ) {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
@@ -51,8 +57,10 @@ self.addEventListener("fetch", (event) => {
         return response;
       })
       .catch(() => {
-        // 네트워크 실패 시 캐시에서 반환
-        return caches.match(event.request);
+        // 네트워크 실패 시 캐시에서 반환 (GET 요청만)
+        if (event.request.method === "GET") {
+          return caches.match(event.request);
+        }
       })
   );
 });

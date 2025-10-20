@@ -29,9 +29,10 @@ export default function NewProductPage() {
     display: "T" as "T" | "F",
     selling: "T" as "T" | "F",
   });
-  const [coverImage, setCoverImage] = useState<File | null>(null);
-  const [coverImagePreview, setCoverImagePreview] = useState<string>("");
+  const [images, setImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -119,15 +120,56 @@ export default function NewProductPage() {
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setCoverImage(file);
+    const files = Array.from(e.target.files || []);
+
+    if (files.length === 0) return;
+
+    // 파일 타입 검증
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    const invalidFiles = files.filter(file => !allowedTypes.includes(file.type));
+
+    if (invalidFiles.length > 0) {
+      alert('jpg, jpeg, png, gif 파일만 업로드 가능합니다.');
+      e.target.value = '';
+      return;
+    }
+
+    // 파일 크기 검증 (5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const oversizedFiles = files.filter(file => file.size > maxSize);
+
+    if (oversizedFiles.length > 0) {
+      alert('각 이미지는 5MB 이하여야 합니다.\n서버에서 자동으로 압축됩니다.');
+    }
+
+    // 최대 3장 제한
+    const remainingSlots = 3 - images.length;
+    const filesToAdd = files.slice(0, remainingSlots);
+
+    if (files.length > remainingSlots) {
+      alert(`최대 3장까지 업로드 가능합니다. ${remainingSlots}장만 추가됩니다.`);
+    }
+
+    // 새 이미지들을 기존 배열에 추가
+    const newImages = [...images, ...filesToAdd];
+    setImages(newImages);
+
+    // 프리뷰 생성
+    filesToAdd.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setCoverImagePreview(reader.result as string);
+        setImagePreviews(prev => [...prev, reader.result as string]);
       };
       reader.readAsDataURL(file);
-    }
+    });
+
+    // input 초기화
+    e.target.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -135,6 +177,7 @@ export default function NewProductPage() {
     setError("");
     setSuccess(false);
     setLoading(true);
+    setLoadingStep("상품 정보 확인 중...");
 
     try {
       const token = localStorage.getItem("token");
@@ -144,9 +187,10 @@ export default function NewProductPage() {
       }
 
       // 필수 항목 검증
-      if (!coverImage) {
-        setError("상품 이미지는 필수입니다");
+      if (images.length === 0) {
+        setError("상품 이미지는 최소 1장 이상 필요합니다");
         setLoading(false);
+        setLoadingStep("");
         return;
       }
 
@@ -156,10 +200,12 @@ export default function NewProductPage() {
       if (!selectedCategory) {
         setError("카테고리를 선택해주세요");
         setLoading(false);
+        setLoadingStep("");
         return;
       }
 
       // 1. 상품 기본 정보 등록 (Firestore draft + Cafe24 동시 생성)
+      setLoadingStep("상품 정보 등록 중...");
       const productResponse = await fetch("/api/products", {
         method: "POST",
         headers: {
@@ -183,9 +229,12 @@ export default function NewProductPage() {
 
       const { productId } = await productResponse.json();
 
-      // 2. 이미지 업로드 (필수)
+      // 2. 이미지 업로드 (여러 장)
+      setLoadingStep(`이미지 업로드 및 압축 중... (${images.length}장)`);
       const imageFormData = new FormData();
-      imageFormData.append("image", coverImage);
+      images.forEach((image) => {
+        imageFormData.append("images", image);
+      });
 
       const imageResponse = await fetch(`/api/products/${productId}/images`, {
         method: "POST",
@@ -200,12 +249,35 @@ export default function NewProductPage() {
       }
 
       // 성공 메시지 표시
+      setLoadingStep("등록 완료!");
       setSuccess(true);
 
-      // 1.5초 후 대시보드로 이동
+      // 2초 후 페이지 초기화
       setTimeout(() => {
-        router.push("/dashboard");
-      }, 1500);
+        // 폼 초기화
+        setFormData({
+          productName: "",
+          sellingPrice: "",
+          supplyPrice: "",
+          mainCategory: "",
+          subCategory: "",
+          detailCategory: "",
+          display: "T" as "T" | "F",
+          selling: "T" as "T" | "F",
+        });
+        setImages([]);
+        setImagePreviews([]);
+        setSubCategories([]);
+        setDetailCategories([]);
+        setSuccess(false);
+        setLoadingStep("");
+
+        // 스크롤 맨 위로
+        window.scrollTo(0, 0);
+
+        // 알림 표시
+        alert("상품이 성공적으로 등록되었습니다!\n새로운 상품을 등록하세요.");
+      }, 2000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -215,6 +287,56 @@ export default function NewProductPage() {
 
   return (
     <main id="main" className="min-h-screen hero flex items-center justify-center py-4">
+      {/* 로딩 오버레이 */}
+      {loading && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          gap: '1.5rem'
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            border: '8px solid #f3f4f6',
+            borderTop: '8px solid var(--primary)',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <div style={{
+            color: 'white',
+            fontSize: '1.5rem',
+            fontWeight: '700',
+            textAlign: 'center'
+          }}>
+            {loadingStep}
+          </div>
+          {success && (
+            <div style={{
+              color: '#10b981',
+              fontSize: '3rem'
+            }}>
+              ✓
+            </div>
+          )}
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+
       <div className="container">
         {/* 로고 - 최상단 배치 */}
         <div className="text-center mb-6">
@@ -231,13 +353,6 @@ export default function NewProductPage() {
         <div className="hero-card" style={{ padding: '2rem' }}>
           {/* 제목 */}
           <div className="mb-6">
-            <button
-              onClick={() => router.back()}
-              className="btn btn-outline primary mb-4"
-              style={{ padding: '0.75rem 1.25rem', fontSize: '1.125rem' }}
-            >
-              ← 뒤로가기
-            </button>
             <h1 className="text-center hero-title mb-2" style={{ fontSize: '1.75rem' }}>새 상품 등록</h1>
             <p className="text-center hero-subtitle" style={{ fontSize: '1.125rem' }}>상품 정보를 입력하세요</p>
           </div>
@@ -249,9 +364,9 @@ export default function NewProductPage() {
             </div>
           )}
 
-          {success && (
+          {success && !loading && (
             <div className="alert alert-success mb-4" style={{ fontSize: '1.125rem', backgroundColor: '#d1fae5', color: '#065f46', padding: '1rem', borderRadius: '12px', border: '2px solid #34d399' }}>
-              ✅ 상품이 성공적으로 등록되었습니다!
+              ✅ 상품이 성공적으로 등록되었습니다! 페이지가 곧 초기화됩니다...
             </div>
           )}
 
@@ -365,97 +480,126 @@ export default function NewProductPage() {
             {/* 상품 이미지 */}
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                상품 이미지 *
+                상품 이미지 * (최대 3장)
               </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
-                {coverImagePreview && (
-                  <div style={{ width: '100%', position: 'relative' }}>
-                    <img
-                      src={coverImagePreview}
-                      alt="Preview"
-                      style={{ width: '100%', height: 'auto', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCoverImage(null);
-                        setCoverImagePreview('');
-                        const albumInput = document.getElementById('albumInput') as HTMLInputElement;
-                        const cameraInput = document.getElementById('cameraInput') as HTMLInputElement;
-                        if (albumInput) albumInput.value = '';
-                        if (cameraInput) cameraInput.value = '';
-                      }}
-                      className="btn btn-outline"
-                      style={{
-                        position: 'absolute',
-                        top: '0.5rem',
-                        right: '0.5rem',
-                        backgroundColor: 'rgba(239, 68, 68, 0.9)',
-                        color: 'white',
-                        padding: '0.5rem 1rem',
-                        fontSize: '1rem',
-                        fontWeight: '700',
-                        border: 'none'
-                      }}
-                    >
-                      🗑️ 삭제
-                    </button>
-                  </div>
-                )}
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.75rem' }}>
+                • 파일 형식: jpg, jpeg, png, gif<br/>
+                • 파일 크기: 5MB 이하 (자동 압축됨)<br/>
+                • 첫 번째 이미지가 대표 이미지로 표시됩니다
+              </p>
 
-                {/* 숨겨진 파일 입력 필드 */}
-                <input
-                  id="albumInput"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  style={{ display: 'none' }}
-                />
-                <input
-                  id="cameraInput"
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleImageChange}
-                  style={{ display: 'none' }}
-                />
+              {/* 이미지 프리뷰 그리드 */}
+              {imagePreviews.length > 0 && (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: imagePreviews.length === 1 ? '1fr' : 'repeat(2, 1fr)',
+                  gap: '1rem',
+                  marginBottom: '1rem'
+                }}>
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} style={{ position: 'relative' }}>
+                      <img
+                        src={preview}
+                        alt={`Preview ${index + 1}`}
+                        style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="btn btn-outline"
+                        style={{
+                          position: 'absolute',
+                          top: '0.5rem',
+                          right: '0.5rem',
+                          backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                          color: 'white',
+                          padding: '0.5rem 0.75rem',
+                          fontSize: '0.875rem',
+                          fontWeight: '700',
+                          border: 'none',
+                          minWidth: 'auto'
+                        }}
+                      >
+                        🗑️
+                      </button>
+                      {index === 0 && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: '0.5rem',
+                          left: '0.5rem',
+                          backgroundColor: 'rgba(59, 130, 246, 0.9)',
+                          color: 'white',
+                          padding: '0.25rem 0.75rem',
+                          fontSize: '0.875rem',
+                          fontWeight: '700',
+                          borderRadius: '6px'
+                        }}>
+                          대표 이미지
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
-                {/* PC: 파일 선택 버튼 / 모바일: 앨범, 카메라 버튼 */}
-                {isMobile ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', width: '100%' }}>
-                    <button
-                      type="button"
-                      onClick={() => document.getElementById('albumInput')?.click()}
-                      className="btn btn-outline primary"
-                      style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700' }}
-                    >
-                      <span style={{ fontSize: '2.5rem' }}>📁</span>
-                      <span>앨범</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => document.getElementById('cameraInput')?.click()}
-                      className="btn btn-outline primary"
-                      style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700' }}
-                    >
-                      <span style={{ fontSize: '2.5rem' }}>📷</span>
-                      <span>카메라</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div style={{ width: '100%' }}>
-                    <button
-                      type="button"
-                      onClick={() => document.getElementById('albumInput')?.click()}
-                      className="btn btn-outline primary"
-                      style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700', width: '100%' }}
-                    >
-                      <span style={{ fontSize: '2.5rem' }}>📁</span>
-                      <span>사진 업로드</span>
-                    </button>
-                  </div>
-                )}
-              </div>
+              {/* 업로드 버튼 - 3장 미만일 때만 표시 */}
+              {images.length < 3 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {/* 숨겨진 파일 입력 필드 */}
+                  <input
+                    id="albumInput"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif"
+                    multiple
+                    onChange={handleImageChange}
+                    style={{ display: 'none' }}
+                  />
+                  <input
+                    id="cameraInput"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif"
+                    capture="environment"
+                    onChange={handleImageChange}
+                    style={{ display: 'none' }}
+                  />
+
+                  {/* PC: 파일 선택 버튼 / 모바일: 앨범, 카메라 버튼 */}
+                  {isMobile ? (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', width: '100%' }}>
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('albumInput')?.click()}
+                        className="btn btn-outline primary"
+                        style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700' }}
+                      >
+                        <span style={{ fontSize: '2.5rem' }}>📁</span>
+                        <span>앨범</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('cameraInput')?.click()}
+                        className="btn btn-outline primary"
+                        style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700' }}
+                      >
+                        <span style={{ fontSize: '2.5rem' }}>📷</span>
+                        <span>카메라</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ width: '100%' }}>
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('albumInput')?.click()}
+                        className="btn btn-outline primary"
+                        style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700', width: '100%' }}
+                      >
+                        <span style={{ fontSize: '2.5rem' }}>📁</span>
+                        <span>사진 추가 ({images.length}/3)</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Submit Button */}
@@ -463,9 +607,13 @@ export default function NewProductPage() {
               type="submit"
               disabled={loading || success}
               className="btn btn-primary btn-xl btn-block"
-              style={{ marginTop: '0.75rem' }}
+              style={{
+                marginTop: '0.75rem',
+                opacity: loading || success ? 0.6 : 1,
+                cursor: loading || success ? 'not-allowed' : 'pointer'
+              }}
             >
-              {loading ? "등록 중..." : success ? "등록 완료!" : "상품 등록"}
+              {success ? "등록 완료!" : "상품 등록"}
             </button>
           </form>
         </div>
