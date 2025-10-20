@@ -361,9 +361,31 @@ export default function NewProductPage() {
         </div>
 
         <div className="hero-card" style={{ padding: '2rem' }}>
-          {/* 제목 */}
+          {/* 제목 및 로그아웃 버튼 */}
           <div className="mb-6">
-            <h1 className="text-center hero-title mb-2" style={{ fontSize: '1.75rem' }}>새 상품 등록</h1>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <h1 className="hero-title" style={{ fontSize: '1.75rem', margin: 0 }}>새 상품 등록</h1>
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("supplier");
+                  router.push("/login");
+                }}
+                style={{
+                  fontSize: '1rem',
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                로그아웃
+              </button>
+            </div>
             <p className="text-center hero-subtitle" style={{ fontSize: '1.125rem' }}>상품 정보를 입력하세요</p>
           </div>
 

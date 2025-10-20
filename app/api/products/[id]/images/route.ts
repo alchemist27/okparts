@@ -142,18 +142,28 @@ export async function POST(
       }
 
       // Firebase Storage에 업로드 (/uploads/ 경로 사용)
+      const fileName = `${Date.now()}_${i}_${imageFile.name.replace(/\.[^/.]+$/, isGif ? '.gif' : '.jpg')}`;
       const storageRef = ref(
         storage,
-        `uploads/${productId}/${Date.now()}_${i}_${imageFile.name.replace(/\.[^/.]+$/, '.jpg')}`
+        `uploads/${productId}/${fileName}`
       );
 
       await uploadBytes(storageRef, processedImage, {
         contentType: isGif ? "image/gif" : "image/jpeg",
+        customMetadata: {
+          originalName: fileName,
+        },
       });
 
-      // 다운로드 URL 가져오기
-      const downloadURL = await getDownloadURL(storageRef);
-      uploadedUrls.push(downloadURL);
+      // 카페24 호환 URL 생성
+      // Firebase getDownloadURL()은 토큰이 포함된 URL을 반환: ?alt=media&token=xxx
+      // 카페24는 확장자를 인식해야 하므로 토큰 제거하고 공개 URL 사용
+      const bucket = storage.bucket.name;
+      const encodedPath = encodeURIComponent(`uploads/${productId}/${fileName}`);
+      const publicURL = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
+
+      console.log(`[Image ${i}] Cafe24-compatible URL:`, publicURL);
+      uploadedUrls.push(publicURL);
     }
 
     // Firestore에 이미지 URL들 저장 (기존 이미지에 추가)
