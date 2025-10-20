@@ -158,11 +158,11 @@ export async function POST(
       // 카페24 호환 URL 생성
       // Firebase getDownloadURL()은 토큰이 포함된 URL을 반환: ?alt=media&token=xxx
       // 카페24는 확장자를 인식해야 하므로 토큰 제거하고 공개 URL 사용
-      const bucket = storage.bucket.name;
+      const bucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'okparts-cf24.firebasestorage.app';
       const encodedPath = encodeURIComponent(`uploads/${productId}/${fileName}`);
       const publicURL = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
 
-      console.log(`[Image ${i}] Cafe24-compatible URL:`, publicURL);
+      console.log(`[Image ${i}] Cafe24-compatible URL (no token):`, publicURL);
       uploadedUrls.push(publicURL);
     }
 
