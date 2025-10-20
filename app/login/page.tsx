@@ -135,7 +135,7 @@ export default function LoginPage() {
               </a>
             </div>
             <a href="/" style={{ color: "#6b7280", fontWeight: "600" }}>
-              ← 홈으로 돌아가기
+              ←   돌아가기
             </a>
           </div>
         </div>

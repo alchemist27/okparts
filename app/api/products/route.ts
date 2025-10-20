@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase-admin";
+import { db, storage } from "@/lib/firebase-admin";
 import { collection, addDoc, query, where, getDocs, orderBy, doc, getDoc, updateDoc } from "firebase/firestore";
+import { ref, uploadBytes } from "firebase/storage";
 import { verifyToken } from "@/lib/auth";
+import sharp from "sharp";
 
 // 내 상품 목록 조회
 export async function GET(request: NextRequest) {
@@ -43,8 +45,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// 상품 등록 (Firestore + Cafe24 동시 생성)
+// 상품 등록 (Firestore + Cafe24 + 이미지 동시 처리)
 export async function POST(request: NextRequest) {
+  console.log("\n========== [Product Create] 상품 등록 시작 ==========");
+
   try {
     // 토큰 검증
     const authHeader = request.headers.get("Authorization");
@@ -59,17 +63,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const {
-      productName,
-      supplyPrice,
-      sellingPrice,
-      display,
-      selling,
-      categoryNo,
-    } = body;
+    // FormData 파싱
+    const formData = await request.formData();
+    const productName = formData.get("productName") as string;
+    const sellingPrice = formData.get("sellingPrice") as string;
+    const supplyPrice = formData.get("supplyPrice") as string;
+    const categoryNo = formData.get("categoryNo") as string;
+    const display = formData.get("display") as string;
+    const selling = formData.get("selling") as string;
+    const imageFiles = formData.getAll("images") as File[];
 
-    // 유효성 검사 (필수: product_name, price, supply_price, category)
+    console.log("[Product Create] 요청 데이터:", {
+      productName,
+      sellingPrice,
+      supplyPrice,
+      categoryNo,
+      imageCount: imageFiles.length
+    });
+
+    // 유효성 검사
     if (!productName || !sellingPrice || !supplyPrice || !categoryNo) {
       return NextResponse.json(
         { error: "Required fields: productName, sellingPrice, supplyPrice, categoryNo" },
@@ -77,14 +89,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 공급사 정보 조회 (supplier_code 가져오기)
+    if (imageFiles.length === 0) {
+      return NextResponse.json(
+        { error: "At least one image is required" },
+        { status: 400 }
+      );
+    }
+
+    // 공급사 정보 조회
     const supplierDoc = await getDoc(doc(db, "suppliers", payload.supplierId));
 
     if (!supplierDoc.exists()) {
-      return NextResponse.json(
-        { error: "Supplier not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Supplier not found" }, { status: 404 });
     }
 
     const supplierData = supplierDoc.data();
@@ -97,16 +113,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Firestore에 상품 저장 (draft 상태)
+    // Firestore에 상품 저장 (임시)
+    console.log("[Product Create] Step 1: Firestore에 임시 상품 생성");
     const productsRef = collection(db, "products");
     const productDoc = await addDoc(productsRef, {
       supplierId: payload.supplierId,
       name: productName,
-      supplyPrice,
-      sellingPrice,
+      supplyPrice: parseInt(supplyPrice),
+      sellingPrice: parseInt(sellingPrice),
       display,
       selling,
-      categoryNo,
+      categoryNo: parseInt(categoryNo),
       status: "draft",
       cafe24ProductNo: null,
       images: {
@@ -116,8 +133,15 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     });
 
-    // 카페24 상품 생성
+    console.log("[Product Create] Firestore 상품 ID:", productDoc.id);
+
+    // 이미지 처리 및 카페24 CDN 업로드
+    let cafe24ImageUrls: string[] = [];
+    let firebaseUrls: string[] = [];
+
     try {
+      console.log("[Product Create] Step 2: 이미지 처리 및 업로드 시작");
+
       const { Cafe24ApiClient } = await import("@/lib/cafe24");
 
       const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID;
@@ -134,7 +158,6 @@ export async function POST(request: NextRequest) {
 
       const installData = installDoc.data();
 
-      // 토큰 갱신 콜백
       const onTokenRefresh = async (newAccessToken: string, newRefreshToken: string, expiresAt: string) => {
         await updateDoc(installDocRef, {
           accessToken: newAccessToken,
@@ -151,20 +174,129 @@ export async function POST(request: NextRequest) {
         onTokenRefresh,
       });
 
-      // 카페24 상품 데이터 (product_code는 카페24가 자동 생성)
+      // 이미지 압축 및 Base64 변환
+      const base64Images: string[] = [];
+      const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+
+      for (let i = 0; i < imageFiles.length; i++) {
+        const imageFile = imageFiles[i];
+        console.log(`[Product Create] 이미지 ${i + 1} 처리 중...`);
+
+        const arrayBuffer = await imageFile.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // 이미지 압축
+        const metadata = await sharp(buffer).metadata();
+        const isGif = metadata.format === 'gif';
+
+        let processedImage: Buffer;
+        let quality = 85;
+        let maxWidth = 1600;
+
+        if (isGif) {
+          processedImage = await sharp(buffer, { animated: true })
+            .rotate()
+            .resize(1600, 1600, { fit: "inside", withoutEnlargement: true })
+            .toBuffer();
+        } else {
+          processedImage = await sharp(buffer)
+            .rotate()
+            .resize(maxWidth, maxWidth, { fit: "inside", withoutEnlargement: true })
+            .jpeg({ quality })
+            .toBuffer();
+
+          while (processedImage.length > MAX_FILE_SIZE && quality > 30) {
+            quality -= 5;
+            processedImage = await sharp(buffer)
+              .rotate()
+              .resize(maxWidth, maxWidth, { fit: "inside", withoutEnlargement: true })
+              .jpeg({ quality })
+              .toBuffer();
+          }
+        }
+
+        console.log(`[Product Create] 이미지 ${i + 1} 압축 완료: ${(processedImage.length / 1024 / 1024).toFixed(2)}MB`);
+
+        // Base64 변환
+        const base64 = processedImage.toString('base64');
+        base64Images.push(base64);
+
+        // Firebase Storage에도 백업 저장
+        const fileName = `${Date.now()}_${i}_${imageFile.name.replace(/\.[^/.]+$/, isGif ? '.gif' : '.jpg')}`;
+        const storageRef = ref(storage, `uploads/${productDoc.id}/${fileName}`);
+
+        await uploadBytes(storageRef, processedImage, {
+          contentType: isGif ? "image/gif" : "image/jpeg",
+        });
+
+        const bucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'okparts-cf24.firebasestorage.app';
+        const encodedPath = encodeURIComponent(`uploads/${productDoc.id}/${fileName}`);
+        const publicURL = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
+        firebaseUrls.push(publicURL);
+      }
+
+      // 카페24 CDN에 이미지 업로드
+      console.log("[Product Create] Step 3: 카페24 CDN 업로드");
+      const uploadedImages = await cafe24Client.uploadProductImages(base64Images);
+      cafe24ImageUrls = uploadedImages.map(img => img.path);
+
+      console.log("[Product Create] 카페24 CDN URL:", cafe24ImageUrls);
+
+    } catch (imageError: any) {
+      console.error("[Product Create] 이미지 처리 실패:", imageError.message);
+      // 이미지 실패 시 Firebase URL 사용
+      if (firebaseUrls.length > 0) {
+        cafe24ImageUrls = firebaseUrls;
+        console.log("[Product Create] Firebase URL로 대체");
+      } else {
+        throw new Error("이미지 처리에 실패했습니다");
+      }
+    }
+
+    // 카페24 상품 생성 (이미지 포함)
+    try {
+      console.log("[Product Create] Step 4: 카페24 상품 생성");
+
+      const { Cafe24ApiClient } = await import("@/lib/cafe24");
+
+      const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID!;
+      const installDocRef = doc(db, "installs", mallId);
+      const installDoc = await getDoc(installDocRef);
+      const installData = installDoc.data()!;
+
+      const onTokenRefresh = async (newAccessToken: string, newRefreshToken: string, expiresAt: string) => {
+        await updateDoc(installDocRef, {
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+          expiresAt: expiresAt,
+          updatedAt: new Date().toISOString(),
+        });
+      };
+
+      const cafe24Client = new Cafe24ApiClient(mallId, installData.accessToken, {
+        refreshToken: installData.refreshToken,
+        clientId: process.env.CAFE24_CLIENT_ID,
+        clientSecret: process.env.CAFE24_CLIENT_SECRET,
+        onTokenRefresh,
+      });
+
+      // 카페24 상품 데이터 (이미지 포함)
       const cafe24ProductData: any = {
         product_name: productName,
-        price: parseInt(sellingPrice), // 필수: 판매가
-        supply_price: parseInt(supplyPrice), // 공급가
+        price: parseInt(sellingPrice),
+        supply_price: parseInt(supplyPrice),
         display: display || "T",
         selling: selling || "T",
         product_condition: "U", // 중고
         supplier_code: supplierCode,
         add_category_no: [{
-          category_no: parseInt(categoryNo.toString()),
+          category_no: parseInt(categoryNo),
           recommend: "F",
           new: "F"
         }],
+        image_upload_type: "A", // 외부 URL 사용
+        detail_image: cafe24ImageUrls[0], // 대표 이미지
+        additional_image: cafe24ImageUrls, // 추가 이미지
       };
 
       const cafe24Response = await cafe24Client.createProduct(cafe24ProductData);
@@ -174,19 +306,34 @@ export async function POST(request: NextRequest) {
         cafe24Response.products?.[0]?.product_no;
 
       if (cafe24ProductNo) {
-        // Firestore에 카페24 상품 번호 업데이트
+        // Firestore 업데이트
         await updateDoc(doc(db, "products", productDoc.id), {
           cafe24ProductNo: cafe24ProductNo.toString(),
           status: "active",
+          "images.cover": cafe24ImageUrls[0],
+          "images.gallery": cafe24ImageUrls,
           updatedAt: new Date().toISOString(),
         });
+
+        console.log("[Product Create] 카페24 상품 번호:", cafe24ProductNo);
+        console.log("[Product Create] 상품 등록 완료!");
       }
 
-      console.log("[Product Create] Cafe24 product created:", cafe24ProductNo);
     } catch (cafe24Error: any) {
-      console.error("[Product Create] Cafe24 error:", cafe24Error.message);
-      // 카페24 실패해도 Firestore에는 저장됨 (draft 상태)
+      console.error("[Product Create] 카페24 상품 생성 실패:", cafe24Error.message);
+
+      // 카페24 실패해도 Firestore에는 이미지 저장
+      await updateDoc(doc(db, "products", productDoc.id), {
+        status: "draft",
+        "images.cover": cafe24ImageUrls[0] || firebaseUrls[0],
+        "images.gallery": cafe24ImageUrls.length > 0 ? cafe24ImageUrls : firebaseUrls,
+        updatedAt: new Date().toISOString(),
+      });
+
+      console.log("[Product Create] Firebase에만 저장됨 (draft)");
     }
+
+    console.log("========== [Product Create] 상품 등록 종료 ==========\n");
 
     return NextResponse.json(
       {
@@ -195,8 +342,12 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
+
   } catch (error: any) {
-    console.error("Product creation error:", error);
+    console.error("\n========== [Product Create] 치명적 오류 ==========");
+    console.error("[Product Create] 에러:", error.message);
+    console.error("==============================================\n");
+
     return NextResponse.json(
       { error: "Failed to create product", details: error.message },
       { status: 500 }

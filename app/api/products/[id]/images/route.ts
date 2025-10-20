@@ -166,18 +166,10 @@ export async function POST(
       uploadedUrls.push(publicURL);
     }
 
-    // Firestore에 이미지 URL들 저장 (기존 이미지에 추가)
-    const currentGallery = productData.images?.gallery || [];
-    const newGallery = [...currentGallery, ...uploadedUrls];
-
-    await updateDoc(doc(db, "products", productId), {
-      "images.cover": newGallery[0], // 첫 번째 이미지를 대표 이미지로
-      "images.gallery": newGallery, // 모든 이미지를 갤러리로
-      updatedAt: new Date().toISOString(),
-    });
-
     // Cafe24에 이미지 업로드 및 업데이트
     const cafe24ProductNo = productData.cafe24ProductNo;
+    let finalImageUrls = uploadedUrls; // 기본값: Firebase URL
+
     if (cafe24ProductNo) {
       try {
         const { Cafe24ApiClient } = await import("@/lib/cafe24");
@@ -244,16 +236,37 @@ export async function POST(
         await cafe24Client.updateProductImages(cafe24ProductNo, cafe24ImageUrls);
         console.log("[Image Upload] Cafe24 images updated for product:", cafe24ProductNo);
 
+        // 카페24 업로드 성공 시 카페24 CDN URL을 최종 URL로 사용
+        finalImageUrls = cafe24ImageUrls;
+        console.log("[Image Upload] Using Cafe24 CDN URLs for Firestore");
+
       } catch (cafe24Error: any) {
         console.error("[Image Upload] Cafe24 image update failed:", cafe24Error.message);
-        // Cafe24 실패해도 Firebase에는 저장됨
+        console.log("[Image Upload] Falling back to Firebase URLs");
+        // Cafe24 실패 시 Firebase URL 사용
       }
     }
 
+    // Firestore에 최종 이미지 URL들 저장 (카페24 CDN URL 우선, 실패 시 Firebase URL)
+    const currentGallery = productData.images?.gallery || [];
+    const newGallery = [...currentGallery, ...finalImageUrls];
+
+    await updateDoc(doc(db, "products", productId), {
+      "images.cover": newGallery[0], // 첫 번째 이미지를 대표 이미지로
+      "images.gallery": newGallery, // 모든 이미지를 갤러리로
+      updatedAt: new Date().toISOString(),
+    });
+
+    console.log("[Image Upload] Firestore updated with image URLs:", {
+      count: finalImageUrls.length,
+      usingCafe24CDN: finalImageUrls[0]?.includes('cafe24') || false
+    });
+
     return NextResponse.json({
       success: true,
-      imageUrl: uploadedUrls[0], // 첫 번째 업로드된 이미지 URL
-      imageUrls: uploadedUrls, // 모든 업로드된 이미지 URL
+      imageUrl: finalImageUrls[0], // 첫 번째 업로드된 이미지 URL
+      imageUrls: finalImageUrls, // 모든 업로드된 이미지 URL
+      cafe24CDN: finalImageUrls[0]?.includes('cafe24') || false, // 카페24 CDN 사용 여부
     });
   } catch (error: any) {
     console.error("Image upload error:", error);

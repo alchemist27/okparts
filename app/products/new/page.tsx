@@ -204,22 +204,28 @@ export default function NewProductPage() {
         return;
       }
 
-      // 1. 상품 기본 정보 등록 (Firestore draft + Cafe24 동시 생성)
-      setLoadingStep("상품 정보 등록 중...");
+      // 1. 상품 기본 정보 + 이미지 함께 등록
+      setLoadingStep("상품 정보 및 이미지 등록 중...");
+
+      const productFormData = new FormData();
+      productFormData.append("productName", formData.productName);
+      productFormData.append("sellingPrice", formData.sellingPrice);
+      productFormData.append("supplyPrice", formData.supplyPrice);
+      productFormData.append("categoryNo", selectedCategory);
+      productFormData.append("display", formData.display);
+      productFormData.append("selling", formData.selling);
+
+      // 이미지들 추가
+      images.forEach((image) => {
+        productFormData.append("images", image);
+      });
+
       const productResponse = await fetch("/api/products", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          productName: formData.productName,
-          sellingPrice: parseInt(formData.sellingPrice),
-          supplyPrice: parseInt(formData.supplyPrice),
-          categoryNo: parseInt(selectedCategory),
-          display: formData.display,
-          selling: formData.selling,
-        }),
+        body: productFormData,
       });
 
       if (!productResponse.ok) {
@@ -227,33 +233,7 @@ export default function NewProductPage() {
         throw new Error(errorData.error || "상품 등록에 실패했습니다");
       }
 
-      const { productId } = await productResponse.json();
-
-      // 2. 이미지 업로드 (하나씩 순차 업로드)
-      const uploadedImageUrls: string[] = [];
-
-      for (let i = 0; i < images.length; i++) {
-        setLoadingStep(`이미지 업로드 및 압축 중... (${i + 1}/${images.length})`);
-
-        const imageFormData = new FormData();
-        imageFormData.append("image", images[i]); // 단일 이미지
-
-        const imageResponse = await fetch(`/api/products/${productId}/images`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: imageFormData,
-        });
-
-        if (!imageResponse.ok) {
-          const errorData = await imageResponse.json();
-          throw new Error(`이미지 ${i + 1} 업로드 실패: ${errorData.error || '알 수 없는 오류'}`);
-        }
-
-        const { imageUrl } = await imageResponse.json();
-        uploadedImageUrls.push(imageUrl);
-      }
+      await productResponse.json();
 
       // 성공 메시지 표시
       setLoadingStep("등록 완료!");
