@@ -213,6 +213,15 @@ export async function POST(request: NextRequest) {
 
       console.log("[SIGNUP Step 7] 카페24 사용자 생성 완료, ID:", userId);
 
+      // 카페24 공급사 사용자 접속 비밀번호 업데이트
+      console.log("[SIGNUP Step 7-1] 카페24 공급사 사용자 접속 비밀번호 업데이트 시작");
+
+      await cafe24Client.updateSupplierUser(userId, {
+        password: password, // 원본 비밀번호로 접속 비밀번호 설정
+      });
+
+      console.log("[SIGNUP Step 7-1] 카페24 사용자 접속 비밀번호 업데이트 완료");
+
       // Firestore 업데이트 (active 상태)
       console.log("[SIGNUP Step 8] Firestore 계정 활성화");
       const { updateDoc } = await import("firebase/firestore");

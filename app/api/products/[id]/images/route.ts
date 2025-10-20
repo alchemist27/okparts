@@ -38,9 +38,12 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // FormData에서 이미지들 추출
+    // FormData에서 이미지 추출 (단일 또는 다중)
     const formData = await request.formData();
-    const imageFiles = formData.getAll("images") as File[];
+    const singleImage = formData.get("image") as File | null;
+    const multipleImages = formData.getAll("images") as File[];
+
+    const imageFiles = singleImage ? [singleImage] : multipleImages;
 
     if (imageFiles.length === 0) {
       return NextResponse.json({ error: "No images provided" }, { status: 400 });
@@ -53,7 +56,7 @@ export async function POST(
 
     // 여러 이미지 처리 및 업로드
     const uploadedUrls: string[] = [];
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB (안전한 마진)
 
     for (let i = 0; i < imageFiles.length; i++) {
       const imageFile = imageFiles[i];
@@ -62,6 +65,12 @@ export async function POST(
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
       if (!allowedTypes.includes(imageFile.type)) {
         throw new Error(`Invalid file type: ${imageFile.type}. Only jpg, png, gif allowed.`);
+      }
+
+      // 파일 크기 검증 (10MB 절대 제한 - 압축 전)
+      const MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB
+      if (imageFile.size > MAX_UPLOAD_SIZE) {
+        throw new Error(`File ${imageFile.name} is too large. Maximum size is 10MB before compression.`);
       }
 
       // 이미지 버퍼로 변환
@@ -85,22 +94,24 @@ export async function POST(
           .toBuffer();
       } else {
         // JPG/PNG는 JPEG로 변환하며 압축
-        let quality = 90;
+        let quality = 85;
+        let maxWidth = 1600;
+
         processedImage = await sharp(buffer)
           .rotate() // EXIF 기반 자동 회전
-          .resize(1600, 1600, {
+          .resize(maxWidth, maxWidth, {
             fit: "inside",
             withoutEnlargement: true,
           })
           .jpeg({ quality })
           .toBuffer();
 
-        // 5MB 이하가 될 때까지 quality 낮추기
-        while (processedImage.length > MAX_FILE_SIZE && quality > 20) {
-          quality -= 10;
+        // 3MB 이하가 될 때까지 quality 낮추기
+        while (processedImage.length > MAX_FILE_SIZE && quality > 30) {
+          quality -= 5;
           processedImage = await sharp(buffer)
             .rotate()
-            .resize(1600, 1600, {
+            .resize(maxWidth, maxWidth, {
               fit: "inside",
               withoutEnlargement: true,
             })
@@ -108,20 +119,26 @@ export async function POST(
             .toBuffer();
         }
 
-        // 그래도 5MB 초과하면 더 작은 크기로 리사이즈
+        // 그래도 3MB 초과하면 크기를 줄이며 재압축
+        while (processedImage.length > MAX_FILE_SIZE && maxWidth > 800) {
+          maxWidth -= 200;
+          quality = 75;
+          processedImage = await sharp(buffer)
+            .rotate()
+            .resize(maxWidth, maxWidth, {
+              fit: "inside",
+              withoutEnlargement: true,
+            })
+            .jpeg({ quality })
+            .toBuffer();
+        }
+
+        // 최종 크기 확인
         if (processedImage.length > MAX_FILE_SIZE) {
-          quality = 80;
-          processedImage = await sharp(buffer)
-            .rotate()
-            .resize(1200, 1200, {
-              fit: "inside",
-              withoutEnlargement: true,
-            })
-            .jpeg({ quality })
-            .toBuffer();
+          throw new Error(`Unable to compress image to under 3MB. Final size: ${(processedImage.length / 1024 / 1024).toFixed(2)}MB`);
         }
 
-        console.log(`[Image ${i}] Original: ${buffer.length} bytes, Compressed: ${processedImage.length} bytes, Quality: ${quality}`);
+        console.log(`[Image ${i}] Original: ${(buffer.length / 1024 / 1024).toFixed(2)}MB → Compressed: ${(processedImage.length / 1024 / 1024).toFixed(2)}MB (Quality: ${quality}, Size: ${maxWidth}px)`);
       }
 
       // Firebase Storage에 업로드 (/uploads/ 경로 사용)
@@ -139,10 +156,13 @@ export async function POST(
       uploadedUrls.push(downloadURL);
     }
 
-    // Firestore에 이미지 URL들 저장
+    // Firestore에 이미지 URL들 저장 (기존 이미지에 추가)
+    const currentGallery = productData.images?.gallery || [];
+    const newGallery = [...currentGallery, ...uploadedUrls];
+
     await updateDoc(doc(db, "products", productId), {
-      "images.cover": uploadedUrls[0], // 첫 번째 이미지를 대표 이미지로
-      "images.gallery": uploadedUrls, // 모든 이미지를 갤러리로
+      "images.cover": newGallery[0], // 첫 번째 이미지를 대표 이미지로
+      "images.gallery": newGallery, // 모든 이미지를 갤러리로
       updatedAt: new Date().toISOString(),
     });
 
@@ -183,8 +203,8 @@ export async function POST(
           onTokenRefresh,
         });
 
-        // Cafe24에 이미지 업데이트 (여러 이미지)
-        await cafe24Client.updateProductImages(cafe24ProductNo, uploadedUrls);
+        // Cafe24에 이미지 업데이트 (전체 갤러리)
+        await cafe24Client.updateProductImages(cafe24ProductNo, newGallery);
         console.log("[Image Upload] Cafe24 images updated for product:", cafe24ProductNo);
       } catch (cafe24Error: any) {
         console.error("[Image Upload] Cafe24 image update failed:", cafe24Error.message);
@@ -194,7 +214,8 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      imageUrls: uploadedUrls,
+      imageUrl: uploadedUrls[0], // 첫 번째 업로드된 이미지 URL
+      imageUrls: uploadedUrls, // 모든 업로드된 이미지 URL
     });
   } catch (error: any) {
     console.error("Image upload error:", error);

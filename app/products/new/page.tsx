@@ -134,12 +134,12 @@ export default function NewProductPage() {
       return;
     }
 
-    // 파일 크기 검증 (5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // 파일 크기 검증 (3MB)
+    const maxSize = 3 * 1024 * 1024; // 3MB
     const oversizedFiles = files.filter(file => file.size > maxSize);
 
     if (oversizedFiles.length > 0) {
-      alert('각 이미지는 5MB 이하여야 합니다.\n서버에서 자동으로 압축됩니다.');
+      alert('각 이미지는 3MB 이하여야 합니다.\n서버에서 자동으로 압축됩니다.');
     }
 
     // 최대 3장 제한
@@ -229,23 +229,30 @@ export default function NewProductPage() {
 
       const { productId } = await productResponse.json();
 
-      // 2. 이미지 업로드 (여러 장)
-      setLoadingStep(`이미지 업로드 및 압축 중... (${images.length}장)`);
-      const imageFormData = new FormData();
-      images.forEach((image) => {
-        imageFormData.append("images", image);
-      });
+      // 2. 이미지 업로드 (하나씩 순차 업로드)
+      const uploadedImageUrls: string[] = [];
 
-      const imageResponse = await fetch(`/api/products/${productId}/images`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: imageFormData,
-      });
+      for (let i = 0; i < images.length; i++) {
+        setLoadingStep(`이미지 업로드 및 압축 중... (${i + 1}/${images.length})`);
 
-      if (!imageResponse.ok) {
-        throw new Error("이미지 업로드에 실패했습니다");
+        const imageFormData = new FormData();
+        imageFormData.append("image", images[i]); // 단일 이미지
+
+        const imageResponse = await fetch(`/api/products/${productId}/images`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: imageFormData,
+        });
+
+        if (!imageResponse.ok) {
+          const errorData = await imageResponse.json();
+          throw new Error(`이미지 ${i + 1} 업로드 실패: ${errorData.error || '알 수 없는 오류'}`);
+        }
+
+        const { imageUrl } = await imageResponse.json();
+        uploadedImageUrls.push(imageUrl);
       }
 
       // 성공 메시지 표시
@@ -280,8 +287,13 @@ export default function NewProductPage() {
       }, 2000);
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setLoading(false);
+      setLoadingStep("");
+
+      // 에러 발생 시 스크롤을 에러 메시지로 이동
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     }
   };
 
@@ -484,7 +496,7 @@ export default function NewProductPage() {
               </label>
               <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.75rem' }}>
                 • 파일 형식: jpg, jpeg, png, gif<br/>
-                • 파일 크기: 5MB 이하 (자동 압축됨)<br/>
+                • 파일 크기: 3MB 이하 (자동 압축됨)<br/>
                 • 첫 번째 이미지가 대표 이미지로 표시됩니다
               </p>
 

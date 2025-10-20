@@ -1,10 +1,10 @@
 // Service Worker for PWA
-const CACHE_NAME = "okparts-v1";
+const CACHE_NAME = "okparts-v2"; // 버전 업데이트로 강제 갱신
 const urlsToCache = [
   "/",
   "/login",
   "/signup",
-  "/dashboard",
+  "/products/new",
 ];
 
 // 설치 이벤트

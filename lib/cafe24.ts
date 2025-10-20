@@ -252,6 +252,37 @@ export class Cafe24ApiClient {
       },
     });
   }
+
+  async updateSupplierUser(userId: string, userData: {
+    user_name?: string;
+    password?: string;
+    phone?: string;
+  }): Promise<any> {
+    console.log("[Cafe24 API] 공급사 사용자 업데이트 요청:", `/admin/suppliers/users/${userId}`);
+
+    const requestBody: any = {
+      request: {}
+    };
+
+    if (userData.user_name) {
+      requestBody.request.user_name = [
+        {
+          shop_no: 1,
+          user_name: userData.user_name,
+        },
+      ];
+    }
+
+    if (userData.password) {
+      requestBody.request.password = userData.password;
+    }
+
+    if (userData.phone) {
+      requestBody.request.phone = userData.phone;
+    }
+
+    return this.request("PUT", `/admin/suppliers/users/${userId}`, requestBody);
+  }
 }
 
 // OAuth helper functions
