@@ -62,7 +62,13 @@ export class Cafe24ApiClient {
       ...(data && { body: JSON.stringify(data) }),
     };
 
+    console.log(`[Cafe24 API] ${method} ${endpoint} 요청 시작`);
+    const startTime = Date.now();
+
     const response = await fetch(url, options);
+    const elapsed = Date.now() - startTime;
+
+    console.log(`[Cafe24 API] ${method} ${endpoint} 응답: ${response.status} (${elapsed}ms)`);
 
     if (!response.ok) {
       const errorText = await response.text();
