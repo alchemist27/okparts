@@ -176,7 +176,7 @@ export async function POST(
       updatedAt: new Date().toISOString(),
     });
 
-    // Cafe24에 이미지 업데이트
+    // Cafe24에 이미지 업로드 및 업데이트
     const cafe24ProductNo = productData.cafe24ProductNo;
     if (cafe24ProductNo) {
       try {
@@ -213,9 +213,37 @@ export async function POST(
           onTokenRefresh,
         });
 
-        // Cafe24에 이미지 업데이트 (전체 갤러리)
-        await cafe24Client.updateProductImages(cafe24ProductNo, newGallery);
+        // 1단계: Firebase Storage에서 이미지 다운로드 후 Base64 변환
+        console.log("[Cafe24] Step 1: Converting images to Base64...");
+        const base64Images: string[] = [];
+
+        for (const imageUrl of uploadedUrls) {
+          try {
+            const imageResponse = await fetch(imageUrl);
+            const arrayBuffer = await imageResponse.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const base64 = buffer.toString('base64');
+            base64Images.push(base64);
+          } catch (downloadError: any) {
+            console.error("[Cafe24] Failed to download image:", imageUrl, downloadError.message);
+          }
+        }
+
+        if (base64Images.length === 0) {
+          throw new Error("Failed to convert images to Base64");
+        }
+
+        // 2단계: 카페24 CDN에 이미지 업로드
+        console.log("[Cafe24] Step 2: Uploading images to Cafe24 CDN...");
+        const uploadedImages = await cafe24Client.uploadProductImages(base64Images);
+        const cafe24ImageUrls = uploadedImages.map(img => img.path);
+
+        console.log("[Cafe24] Step 3: Uploaded to Cafe24 CDN:", cafe24ImageUrls);
+
+        // 3단계: 상품에 카페24 CDN URL 연결
+        await cafe24Client.updateProductImages(cafe24ProductNo, cafe24ImageUrls);
         console.log("[Image Upload] Cafe24 images updated for product:", cafe24ProductNo);
+
       } catch (cafe24Error: any) {
         console.error("[Image Upload] Cafe24 image update failed:", cafe24Error.message);
         // Cafe24 실패해도 Firebase에는 저장됨

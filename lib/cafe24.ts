@@ -203,14 +203,44 @@ export class Cafe24ApiClient {
     });
   }
 
-  // Product Images (여러 이미지)
-  async updateProductImages(productNo: string, imageUrls: string[]): Promise<any> {
+  // Product Images Upload (Base64)
+  async uploadProductImages(base64Images: string[]): Promise<{ path: string }[]> {
+    console.log("[Cafe24 API] 이미지 업로드 요청:", {
+      imageCount: base64Images.length
+    });
+
+    const requests = base64Images.map(base64 => ({
+      image: base64
+    }));
+
+    const response = await this.request<{ images: { path: string }[] }>(
+      "POST",
+      "/admin/products/images",
+      { requests }
+    );
+
+    console.log("[Cafe24 API] 이미지 업로드 완료:", {
+      imageCount: response.images.length,
+      firstPath: response.images[0]?.path
+    });
+
+    return response.images;
+  }
+
+  // Product Images (여러 이미지) - 카페24 CDN URL 사용
+  async updateProductImages(productNo: string, cafe24ImageUrls: string[]): Promise<any> {
+    console.log("[Cafe24 API] 이미지 업데이트:", {
+      productNo,
+      imageCount: cafe24ImageUrls.length,
+      firstImageUrl: cafe24ImageUrls[0]
+    });
+
     return this.request("PUT", `/admin/products/${productNo}`, {
       request: {
         shop_no: 1,
-        image_upload_type: "A", // A = Additional (외부 URL 사용)
-        detail_image: imageUrls[0], // 첫 번째 이미지를 상세 페이지 이미지로
-        additional_image: imageUrls, // 모든 이미지를 추가 이미지로
+        image_upload_type: "A", // A = Additional (URL 사용)
+        detail_image: cafe24ImageUrls[0], // 첫 번째 이미지를 상세 페이지 이미지로
+        additional_image: cafe24ImageUrls, // 모든 이미지를 추가 이미지로
       },
     });
   }
