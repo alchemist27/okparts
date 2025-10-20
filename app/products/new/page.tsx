@@ -18,6 +18,7 @@ export default function NewProductPage() {
   const [mainCategories, setMainCategories] = useState<CategoryData[]>([]);
   const [subCategories, setSubCategories] = useState<CategoryData[]>([]);
   const [detailCategories, setDetailCategories] = useState<CategoryData[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
 
   const [formData, setFormData] = useState({
     productName: "",
@@ -42,7 +43,21 @@ export default function NewProductPage() {
       router.push("/login");
       return;
     }
+
+    // 모바일 감지
+    const checkIsMobile = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsMobile(isMobileDevice || (isTouchDevice && window.innerWidth < 768));
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
     loadCategories();
+
+    return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
 
   const loadCategories = async () => {
@@ -257,44 +272,6 @@ export default function NewProductPage() {
               />
             </div>
 
-            {/* 판매가 */}
-            <div>
-              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                판매가 *
-              </label>
-              <input
-                type="number"
-                value={formData.sellingPrice}
-                onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
-                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px' }}
-                required
-                min="0"
-                placeholder="예: 150000"
-              />
-              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                고객에게 판매되는 가격
-              </p>
-            </div>
-
-            {/* 공급가 */}
-            <div>
-              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                공급가 *
-              </label>
-              <input
-                type="number"
-                value={formData.supplyPrice}
-                onChange={(e) => setFormData({ ...formData, supplyPrice: e.target.value })}
-                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px' }}
-                required
-                min="0"
-                placeholder="예: 120000"
-              />
-              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                공급사가 쇼핑몰에 공급하는 가격
-              </p>
-            </div>
-
             {/* 카테고리 */}
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
@@ -346,6 +323,44 @@ export default function NewProductPage() {
                   ))}
                 </select>
               )}
+            </div>
+
+            {/* 판매가 */}
+            <div>
+              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                판매가 *
+              </label>
+              <input
+                type="number"
+                value={formData.sellingPrice}
+                onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
+                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px' }}
+                required
+                min="0"
+                placeholder="예: 150000"
+              />
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                고객에게 판매되는 가격
+              </p>
+            </div>
+
+            {/* 공급가 */}
+            <div>
+              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                공급가 *
+              </label>
+              <input
+                type="number"
+                value={formData.supplyPrice}
+                onChange={(e) => setFormData({ ...formData, supplyPrice: e.target.value })}
+                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px' }}
+                required
+                min="0"
+                placeholder="예: 120000"
+              />
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                공급사가 쇼핑몰에 공급하는 가격
+              </p>
             </div>
 
             {/* 상품 이미지 */}
@@ -406,25 +421,41 @@ export default function NewProductPage() {
                   style={{ display: 'none' }}
                 />
 
-                {/* 버튼 2개 (상하 배치) */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
-                  <button
-                    type="button"
-                    onClick={() => document.getElementById('albumInput')?.click()}
-                    className="btn btn-outline primary"
-                    style={{ fontSize: '1.125rem', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
-                  >
-                    <span style={{ fontSize: '1.25rem' }}>📁</span> 앨범에서 선택
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => document.getElementById('cameraInput')?.click()}
-                    className="btn btn-outline primary"
-                    style={{ fontSize: '1.125rem', padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
-                  >
-                    <span style={{ fontSize: '1.25rem' }}>📷</span> 카메라 촬영
-                  </button>
-                </div>
+                {/* PC: 파일 선택 버튼 / 모바일: 앨범, 카메라 버튼 */}
+                {isMobile ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', width: '100%' }}>
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('albumInput')?.click()}
+                      className="btn btn-outline primary"
+                      style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700' }}
+                    >
+                      <span style={{ fontSize: '2.5rem' }}>📁</span>
+                      <span>앨범</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('cameraInput')?.click()}
+                      className="btn btn-outline primary"
+                      style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700' }}
+                    >
+                      <span style={{ fontSize: '2.5rem' }}>📷</span>
+                      <span>카메라</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ width: '100%' }}>
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('albumInput')?.click()}
+                      className="btn btn-outline primary"
+                      style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700', width: '100%' }}
+                    >
+                      <span style={{ fontSize: '2.5rem' }}>📁</span>
+                      <span>사진 업로드</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
