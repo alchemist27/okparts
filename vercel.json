@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "app/api/products/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}

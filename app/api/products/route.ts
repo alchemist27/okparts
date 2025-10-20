@@ -236,19 +236,26 @@ export async function POST(request: NextRequest) {
       }
 
       // 카페24 CDN에 이미지 업로드
-      console.log("[Product Create] Step 3: 카페24 CDN 업로드");
+      console.log("[Product Create] Step 3: 카페24 CDN 업로드 시작");
+      console.log("[Product Create] Base64 이미지 크기:", base64Images.map((img, i) => `${i + 1}: ${(img.length / 1024).toFixed(2)}KB`));
+
       const uploadedImages = await cafe24Client.uploadProductImages(base64Images);
       cafe24ImageUrls = uploadedImages.map(img => img.path);
 
+      console.log("[Product Create] 카페24 CDN 업로드 성공!");
       console.log("[Product Create] 카페24 CDN URL:", cafe24ImageUrls);
 
     } catch (imageError: any) {
-      console.error("[Product Create] 이미지 처리 실패:", imageError.message);
+      console.error("[Product Create] 이미지 처리 실패!");
+      console.error("[Product Create] 에러 상세:", imageError.message);
+      console.error("[Product Create] 에러 스택:", imageError.stack);
+
       // 이미지 실패 시 Firebase URL 사용
       if (firebaseUrls.length > 0) {
         cafe24ImageUrls = firebaseUrls;
-        console.log("[Product Create] Firebase URL로 대체");
+        console.log("[Product Create] Firebase URL로 대체:", firebaseUrls);
       } else {
+        console.error("[Product Create] Firebase URL도 없음! 상품 등록 실패");
         throw new Error("이미지 처리에 실패했습니다");
       }
     }

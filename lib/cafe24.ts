@@ -203,28 +203,35 @@ export class Cafe24ApiClient {
     });
   }
 
-  // Product Images Upload (Base64)
+  // Product Images Upload (Base64) - 하나씩 업로드하여 타임아웃 방지
   async uploadProductImages(base64Images: string[]): Promise<{ path: string }[]> {
     console.log("[Cafe24 API] 이미지 업로드 요청:", {
       imageCount: base64Images.length
     });
 
-    const requests = base64Images.map(base64 => ({
-      image: base64
-    }));
+    const uploadedPaths: { path: string }[] = [];
 
-    const response = await this.request<{ images: { path: string }[] }>(
-      "POST",
-      "/admin/products/images",
-      { requests }
-    );
+    // 이미지를 하나씩 업로드 (타임아웃 방지)
+    for (let i = 0; i < base64Images.length; i++) {
+      console.log(`[Cafe24 API] 이미지 ${i + 1}/${base64Images.length} 업로드 중...`);
 
-    console.log("[Cafe24 API] 이미지 업로드 완료:", {
-      imageCount: response.images.length,
-      firstPath: response.images[0]?.path
+      const response = await this.request<{ images: { path: string }[] }>(
+        "POST",
+        "/admin/products/images",
+        { requests: [{ image: base64Images[i] }] }
+      );
+
+      if (response.images && response.images[0]) {
+        uploadedPaths.push(response.images[0]);
+        console.log(`[Cafe24 API] 이미지 ${i + 1} 업로드 완료:`, response.images[0].path);
+      }
+    }
+
+    console.log("[Cafe24 API] 전체 이미지 업로드 완료:", {
+      imageCount: uploadedPaths.length
     });
 
-    return response.images;
+    return uploadedPaths;
   }
 
   // Product Images (여러 이미지) - 카페24 CDN URL 사용
