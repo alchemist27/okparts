@@ -331,22 +331,27 @@ export async function POST(request: NextRequest) {
       console.log("[Product Create] 카페24 API 호출 중...");
       const cafe24Response = await cafe24Client.createProduct(cafe24ProductData);
       console.log("[Product Create] 카페24 API 응답 받음");
+      console.log("[Product Create] 카페24 응답 데이터:", JSON.stringify(cafe24Response, null, 2));
 
       const cafe24ProductNo =
         cafe24Response.product?.product_no ||
         cafe24Response.products?.[0]?.product_no;
 
       if (cafe24ProductNo) {
-        // Firestore 업데이트
+        // 카페24 CDN URL (절대 경로)로 Firestore 업데이트
         await updateDoc(doc(db, "products", productDoc.id), {
           cafe24ProductNo: cafe24ProductNo.toString(),
           status: "active",
-          "images.cover": cafe24ImageUrls[0],
-          "images.gallery": cafe24ImageUrls,
+          "images.cover": cafe24ImageUrls[0], // 카페24 CDN 절대 경로
+          "images.gallery": cafe24ImageUrls, // 카페24 CDN 절대 경로
           updatedAt: new Date().toISOString(),
         });
 
         console.log("[Product Create] 카페24 상품 번호:", cafe24ProductNo);
+        console.log("[Product Create] Firestore 저장 이미지:", {
+          cover: cafe24ImageUrls[0],
+          gallery: cafe24ImageUrls
+        });
         console.log("[Product Create] 상품 등록 완료!");
       }
 

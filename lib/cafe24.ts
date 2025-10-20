@@ -215,15 +215,22 @@ export class Cafe24ApiClient {
     for (let i = 0; i < base64Images.length; i++) {
       console.log(`[Cafe24 API] 이미지 ${i + 1}/${base64Images.length} 업로드 중...`);
 
-      const response = await this.request<{ images: { path: string }[] }>(
-        "POST",
-        "/admin/products/images",
-        { requests: [{ image: base64Images[i] }] }
-      );
+      try {
+        const response = await this.request<{ images: { path: string }[] }>(
+          "POST",
+          "/admin/products/images",
+          { requests: [{ image: base64Images[i] }] }
+        );
 
-      if (response.images && response.images[0]) {
-        uploadedPaths.push(response.images[0]);
-        console.log(`[Cafe24 API] 이미지 ${i + 1} 업로드 완료:`, response.images[0].path);
+        if (response.images && response.images[0]) {
+          uploadedPaths.push(response.images[0]);
+          console.log(`[Cafe24 API] 이미지 ${i + 1} 업로드 완료:`, response.images[0].path);
+        } else {
+          console.error(`[Cafe24 API] 이미지 ${i + 1} 응답에 이미지 없음:`, response);
+        }
+      } catch (uploadError: any) {
+        console.error(`[Cafe24 API] 이미지 ${i + 1} 업로드 실패:`, uploadError.message);
+        // 실패해도 계속 진행
       }
     }
 
