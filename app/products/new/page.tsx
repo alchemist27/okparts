@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Category } from "@/types";
 import Image from "next/image";
 
 interface CategoryData {
@@ -337,7 +336,7 @@ export default function NewProductPage() {
                 style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px' }}
                 required
                 min="0"
-                placeholder="예: 150000"
+                placeholder="예: 150,000"
               />
               <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
                 고객에게 판매되는 가격
@@ -356,7 +355,7 @@ export default function NewProductPage() {
                 style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px' }}
                 required
                 min="0"
-                placeholder="예: 120000"
+                placeholder="예: 120,000"
               />
               <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
                 공급사가 쇼핑몰에 공급하는 가격
@@ -469,13 +468,6 @@ export default function NewProductPage() {
               {loading ? "등록 중..." : success ? "등록 완료!" : "상품 등록"}
             </button>
           </form>
-
-          {/* 하단 링크 */}
-          <div className="text-center" style={{ marginTop: '1.5rem', fontSize: '1.125rem' }}>
-            <a href="/dashboard" style={{ color: '#6b7280', fontWeight: '600' }}>
-              ← 대시보드로 돌아가기
-            </a>
-          </div>
         </div>
       </div>
     </main>

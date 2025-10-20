@@ -22,29 +22,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Firebase 초기화
-    console.log("[LOGIN Step 2] Firebase 초기화");
-    const { initializeApp, getApps } = await import("firebase/app");
-    const { getFirestore } = await import("firebase/firestore");
-
-    let firestore;
-    if (getApps().length === 0) {
-      const app = initializeApp({
-        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-      });
-      firestore = getFirestore(app);
-    } else {
-      firestore = getFirestore(getApps()[0]);
-    }
-
     // 공급사 조회
-    console.log("[LOGIN Step 3] 공급사 검색:", userId);
-    const suppliersRef = collection(firestore, "suppliers");
+    console.log("[LOGIN Step 2] 공급사 검색:", userId);
+    const suppliersRef = collection(db, "suppliers");
     const q = query(suppliersRef, where("userId", "==", userId));
     const supplierSnapshot = await getDocs(q);
 
@@ -59,7 +39,7 @@ export async function POST(request: NextRequest) {
     const supplierDoc = supplierSnapshot.docs[0];
     const supplierData = supplierDoc.data();
 
-    console.log("[LOGIN Step 4] 계정 상태 확인:", {
+    console.log("[LOGIN Step 3] 계정 상태 확인:", {
       status: supplierData.status,
       id: supplierDoc.id
     });
@@ -82,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 비밀번호 확인
-    console.log("[LOGIN Step 5] 비밀번호 확인");
+    console.log("[LOGIN Step 4] 비밀번호 확인");
     const isPasswordValid = await comparePassword(
       password,
       supplierData.password
@@ -96,10 +76,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("[LOGIN Step 6] 비밀번호 확인 완료");
+    console.log("[LOGIN Step 5] 비밀번호 확인 완료");
 
     // JWT 토큰 생성
-    console.log("[LOGIN Step 7] JWT 토큰 생성");
+    console.log("[LOGIN Step 6] JWT 토큰 생성");
     const token = generateToken({
       supplierId: supplierDoc.id,
       email: supplierData.userId,
@@ -118,7 +98,7 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    console.log("[LOGIN Step 8] 로그인 성공!");
+    console.log("[LOGIN Step 7] 로그인 성공!");
     console.log("========== [LOGIN] 로그인 종료 ==========\n");
 
     return NextResponse.json(response);

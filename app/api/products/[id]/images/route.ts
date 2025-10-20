@@ -60,10 +60,10 @@ export async function POST(
       .jpeg({ quality: 88 })
       .toBuffer();
 
-    // Firebase Storage에 업로드
+    // Firebase Storage에 업로드 (/uploads/ 경로 사용)
     const storageRef = ref(
       storage,
-      `products/${productId}/${Date.now()}_${imageFile.name}`
+      `uploads/${productId}/${Date.now()}_${imageFile.name}`
     );
 
     await uploadBytes(storageRef, processedImage, {

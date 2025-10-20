@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebase-admin";
-import { collection, addDoc, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, orderBy, doc, getDoc, updateDoc } from "firebase/firestore";
 import { verifyToken } from "@/lib/auth";
 
 // 내 상품 목록 조회
@@ -78,8 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 공급사 정보 조회 (supplier_code 가져오기)
-    const { doc: docRef, getDoc: getDocFirestore } = await import("firebase/firestore");
-    const supplierDoc = await getDocFirestore(docRef(db, "suppliers", payload.supplierId));
+    const supplierDoc = await getDoc(doc(db, "suppliers", payload.supplierId));
 
     if (!supplierDoc.exists()) {
       return NextResponse.json(
@@ -120,15 +119,14 @@ export async function POST(request: NextRequest) {
     // 카페24 상품 생성
     try {
       const { Cafe24ApiClient } = await import("@/lib/cafe24");
-      const { updateDoc: updateDocFirestore } = await import("firebase/firestore");
 
       const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID;
       if (!mallId) {
         throw new Error("Mall ID not configured");
       }
 
-      const installDocRef = docRef(db, "installs", mallId);
-      const installDoc = await getDocFirestore(installDocRef);
+      const installDocRef = doc(db, "installs", mallId);
+      const installDoc = await getDoc(installDocRef);
 
       if (!installDoc.exists()) {
         throw new Error("Cafe24 app not installed");
@@ -138,7 +136,7 @@ export async function POST(request: NextRequest) {
 
       // 토큰 갱신 콜백
       const onTokenRefresh = async (newAccessToken: string, newRefreshToken: string, expiresAt: string) => {
-        await updateDocFirestore(installDocRef, {
+        await updateDoc(installDocRef, {
           accessToken: newAccessToken,
           refreshToken: newRefreshToken,
           expiresAt: expiresAt,
@@ -156,8 +154,8 @@ export async function POST(request: NextRequest) {
       // 카페24 상품 데이터 (product_code는 카페24가 자동 생성)
       const cafe24ProductData: any = {
         product_name: productName,
-        supply_price: supplyPrice,
-        selling_price: sellingPrice,
+        price: parseInt(sellingPrice), // 필수: 판매가
+        supply_price: parseInt(supplyPrice), // 공급가
         display: display || "T",
         selling: selling || "T",
         product_condition: "U", // 중고
@@ -173,7 +171,7 @@ export async function POST(request: NextRequest) {
 
       if (cafe24ProductNo) {
         // Firestore에 카페24 상품 번호 업데이트
-        await updateDocFirestore(docRef(db, "products", productDoc.id), {
+        await updateDoc(doc(db, "products", productDoc.id), {
           cafe24ProductNo: cafe24ProductNo.toString(),
           status: "active",
           updatedAt: new Date().toISOString(),
