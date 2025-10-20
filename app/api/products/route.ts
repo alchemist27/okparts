@@ -287,6 +287,20 @@ export async function POST(request: NextRequest) {
         onTokenRefresh,
       });
 
+      // 카페24 CDN URL을 상대 경로로 변환
+      // 예: https://ecimg.cafe24img.com/pg.../okayparts/web/upload/... → /web/upload/...
+      const convertToRelativePath = (url: string): string => {
+        const match = url.match(/\/web\/upload\/.+$/);
+        return match ? match[0] : url;
+      };
+
+      const relativeImagePaths = cafe24ImageUrls.map(convertToRelativePath);
+
+      console.log("[Product Create] 상대 경로로 변환:", {
+        original: cafe24ImageUrls[0],
+        relative: relativeImagePaths[0]
+      });
+
       // 카페24 상품 데이터 (이미지 포함)
       const cafe24ProductData: any = {
         product_name: productName,
@@ -302,8 +316,8 @@ export async function POST(request: NextRequest) {
           new: "F"
         }],
         image_upload_type: "A", // 외부 URL 사용
-        detail_image: cafe24ImageUrls[0], // 대표 이미지
-        additional_image: cafe24ImageUrls, // 추가 이미지
+        detail_image: relativeImagePaths[0], // 대표 이미지 (상대 경로)
+        additional_image: relativeImagePaths, // 추가 이미지 (상대 경로)
       };
 
       const cafe24Response = await cafe24Client.createProduct(cafe24ProductData);
