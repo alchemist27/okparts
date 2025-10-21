@@ -98,6 +98,22 @@ export default function TestKeyboardPage() {
           <li>어떤 테스트에서 키보드가 올라오는지 확인</li>
         </ol>
       </div>
+
+      {/* 홈으로 돌아가기 */}
+      <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+        <a href="/" style={{
+          display: 'inline-block',
+          padding: '1rem 2rem',
+          backgroundColor: '#3b82f6',
+          color: 'white',
+          fontSize: '1.25rem',
+          fontWeight: 'bold',
+          borderRadius: '8px',
+          textDecoration: 'none'
+        }}>
+          ← 홈으로 돌아가기
+        </a>
+      </div>
     </div>
   );
 }
