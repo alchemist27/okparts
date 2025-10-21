@@ -21,17 +21,6 @@ export default function Home() {
             <a href="/login" className="btn btn-primary btn-xl">로그인</a>
             <a href="/signup" className="btn btn-outline primary btn-xl">회원가입</a>
           </div>
-
-          {/* 테스트 페이지 링크 - 디버깅용 */}
-          <div className="text-center" style={{ marginTop: '2rem' }}>
-            <a href="/test-keyboard" style={{
-              color: '#6b7280',
-              fontSize: '1rem',
-              textDecoration: 'underline'
-            }}>
-              🔧 키보드 테스트 페이지
-            </a>
-          </div>
         </div>
       </div>
     </main>
