@@ -2,7 +2,7 @@
   "name": "OKPARTS ADMIN",
   "short_name": "OKPARTS",
   "description": "오케이중고부품 공급사 상품 등록 시스템",
-  "start_url": "/",
+  "start_url": "/?v=2",
   "display": "browser",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
