@@ -263,7 +263,7 @@ export default function NewProductPage() {
   };
 
   return (
-    <main id="main" className="min-h-screen hero flex items-center justify-center py-4">
+    <main id="main" className="min-h-screen hero flex items-center justify-center py-4" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* 로딩 오버레이 */}
       {loading && (
         <div style={{
@@ -278,7 +278,8 @@ export default function NewProductPage() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 9999,
-          gap: '1.5rem'
+          gap: '1.5rem',
+          WebkitOverflowScrolling: 'touch'
         }}>
           <div style={{
             width: '80px',
@@ -379,9 +380,12 @@ export default function NewProductPage() {
                 type="text"
                 value={formData.productName}
                 onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
-                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px' }}
+                onTouchStart={(e) => e.currentTarget.focus()}
+                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
                 required
                 placeholder="예: 현대 아반떼 앞범퍼"
+                inputMode="text"
+                autoComplete="off"
               />
             </div>
 
@@ -395,7 +399,8 @@ export default function NewProductPage() {
               <select
                 value={formData.mainCategory}
                 onChange={(e) => handleMainCategoryChange(e.target.value)}
-                style={{ fontSize: '1.125rem', padding: '1rem', borderRadius: '12px', marginBottom: '0.75rem' }}
+                onTouchStart={(e) => e.currentTarget.focus()}
+                style={{ fontSize: '1.125rem', padding: '1rem', borderRadius: '12px', marginBottom: '0.75rem', WebkitUserSelect: 'text' }}
               >
                 <option value="">대분류 선택</option>
                 {mainCategories.map((cat) => (
@@ -410,7 +415,8 @@ export default function NewProductPage() {
                 <select
                   value={formData.subCategory}
                   onChange={(e) => handleSubCategoryChange(e.target.value)}
-                  style={{ fontSize: '1.125rem', padding: '1rem', borderRadius: '12px', marginBottom: '0.75rem' }}
+                  onTouchStart={(e) => e.currentTarget.focus()}
+                  style={{ fontSize: '1.125rem', padding: '1rem', borderRadius: '12px', marginBottom: '0.75rem', WebkitUserSelect: 'text' }}
                 >
                   <option value="">중분류 선택</option>
                   {subCategories.map((cat) => (
@@ -426,7 +432,8 @@ export default function NewProductPage() {
                 <select
                   value={formData.detailCategory}
                   onChange={(e) => setFormData({ ...formData, detailCategory: e.target.value })}
-                  style={{ fontSize: '1.125rem', padding: '1rem', borderRadius: '12px' }}
+                  onTouchStart={(e) => e.currentTarget.focus()}
+                  style={{ fontSize: '1.125rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text' }}
                 >
                   <option value="">소분류 선택</option>
                   {detailCategories.map((cat) => (
@@ -447,10 +454,13 @@ export default function NewProductPage() {
                 type="number"
                 value={formData.sellingPrice}
                 onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
-                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px' }}
+                onTouchStart={(e) => e.currentTarget.focus()}
+                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
                 required
                 min="0"
                 placeholder="예: 150,000"
+                inputMode="decimal"
+                autoComplete="off"
               />
               <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
                 고객에게 판매되는 가격
@@ -466,10 +476,13 @@ export default function NewProductPage() {
                 type="number"
                 value={formData.supplyPrice}
                 onChange={(e) => setFormData({ ...formData, supplyPrice: e.target.value })}
-                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px' }}
+                onTouchStart={(e) => e.currentTarget.focus()}
+                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
                 required
                 min="0"
                 placeholder="예: 120,000"
+                inputMode="decimal"
+                autoComplete="off"
               />
               <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
                 공급사가 쇼핑몰에 공급하는 가격
