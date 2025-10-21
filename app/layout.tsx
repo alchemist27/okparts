@@ -11,9 +11,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5, // iOS PWA에서 키보드 입력을 위해 확대 허용
+  userScalable: true, // iOS PWA에서 키보드를 위해 true로 변경
   themeColor: "#3b82f6",
+  viewportFit: "cover", // iOS Safe Area 대응
 };
 
 export default function RootLayout({
@@ -23,6 +24,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="mobile-web-app-capable" content="yes" />
+      </head>
       <body>
         <a href="#main" className="skip-link">본문 바로가기</a>
         <RegisterServiceWorker />

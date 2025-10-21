@@ -125,11 +125,11 @@ export default function NewProductPage() {
     if (files.length === 0) return;
 
     // 파일 타입 검증
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     const file = files[0]; // 첫 번째 파일만 사용
 
     if (!allowedTypes.includes(file.type)) {
-      alert('jpg, jpeg, png, gif 파일만 업로드 가능합니다.');
+      alert('jpg, jpeg, png 파일만 업로드 가능합니다.');
       e.target.value = '';
       return;
     }
@@ -482,9 +482,10 @@ export default function NewProductPage() {
                 대표 이미지 *
               </label>
               <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.75rem' }}>
-                • 파일 형식: jpg, jpeg, png, gif<br/>
+                • 파일 형식: jpg, jpeg, png<br/>
                 • 파일 크기: 3MB 이하 (자동 압축됨)<br/>
-                • 대표 이미지 1장만 업로드됩니다
+                • 대표 이미지 1장만 업로드됩니다<br/>
+                • 추가 이미지 업로드 지원 예정입니다
               </p>
 
               {/* 이미지 프리뷰 */}
