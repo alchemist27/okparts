@@ -11,10 +11,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5, // iOS PWA에서 키보드 입력을 위해 확대 허용
-  userScalable: true, // iOS PWA에서 키보드를 위해 true로 변경
+  maximumScale: 5,
+  userScalable: true,
   themeColor: "#3b82f6",
-  viewportFit: "cover", // iOS Safe Area 대응
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
