@@ -91,10 +91,13 @@ export async function POST(request: NextRequest) {
 
     if (imageFiles.length === 0) {
       return NextResponse.json(
-        { error: "At least one image is required" },
+        { error: "대표 이미지가 필요합니다" },
         { status: 400 }
       );
     }
+
+    // 대표 이미지 1장만 사용
+    const imageFile = imageFiles[0];
 
     // 공급사 정보 조회
     const supplierDoc = await getDoc(doc(db, "suppliers", payload.supplierId));
@@ -174,76 +177,70 @@ export async function POST(request: NextRequest) {
         onTokenRefresh,
       });
 
-      // 이미지 압축 및 Base64 변환
-      const base64Images: string[] = [];
+      // 대표 이미지 압축 및 Base64 변환
       const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+      console.log(`[Product Create] 대표 이미지 처리 중...`);
 
-      for (let i = 0; i < imageFiles.length; i++) {
-        const imageFile = imageFiles[i];
-        console.log(`[Product Create] 이미지 ${i + 1} 처리 중...`);
+      const arrayBuffer = await imageFile.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
 
-        const arrayBuffer = await imageFile.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+      // 이미지 압축
+      const metadata = await sharp(buffer).metadata();
+      const isGif = metadata.format === 'gif';
 
-        // 이미지 압축
-        const metadata = await sharp(buffer).metadata();
-        const isGif = metadata.format === 'gif';
+      let processedImage: Buffer;
+      let quality = 85;
+      let maxWidth = 1600;
 
-        let processedImage: Buffer;
-        let quality = 85;
-        let maxWidth = 1600;
+      if (isGif) {
+        processedImage = await sharp(buffer, { animated: true })
+          .rotate()
+          .resize(1600, 1600, { fit: "inside", withoutEnlargement: true })
+          .toBuffer();
+      } else {
+        processedImage = await sharp(buffer)
+          .rotate()
+          .resize(maxWidth, maxWidth, { fit: "inside", withoutEnlargement: true })
+          .jpeg({ quality })
+          .toBuffer();
 
-        if (isGif) {
-          processedImage = await sharp(buffer, { animated: true })
-            .rotate()
-            .resize(1600, 1600, { fit: "inside", withoutEnlargement: true })
-            .toBuffer();
-        } else {
+        while (processedImage.length > MAX_FILE_SIZE && quality > 30) {
+          quality -= 5;
           processedImage = await sharp(buffer)
             .rotate()
             .resize(maxWidth, maxWidth, { fit: "inside", withoutEnlargement: true })
             .jpeg({ quality })
             .toBuffer();
-
-          while (processedImage.length > MAX_FILE_SIZE && quality > 30) {
-            quality -= 5;
-            processedImage = await sharp(buffer)
-              .rotate()
-              .resize(maxWidth, maxWidth, { fit: "inside", withoutEnlargement: true })
-              .jpeg({ quality })
-              .toBuffer();
-          }
         }
-
-        console.log(`[Product Create] 이미지 ${i + 1} 압축 완료: ${(processedImage.length / 1024 / 1024).toFixed(2)}MB`);
-
-        // Base64 변환
-        const base64 = processedImage.toString('base64');
-        base64Images.push(base64);
-
-        // Firebase Storage에도 백업 저장
-        const fileName = `${Date.now()}_${i}_${imageFile.name.replace(/\.[^/.]+$/, isGif ? '.gif' : '.jpg')}`;
-        const storageRef = ref(storage, `uploads/${productDoc.id}/${fileName}`);
-
-        await uploadBytes(storageRef, processedImage, {
-          contentType: isGif ? "image/gif" : "image/jpeg",
-        });
-
-        const bucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'okparts-cf24.firebasestorage.app';
-        const encodedPath = encodeURIComponent(`uploads/${productDoc.id}/${fileName}`);
-        const publicURL = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
-        firebaseUrls.push(publicURL);
       }
 
-      // 카페24 CDN에 이미지 업로드
-      console.log("[Product Create] Step 3: 카페24 CDN 업로드 시작");
-      console.log("[Product Create] Base64 이미지 크기:", base64Images.map((img, i) => `${i + 1}: ${(img.length / 1024).toFixed(2)}KB`));
+      console.log(`[Product Create] 이미지 압축 완료: ${(processedImage.length / 1024 / 1024).toFixed(2)}MB`);
 
-      const uploadedImages = await cafe24Client.uploadProductImages(base64Images);
+      // Base64 변환
+      const base64 = processedImage.toString('base64');
+
+      // Firebase Storage에도 백업 저장
+      const fileName = `${Date.now()}_${imageFile.name.replace(/\.[^/.]+$/, isGif ? '.gif' : '.jpg')}`;
+      const storageRef = ref(storage, `uploads/${productDoc.id}/${fileName}`);
+
+      await uploadBytes(storageRef, processedImage, {
+        contentType: isGif ? "image/gif" : "image/jpeg",
+      });
+
+      const bucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'okparts-cf24.firebasestorage.app';
+      const encodedPath = encodeURIComponent(`uploads/${productDoc.id}/${fileName}`);
+      const publicURL = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media`;
+      firebaseUrls.push(publicURL);
+
+      // 카페24 CDN에 대표 이미지 업로드
+      console.log("[Product Create] Step 3: 카페24 CDN 업로드 시작");
+      console.log("[Product Create] Base64 이미지 크기:", `${(base64.length / 1024).toFixed(2)}KB`);
+
+      const uploadedImages = await cafe24Client.uploadProductImages([base64]);
       cafe24ImageUrls = uploadedImages.map(img => img.path);
 
       console.log("[Product Create] 카페24 CDN 업로드 성공!");
-      console.log("[Product Create] 카페24 CDN URL:", cafe24ImageUrls);
+      console.log("[Product Create] 카페24 CDN URL:", cafe24ImageUrls[0]);
 
     } catch (imageError: any) {
       console.error("[Product Create] 이미지 처리 실패!");
@@ -324,8 +321,7 @@ export async function POST(request: NextRequest) {
         product_name: cafe24ProductData.product_name,
         price: cafe24ProductData.price,
         detail_image: cafe24ProductData.detail_image,
-        additional_image_count: cafe24ProductData.additional_image.length,
-        additional_images: cafe24ProductData.additional_image
+        additional_image: cafe24ProductData.additional_image
       });
 
       console.log("[Product Create] 카페24 API 호출 중...");

@@ -126,9 +126,9 @@ export default function NewProductPage() {
 
     // 파일 타입 검증
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-    const invalidFiles = files.filter(file => !allowedTypes.includes(file.type));
+    const file = files[0]; // 첫 번째 파일만 사용
 
-    if (invalidFiles.length > 0) {
+    if (!allowedTypes.includes(file.type)) {
       alert('jpg, jpeg, png, gif 파일만 업로드 가능합니다.');
       e.target.value = '';
       return;
@@ -136,40 +136,27 @@ export default function NewProductPage() {
 
     // 파일 크기 검증 (3MB)
     const maxSize = 3 * 1024 * 1024; // 3MB
-    const oversizedFiles = files.filter(file => file.size > maxSize);
-
-    if (oversizedFiles.length > 0) {
-      alert('각 이미지는 3MB 이하여야 합니다.\n서버에서 자동으로 압축됩니다.');
+    if (file.size > maxSize) {
+      alert('이미지는 3MB 이하여야 합니다.\n서버에서 자동으로 압축됩니다.');
     }
 
-    // 최대 3장 제한
-    const remainingSlots = 3 - images.length;
-    const filesToAdd = files.slice(0, remainingSlots);
-
-    if (files.length > remainingSlots) {
-      alert(`최대 3장까지 업로드 가능합니다. ${remainingSlots}장만 추가됩니다.`);
-    }
-
-    // 새 이미지들을 기존 배열에 추가
-    const newImages = [...images, ...filesToAdd];
-    setImages(newImages);
+    // 대표 이미지 1장만 (기존 이미지 교체)
+    setImages([file]);
 
     // 프리뷰 생성
-    filesToAdd.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreviews(prev => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreviews([reader.result as string]);
+    };
+    reader.readAsDataURL(file);
 
     // input 초기화
     e.target.value = '';
   };
 
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  const removeImage = () => {
+    setImages([]);
+    setImagePreviews([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -492,77 +479,67 @@ export default function NewProductPage() {
             {/* 상품 이미지 */}
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                상품 이미지 * (최대 3장)
+                대표 이미지 *
               </label>
               <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.75rem' }}>
                 • 파일 형식: jpg, jpeg, png, gif<br/>
                 • 파일 크기: 3MB 이하 (자동 압축됨)<br/>
-                • 첫 번째 이미지가 대표 이미지로 표시됩니다
+                • 대표 이미지 1장만 업로드됩니다
               </p>
 
-              {/* 이미지 프리뷰 그리드 */}
+              {/* 이미지 프리뷰 */}
               {imagePreviews.length > 0 && (
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: imagePreviews.length === 1 ? '1fr' : 'repeat(2, 1fr)',
-                  gap: '1rem',
-                  marginBottom: '1rem'
-                }}>
-                  {imagePreviews.map((preview, index) => (
-                    <div key={index} style={{ position: 'relative' }}>
-                      <img
-                        src={preview}
-                        alt={`Preview ${index + 1}`}
-                        style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '12px', border: '2px solid #e5e7eb' }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="btn btn-outline"
-                        style={{
-                          position: 'absolute',
-                          top: '0.5rem',
-                          right: '0.5rem',
-                          backgroundColor: 'rgba(239, 68, 68, 0.9)',
-                          color: 'white',
-                          padding: '0.5rem 0.75rem',
-                          fontSize: '0.875rem',
-                          fontWeight: '700',
-                          border: 'none',
-                          minWidth: 'auto'
-                        }}
-                      >
-                        🗑️
-                      </button>
-                      {index === 0 && (
-                        <div style={{
-                          position: 'absolute',
-                          bottom: '0.5rem',
-                          left: '0.5rem',
-                          backgroundColor: 'rgba(59, 130, 246, 0.9)',
-                          color: 'white',
-                          padding: '0.25rem 0.75rem',
-                          fontSize: '0.875rem',
-                          fontWeight: '700',
-                          borderRadius: '6px'
-                        }}>
-                          대표 이미지
-                        </div>
-                      )}
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ position: 'relative', maxWidth: '400px' }}>
+                    <img
+                      src={imagePreviews[0]}
+                      alt="대표 이미지"
+                      style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: '12px', border: '2px solid #3b82f6' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="btn btn-outline"
+                      style={{
+                        position: 'absolute',
+                        top: '0.5rem',
+                        right: '0.5rem',
+                        backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                        color: 'white',
+                        padding: '0.5rem 0.75rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '700',
+                        border: 'none',
+                        minWidth: 'auto'
+                      }}
+                    >
+                      🗑️
+                    </button>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '0.5rem',
+                      left: '0.5rem',
+                      backgroundColor: 'rgba(59, 130, 246, 0.9)',
+                      color: 'white',
+                      padding: '0.25rem 0.75rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '700',
+                      borderRadius: '6px'
+                    }}>
+                      대표 이미지
                     </div>
-                  ))}
+                  </div>
                 </div>
               )}
 
-              {/* 업로드 버튼 - 3장 미만일 때만 표시 */}
-              {images.length < 3 && (
+              {/* 업로드 버튼 - 이미지가 없을 때만 표시 */}
+              {images.length === 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {/* 숨겨진 파일 입력 필드 */}
                   <input
                     id="albumInput"
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/gif"
-                    multiple
                     onChange={handleImageChange}
                     style={{ display: 'none' }}
                   />
