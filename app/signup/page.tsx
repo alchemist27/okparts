@@ -31,13 +31,24 @@ export default function SignupPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [accountType, setAccountType] = useState<AccountType>(null);
-  const [formData, setFormData] = useState(generateDummyData());
+  const [formData, setFormData] = useState({
+    userId: "",
+    password: "",
+    passwordConfirm: "",
+    name: "",
+    companyName: "",
+    phone: "",
+    businessNumber: "",
+    presidentName: "",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 페이지 로드시 더미 데이터 재생성
+  // 개발 환경에서만 더미 데이터 자동 입력
   useEffect(() => {
-    setFormData(generateDummyData());
+    if (process.env.NODE_ENV === 'development') {
+      setFormData(generateDummyData());
+    }
   }, []);
 
   const handleAccountTypeSelect = (type: AccountType) => {
@@ -248,11 +259,12 @@ export default function SignupPage() {
                   id="userId"
                   name="userId"
                   type="text"
-                  autoComplete="username"
+                  autoComplete="off"
                   inputMode="text"
                   value={formData.userId}
                   onChange={(e) => setFormData({ ...formData, userId: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') })}
-                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
+                  onTouchStart={(e) => e.currentTarget.focus()}
+                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
                   placeholder="영문 소문자, 숫자만 가능"
                   required
                   pattern="[a-z0-9]+"
@@ -272,11 +284,12 @@ export default function SignupPage() {
                   id="password"
                   name="password"
                   type="password"
-                  autoComplete="new-password"
+                  autoComplete="off"
                   inputMode="text"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
+                  onTouchStart={(e) => e.currentTarget.focus()}
+                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
                   required
                   minLength={6}
                 />
@@ -294,11 +307,12 @@ export default function SignupPage() {
                   id="passwordConfirm"
                   name="passwordConfirm"
                   type="password"
-                  autoComplete="new-password"
+                  autoComplete="off"
                   inputMode="text"
                   value={formData.passwordConfirm}
                   onChange={(e) => setFormData({ ...formData, passwordConfirm: e.target.value })}
-                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
+                  onTouchStart={(e) => e.currentTarget.focus()}
+                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
                   required
                 />
               </div>
@@ -313,7 +327,10 @@ export default function SignupPage() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
+                    onTouchStart={(e) => e.currentTarget.focus()}
+                    style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                    autoComplete="off"
+                    inputMode="text"
                     required
                   />
                 </div>
@@ -327,7 +344,10 @@ export default function SignupPage() {
                       type="text"
                       value={formData.companyName}
                       onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                      style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
+                      onTouchStart={(e) => e.currentTarget.focus()}
+                      style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                      autoComplete="off"
+                      inputMode="text"
                       required
                     />
                   </div>
@@ -340,7 +360,10 @@ export default function SignupPage() {
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
+                      onTouchStart={(e) => e.currentTarget.focus()}
+                      style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                      autoComplete="off"
+                      inputMode="text"
                       required
                     />
                   </div>
@@ -356,8 +379,11 @@ export default function SignupPage() {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onTouchStart={(e) => e.currentTarget.focus()}
                   placeholder="010-1234-5678"
-                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
+                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                  autoComplete="off"
+                  inputMode="tel"
                   required
                 />
               </div>
@@ -379,8 +405,11 @@ export default function SignupPage() {
                       type="text"
                       value={formData.businessNumber}
                       onChange={(e) => setFormData({ ...formData, businessNumber: e.target.value })}
+                      onTouchStart={(e) => e.currentTarget.focus()}
                       placeholder="118-81-20586"
-                      style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
+                      style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                      autoComplete="off"
+                      inputMode="text"
                       required
                     />
                     <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
@@ -396,7 +425,10 @@ export default function SignupPage() {
                       type="text"
                       value={formData.presidentName}
                       onChange={(e) => setFormData({ ...formData, presidentName: e.target.value })}
-                      style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
+                      onTouchStart={(e) => e.currentTarget.focus()}
+                      style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                      autoComplete="off"
+                      inputMode="text"
                       required
                     />
                   </div>
