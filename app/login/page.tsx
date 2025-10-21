@@ -89,25 +89,34 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             {/* 아이디 */}
             <div>
-              <label style={{ fontSize: "1.25rem", fontWeight: "700", marginBottom: "0.5rem", display: "block" }}>
+              <label htmlFor="userId" style={{ fontSize: "1.25rem", fontWeight: "700", marginBottom: "0.5rem", display: "block" }}>
                 아이디
               </label>
               <input
+                id="userId"
+                name="userId"
                 type="text"
+                autoComplete="username"
+                inputMode="text"
                 value={formData.userId}
                 onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
                 style={{ fontSize: "1.25rem", padding: "1rem", borderRadius: "12px" }}
                 required
+                autoFocus
               />
             </div>
 
             {/* 비밀번호 */}
             <div>
-              <label style={{ fontSize: "1.25rem", fontWeight: "700", marginBottom: "0.5rem", display: "block" }}>
+              <label htmlFor="password" style={{ fontSize: "1.25rem", fontWeight: "700", marginBottom: "0.5rem", display: "block" }}>
                 비밀번호
               </label>
               <input
+                id="password"
+                name="password"
                 type="password"
+                autoComplete="current-password"
+                inputMode="text"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 style={{ fontSize: "1.25rem", padding: "1rem", borderRadius: "12px" }}

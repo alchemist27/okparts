@@ -583,7 +583,7 @@ export default function NewProductPage() {
                         style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700', width: '100%' }}
                       >
                         <span style={{ fontSize: '2.5rem' }}>📁</span>
-                        <span>사진 추가 ({images.length}/3)</span>
+                        <span>사진 추가 ({images.length}/1)</span>
                       </button>
                     </div>
                   )}

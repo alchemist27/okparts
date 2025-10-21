@@ -241,11 +241,15 @@ export default function SignupPage() {
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {/* 아이디 */}
               <div>
-                <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                <label htmlFor="userId" style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   아이디 *
                 </label>
                 <input
+                  id="userId"
+                  name="userId"
                   type="text"
+                  autoComplete="username"
+                  inputMode="text"
                   value={formData.userId}
                   onChange={(e) => setFormData({ ...formData, userId: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') })}
                   style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
@@ -261,11 +265,15 @@ export default function SignupPage() {
 
               {/* 비밀번호 */}
               <div>
-                <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                <label htmlFor="password" style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   비밀번호 *
                 </label>
                 <input
+                  id="password"
+                  name="password"
                   type="password"
+                  autoComplete="new-password"
+                  inputMode="text"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
@@ -279,11 +287,15 @@ export default function SignupPage() {
 
               {/* 비밀번호 확인 */}
               <div>
-                <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                <label htmlFor="passwordConfirm" style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   비밀번호 확인 *
                 </label>
                 <input
+                  id="passwordConfirm"
+                  name="passwordConfirm"
                   type="password"
+                  autoComplete="new-password"
+                  inputMode="text"
                   value={formData.passwordConfirm}
                   onChange={(e) => setFormData({ ...formData, passwordConfirm: e.target.value })}
                   style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px' }}
