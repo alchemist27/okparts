@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
     // FormData 파싱
     const formData = await request.formData();
     const productName = formData.get("productName") as string;
+    const summaryDescription = formData.get("summaryDescription") as string;
     const sellingPrice = formData.get("sellingPrice") as string;
     const supplyPrice = formData.get("supplyPrice") as string;
     const categoryNo = formData.get("categoryNo") as string;
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest) {
 
     console.log("[Product Create] 요청 데이터:", {
       productName,
+      summaryDescription,
       sellingPrice,
       supplyPrice,
       categoryNo,
@@ -122,6 +124,7 @@ export async function POST(request: NextRequest) {
     const productDoc = await addDoc(productsRef, {
       supplierId: payload.supplierId,
       name: productName,
+      summaryDescription: summaryDescription || "",
       supplyPrice: parseInt(supplyPrice),
       sellingPrice: parseInt(sellingPrice),
       display,
@@ -301,6 +304,7 @@ export async function POST(request: NextRequest) {
       // 카페24 상품 데이터 (이미지 포함)
       const cafe24ProductData: any = {
         product_name: productName,
+        summary_description: summaryDescription || "",
         price: parseInt(sellingPrice),
         supply_price: parseInt(supplyPrice),
         display: display || "T",

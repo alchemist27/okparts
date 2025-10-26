@@ -21,6 +21,7 @@ export default function NewProductPage() {
 
   const [formData, setFormData] = useState({
     productName: "",
+    summaryDescription: "",
     sellingPrice: "",
     supplyPrice: "",
     mainCategory: "",
@@ -196,6 +197,7 @@ export default function NewProductPage() {
 
       const productFormData = new FormData();
       productFormData.append("productName", formData.productName);
+      productFormData.append("summaryDescription", formData.summaryDescription);
       productFormData.append("sellingPrice", formData.sellingPrice);
       productFormData.append("supplyPrice", formData.supplyPrice);
       productFormData.append("categoryNo", selectedCategory);
@@ -237,6 +239,7 @@ export default function NewProductPage() {
       // 알림 확인 후 폼 초기화
       setFormData({
         productName: "",
+        summaryDescription: "",
         sellingPrice: "",
         supplyPrice: "",
         mainCategory: "",
@@ -387,6 +390,34 @@ export default function NewProductPage() {
                 inputMode="text"
                 autoComplete="off"
               />
+            </div>
+
+            {/* 상품 상세정보 */}
+            <div>
+              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                상품 상세정보
+              </label>
+              <textarea
+                value={formData.summaryDescription}
+                onChange={(e) => setFormData({ ...formData, summaryDescription: e.target.value })}
+                onTouchStart={(e) => e.currentTarget.focus()}
+                style={{
+                  fontSize: '1.25rem',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  WebkitUserSelect: 'text',
+                  WebkitTouchCallout: 'default',
+                  minHeight: '100px',
+                  resize: 'vertical'
+                }}
+                maxLength={255}
+                placeholder="차량명, 연식, 부품번호, 차대번호 등 상세 제품 정보를 입력해주세요."
+                inputMode="text"
+                autoComplete="off"
+              />
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                {formData.summaryDescription.length}/255자
+              </p>
             </div>
 
             {/* 카테고리 */}
