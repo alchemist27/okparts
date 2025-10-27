@@ -227,32 +227,11 @@ export default function NewProductPage() {
       // 성공 메시지 표시
       setLoadingStep("등록 완료!");
       setSuccess(true);
-      setLoading(false);
-      setLoadingStep("");
 
-      // 스크롤 맨 위로
-      window.scrollTo(0, 0);
-
-      // 알림 표시
-      alert("상품이 성공적으로 등록되었습니다!\n새로운 상품을 등록하세요.");
-
-      // 알림 확인 후 폼 초기화
-      setFormData({
-        productName: "",
-        summaryDescription: "",
-        sellingPrice: "",
-        supplyPrice: "",
-        mainCategory: "",
-        subCategory: "",
-        detailCategory: "",
-        display: "T" as "T" | "F",
-        selling: "T" as "T" | "F",
-      });
-      setImages([]);
-      setImagePreviews([]);
-      setSubCategories([]);
-      setDetailCategories([]);
-      setSuccess(false);
+      // 잠시 후 성공 페이지로 리다이렉트
+      setTimeout(() => {
+        router.push("/products/success");
+      }, 1000);
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
@@ -386,7 +365,7 @@ export default function NewProductPage() {
                 onTouchStart={(e) => e.currentTarget.focus()}
                 style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
                 required
-                placeholder="예: 현대 아반떼 앞범퍼"
+                placeholder="알림 발송을 위해 핵심 키워드를 포함한 상품명을 입력해주세요. 예) 현대 아반떼 앞범퍼"
                 inputMode="text"
                 autoComplete="off"
               />
