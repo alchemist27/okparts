@@ -6,7 +6,7 @@ import sharp from "sharp";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   console.log("\n========== [Additional Images] 추가 이미지 업로드 시작 ==========");
 
@@ -24,6 +24,7 @@ export async function POST(
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
+    const params = await context.params;
     const productId = params.id;
 
     // 상품 존재 확인 및 권한 체크
