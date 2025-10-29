@@ -388,7 +388,7 @@ export async function POST(request: NextRequest) {
           recommend: "F",
           new: "F"
         }],
-        image_upload_type: "A", // 카페24 CDN 이미지 사용
+        image_upload_type: "B", // 개별이미지등록 (POST /admin/products/images로 업로드한 이미지)
         detail_image: relativeImagePaths[0], // 대표 이미지 (YYYYMMDD/파일명.jpg)
         additional_image: relativeImagePaths, // 추가 이미지 (YYYYMMDD/파일명.jpg)
         maximum_quantity: maximumQuantity ? parseInt(maximumQuantity) : 1, // 최대 주문수량
