@@ -507,7 +507,6 @@ export default function NewProductPage() {
                 로그아웃
               </button>
             </div>
-            <p className="text-center hero-subtitle" style={{ fontSize: '1.125rem' }}>상품 정보를 입력하세요</p>
           </div>
 
           {/* 중요 안내 */}
