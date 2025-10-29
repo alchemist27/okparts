@@ -390,7 +390,7 @@ export async function POST(request: NextRequest) {
         }],
         image_upload_type: "A", // 카페24 CDN 이미지 사용
         detail_image: relativeImagePaths[0], // 대표 이미지 (상대 경로)
-        additional_image: relativeImagePaths, // 모든 이미지 (상대 경로)
+        additional_image: cafe24ImageUrls, // 추가 이미지 (절대 URL)
         maximum_quantity: maximumQuantity ? parseInt(maximumQuantity) : 1, // 최대 주문수량
         minimum_quantity: minimumQuantity ? parseInt(minimumQuantity) : 1, // 최소 주문수량
       };
