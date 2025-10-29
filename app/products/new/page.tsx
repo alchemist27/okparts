@@ -35,6 +35,7 @@ export default function NewProductPage() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [imageUploadProgress, setImageUploadProgress] = useState(0);
@@ -231,6 +232,7 @@ export default function NewProductPage() {
     setError("");
     setSuccess(false);
     setLoading(true);
+    setUploadProgress(0);
     setLoadingStep("상품 정보 확인 중...");
 
     try {
@@ -240,13 +242,18 @@ export default function NewProductPage() {
         return;
       }
 
+      setUploadProgress(10);
+
       // 필수 항목 검증
       if (images.length === 0) {
         setError("상품 이미지는 최소 1장 이상 필요합니다");
         setLoading(false);
         setLoadingStep("");
+        setUploadProgress(0);
         return;
       }
+
+      setUploadProgress(20);
 
       // 가격 유효성 검증
       console.log("[프론트] 가격 검증 시작");
@@ -263,10 +270,13 @@ export default function NewProductPage() {
         setError("올바른 판매가를 입력해주세요");
         setLoading(false);
         setLoadingStep("");
+        setUploadProgress(0);
         return;
       }
 
       console.log("[프론트] 가격 검증 통과:", cleanPrice);
+
+      setUploadProgress(30);
 
       // 카테고리 선택: 가장 하위 선택된 카테고리 사용
       const selectedCategory = formData.detailCategory || formData.subCategory || formData.mainCategory;
@@ -275,10 +285,12 @@ export default function NewProductPage() {
         setError("카테고리를 선택해주세요");
         setLoading(false);
         setLoadingStep("");
+        setUploadProgress(0);
         return;
       }
 
       // 1. 상품 기본 정보 + 이미지 함께 등록
+      setUploadProgress(40);
       setLoadingStep("상품 등록중... 잠시만 기다려주세요... 등록 중 화면을 벗어나면 등록이 취소됩니다.");
 
       console.log("========== [프론트] 상품 등록 데이터 ==========");
@@ -313,6 +325,7 @@ export default function NewProductPage() {
       });
 
       console.log("[프론트] FormData 생성 완료, API 호출 시작...");
+      setUploadProgress(50);
 
       const productResponse = await fetch("/api/products", {
         method: "POST",
@@ -321,6 +334,8 @@ export default function NewProductPage() {
         },
         body: productFormData,
       });
+
+      setUploadProgress(80);
 
       if (!productResponse.ok) {
         console.error("상품 등록 실패 - Status:", productResponse.status);
@@ -347,8 +362,11 @@ export default function NewProductPage() {
 
       await productResponse.json();
 
+      setUploadProgress(90);
+
       // 성공 메시지 표시
       setLoadingStep("등록 완료!");
+      setUploadProgress(100);
       setSuccess(true);
 
       // 잠시 후 성공 페이지로 리다이렉트
@@ -365,6 +383,7 @@ export default function NewProductPage() {
       setError(err.message || "상품 등록에 실패했습니다");
       setLoading(false);
       setLoadingStep("");
+      setUploadProgress(0);
 
       // 에러 발생 시 스크롤을 에러 메시지로 이동
       setTimeout(() => {
@@ -404,9 +423,32 @@ export default function NewProductPage() {
             color: 'white',
             fontSize: '1.5rem',
             fontWeight: '700',
-            textAlign: 'center'
+            textAlign: 'center',
+            padding: '0 1rem'
           }}>
             {loadingStep}
+          </div>
+          <div style={{
+            color: 'white',
+            fontSize: '2.5rem',
+            fontWeight: '700'
+          }}>
+            {uploadProgress}%
+          </div>
+          <div style={{
+            width: '80%',
+            maxWidth: '400px',
+            height: '12px',
+            backgroundColor: '#374151',
+            borderRadius: '6px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              height: '100%',
+              backgroundColor: 'var(--primary)',
+              width: `${uploadProgress}%`,
+              transition: 'width 0.3s ease'
+            }} />
           </div>
           {success && (
             <div style={{

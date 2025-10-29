@@ -339,8 +339,8 @@ export async function POST(request: NextRequest) {
       console.log(`[Product Create] 이미지 ${idx + 1}: ${url} -> ${relativeImagePaths[idx]}`);
     });
 
-    // 상대 경로 검증
-    const invalidPaths = relativeImagePaths.filter(path => !path || !path.startsWith('/web/upload/'));
+    // 상대 경로 검증 (맨 앞 슬래시 없이)
+    const invalidPaths = relativeImagePaths.filter(path => !path || !path.startsWith('web/upload/'));
     if (invalidPaths.length > 0) {
       console.error("[Product Create] 유효하지 않은 이미지 경로 발견:", invalidPaths);
       throw new Error("이미지 경로 변환에 실패했습니다");
