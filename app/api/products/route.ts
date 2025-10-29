@@ -320,14 +320,14 @@ export async function POST(request: NextRequest) {
     }
 
     // 카페24 CDN URL을 상대 경로로 변환 (image_upload_type: "A"일 때 필요)
-    // 예: https://.../web/upload/NNEditor/20251029/abc.jpg -> NNEditor/20251029/abc.jpg
+    // 예: https://.../web/upload/NNEditor/20251029/abc.jpg -> 20251029/abc.jpg
     const convertToRelativePath = (url: string): string => {
-      const match = url.match(/\/web\/upload\/(.+)$/);
+      const match = url.match(/\/NNEditor\/(\d{8}\/.+)$/);
       if (!match) {
         console.warn(`[Product Create] 경고: 상대 경로 변환 실패 - ${url}`);
         return url;
       }
-      // "web/upload/" 부분도 제거, NNEditor/YYYYMMDD/파일명.jpg 형식만 반환
+      // NNEditor 폴더도 제거, YYYYMMDD/파일명.jpg 형식만 반환 (카페24 공식 형식)
       return match[1];
     };
 
@@ -339,8 +339,8 @@ export async function POST(request: NextRequest) {
       console.log(`[Product Create] 이미지 ${idx + 1}: ${url} -> ${relativeImagePaths[idx]}`);
     });
 
-    // 상대 경로 검증 (NNEditor/YYYYMMDD/파일명.jpg 형식)
-    const invalidPaths = relativeImagePaths.filter(path => !path || !path.startsWith('NNEditor/'));
+    // 상대 경로 검증 (YYYYMMDD/파일명.jpg 형식)
+    const invalidPaths = relativeImagePaths.filter(path => !path || !/^\d{8}\/.+\.jpg$/.test(path));
     if (invalidPaths.length > 0) {
       console.error("[Product Create] 유효하지 않은 이미지 경로 발견:", invalidPaths);
       throw new Error("이미지 경로 변환에 실패했습니다");
@@ -389,8 +389,8 @@ export async function POST(request: NextRequest) {
           new: "F"
         }],
         image_upload_type: "A", // 카페24 CDN 이미지 사용
-        detail_image: relativeImagePaths[0], // 대표 이미지 (상대 경로)
-        additional_image: cafe24ImageUrls, // 추가 이미지 (절대 URL)
+        detail_image: relativeImagePaths[0], // 대표 이미지 (YYYYMMDD/파일명.jpg)
+        additional_image: relativeImagePaths, // 추가 이미지 (YYYYMMDD/파일명.jpg)
         maximum_quantity: maximumQuantity ? parseInt(maximumQuantity) : 1, // 최대 주문수량
         minimum_quantity: minimumQuantity ? parseInt(minimumQuantity) : 1, // 최소 주문수량
       };
