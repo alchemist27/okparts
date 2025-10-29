@@ -261,7 +261,7 @@ export class Cafe24ApiClient {
     return uploadedPaths;
   }
 
-  // Product Images - 추가 이미지 등록 (base64)
+  // Product Images - 추가 이미지 등록 (additionalimages 엔드포인트)
   async addProductImages(productNo: string, base64Images: string[]): Promise<any[]> {
     console.log("[Cafe24 API] 추가 이미지 등록:", {
       productNo,
@@ -295,6 +295,37 @@ export class Cafe24ApiClient {
     }));
 
     return uploadedImages;
+  }
+
+  // Product Images - 상품 이미지 업데이트 (PUT 엔드포인트)
+  async updateProductImages(productNo: string, cafe24ImageUrls: string[]): Promise<any> {
+    console.log("[Cafe24 API] 이미지 업데이트:", {
+      productNo,
+      imageCount: cafe24ImageUrls.length,
+      firstImageUrl: cafe24ImageUrls[0]
+    });
+
+    // URL을 상대 경로로 변환 (YYYYMMDD/파일명.jpg 형식)
+    const convertToRelativePath = (url: string): string => {
+      const match = url.match(/\/NNEditor\/(\d{8}\/.+)$/);
+      if (!match) {
+        console.warn(`[Cafe24 API] 경로 변환 실패 - ${url}`);
+        return url;
+      }
+      return match[1]; // 20251029/파일명.jpg
+    };
+
+    const relativeImagePaths = cafe24ImageUrls.map(convertToRelativePath);
+    console.log("[Cafe24 API] 변환된 이미지 경로:", relativeImagePaths);
+
+    return this.request("PUT", `/admin/products/${productNo}`, {
+      request: {
+        shop_no: 1,
+        image_upload_type: "A",
+        detail_image: relativeImagePaths[0],
+        additional_image: relativeImagePaths,
+      },
+    });
   }
 
   // Suppliers
