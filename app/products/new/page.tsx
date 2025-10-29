@@ -216,7 +216,7 @@ export default function NewProductPage() {
       }
 
       // 1. 상품 기본 정보 + 이미지 함께 등록
-      setLoadingStep("상품 등록중... 잠시만 기다려주세요. 등록 중 화면을 벗어나면 등록이 취소됩니다.");
+      setLoadingStep("상품 등록중... 잠시만 기다려주세요... 등록 중 화면을 벗어나면 등록이 취소됩니다.");
 
       const productFormData = new FormData();
       productFormData.append("productName", formData.productName);

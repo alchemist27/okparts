@@ -338,9 +338,9 @@ export async function POST(request: NextRequest) {
         minimum_quantity: minimumQuantity ? parseInt(minimumQuantity) : 1, // 최소 주문수량
       };
 
-      // 추가 이미지가 있는 경우만 (모든 이미지 포함)
-      if (relativeImagePaths.length > 0) {
-        cafe24ProductData.additional_image = relativeImagePaths; // 모든 이미지 (상대 경로)
+      // 추가 이미지가 있는 경우만 (대표 이미지 제외한 나머지)
+      if (relativeImagePaths.length > 1) {
+        cafe24ProductData.additional_image = relativeImagePaths.slice(1); // 첫 번째 제외
       }
 
       console.log("[Product Create] 카페24 상품 데이터:", {
@@ -353,10 +353,17 @@ export async function POST(request: NextRequest) {
       });
       console.log("[Product Create] detail_image (대표 - 상대 경로):", cafe24ProductData.detail_image);
       if (cafe24ProductData.additional_image) {
-        console.log("[Product Create] additional_image (모든 이미지 - 상대 경로):", cafe24ProductData.additional_image);
+        console.log("[Product Create] additional_image (추가 이미지 - 상대 경로):");
+        cafe24ProductData.additional_image.forEach((img: string, idx: number) => {
+          console.log(`[Product Create]   - 추가 이미지 ${idx + 1}: ${img}`);
+        });
       } else {
         console.log("[Product Create] additional_image: 없음");
       }
+
+      console.log("\n========== [Product Create] 카페24 API 요청 전체 데이터 ==========");
+      console.log(JSON.stringify(cafe24ProductData, null, 2));
+      console.log("=================================================================\n");
 
       console.log("[Product Create] 카페24 API 호출 중...");
       const cafe24Response = await cafe24Client.createProduct(cafe24ProductData);
@@ -368,6 +375,19 @@ export async function POST(request: NextRequest) {
         cafe24Response.products?.[0]?.product_no;
 
       if (cafe24ProductNo) {
+        console.log("\n========== [Product Create] 카페24 응답 분석 ==========");
+        console.log("[Product Create] 상품 번호:", cafe24ProductNo);
+        console.log("[Product Create] detail_image (응답):", cafe24Response.product?.detail_image);
+        console.log("[Product Create] additional_image (응답):");
+        if (cafe24Response.product?.additional_image) {
+          cafe24Response.product.additional_image.forEach((img: any, idx: number) => {
+            console.log(`[Product Create]   - 추가 이미지 ${idx + 1}:`, img);
+          });
+        } else {
+          console.log("[Product Create]   - 없음");
+        }
+        console.log("=======================================================\n");
+
         // 카페24 CDN URL (절대 경로)로 Firestore 업데이트
         await updateDoc(doc(db, "products", productDoc.id), {
           cafe24ProductNo: cafe24ProductNo.toString(),
@@ -377,7 +397,6 @@ export async function POST(request: NextRequest) {
           updatedAt: new Date().toISOString(),
         });
 
-        console.log("[Product Create] 카페24 상품 번호:", cafe24ProductNo);
         console.log("[Product Create] Firestore 저장 이미지:");
         console.log(`[Product Create] - cover: ${cafe24ImageUrls[0]}`);
         console.log(`[Product Create] - gallery (${cafe24ImageUrls.length}장):`, cafe24ImageUrls);
