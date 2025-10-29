@@ -327,6 +327,7 @@ export default function NewProductPage() {
       console.log("[프론트] FormData 생성 완료, API 호출 시작...");
       setUploadProgress(50);
 
+      console.log("[프론트] fetch 호출 직전");
       const productResponse = await fetch("/api/products", {
         method: "POST",
         headers: {
@@ -334,6 +335,7 @@ export default function NewProductPage() {
         },
         body: productFormData,
       });
+      console.log("[프론트] fetch 응답 받음 - Status:", productResponse.status);
 
       setUploadProgress(80);
 
@@ -360,7 +362,9 @@ export default function NewProductPage() {
         throw new Error(errorMessage);
       }
 
-      await productResponse.json();
+      console.log("[프론트] 응답 JSON 파싱 시작");
+      const responseData = await productResponse.json();
+      console.log("[프론트] 응답 데이터:", responseData);
 
       setUploadProgress(90);
 
@@ -369,8 +373,10 @@ export default function NewProductPage() {
       setUploadProgress(100);
       setSuccess(true);
 
+      console.log("[프론트] 성공 처리 완료, 1초 후 리다이렉트 예정");
       // 잠시 후 성공 페이지로 리다이렉트
       setTimeout(() => {
+        console.log("[프론트] 성공 페이지로 이동");
         router.push("/products/success");
       }, 1000);
     } catch (err: any) {
