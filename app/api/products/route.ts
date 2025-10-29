@@ -389,14 +389,13 @@ export async function POST(request: NextRequest) {
         }],
         image_upload_type: "A", // 카페24 CDN 이미지 사용
         detail_image: relativeImagePaths[0], // 대표 이미지 (상대 경로)
+        additional_image: relativeImagePaths, // 모든 이미지 (상대 경로)
         maximum_quantity: maximumQuantity ? parseInt(maximumQuantity) : 1, // 최대 주문수량
         minimum_quantity: minimumQuantity ? parseInt(minimumQuantity) : 1, // 최소 주문수량
       };
 
-      // additional_image는 상품 생성 후 별도로 업데이트 (경로 충돌 방지)
       console.log(`[Product Create] 이미지 경로 개수: ${relativeImagePaths.length}`);
       console.log("[Product Create] 전체 이미지 경로:", relativeImagePaths);
-      console.log("[Product Create] additional_image는 상품 생성 후 별도 업데이트 예정");
 
       console.log("[Product Create] 카페24 상품 데이터:", {
         product_name: cafe24ProductData.product_name,
@@ -445,21 +444,8 @@ export async function POST(request: NextRequest) {
         console.log("\n========== [Product Create] 카페24 응답 분석 ==========");
         console.log("[Product Create] 상품 번호:", cafe24ProductNo);
         console.log("[Product Create] detail_image (응답):", cafe24Response.product?.detail_image);
+        console.log("[Product Create] additional_image (응답):", cafe24Response.product?.additional_image);
         console.log("=======================================================\n");
-
-        // Step 5: 추가 이미지 업데이트 (별도 API 호출)
-        if (cafe24ImageUrls.length > 0) {
-          console.log("[Product Create] Step 5: 추가 이미지 업데이트 시작");
-          console.log(`[Product Create] 업데이트할 이미지 수: ${cafe24ImageUrls.length}장`);
-
-          try {
-            await cafe24Client.updateProductImages(cafe24ProductNo.toString(), cafe24ImageUrls);
-            console.log("[Product Create] 추가 이미지 업데이트 성공!");
-          } catch (imageUpdateError: any) {
-            console.error("[Product Create] 추가 이미지 업데이트 실패:", imageUpdateError.message);
-            // 실패해도 상품은 등록되었으므로 계속 진행
-          }
-        }
 
         // 카페24 CDN URL (절대 경로)로 Firestore 업데이트
         await updateDoc(doc(db, "products", productDoc.id), {

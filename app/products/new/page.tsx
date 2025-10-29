@@ -37,6 +37,8 @@ export default function NewProductPage() {
   const [loadingStep, setLoadingStep] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [imageUploadProgress, setImageUploadProgress] = useState(0);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   useEffect(() => {
     // 로그인 확인
@@ -147,9 +149,18 @@ export default function NewProductPage() {
       alert(`최대 3장까지 업로드 가능합니다. ${remainingSlots}장만 추가됩니다.`);
     }
 
+    if (filesToAdd.length === 0) return;
+
+    // 로딩 시작
+    setIsUploadingImages(true);
+    setImageUploadProgress(0);
+
     // 이미지 압축 (업로드 전에 클라이언트에서 압축)
     const compressedFiles: File[] = [];
-    for (const file of filesToAdd) {
+    const totalFiles = filesToAdd.length;
+
+    for (let i = 0; i < filesToAdd.length; i++) {
+      const file = filesToAdd[i];
       try {
         console.log(`[압축] 원본: ${file.name}, ${(file.size / 1024 / 1024).toFixed(2)}MB`);
 
@@ -157,12 +168,21 @@ export default function NewProductPage() {
           maxSizeMB: 1, // 최대 1MB
           maxWidthOrHeight: 1920, // 최대 해상도
           useWebWorker: true,
+          onProgress: (progress: number) => {
+            // 각 이미지의 진행률을 전체 진행률로 변환
+            const overallProgress = ((i / totalFiles) + (progress / 100 / totalFiles)) * 100;
+            setImageUploadProgress(Math.round(overallProgress));
+          },
         };
 
         const compressedFile = await imageCompression(file, options);
         console.log(`[압축] 완료: ${compressedFile.name}, ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
 
         compressedFiles.push(compressedFile);
+
+        // 각 파일 완료 후 진행률 업데이트
+        const completedProgress = ((i + 1) / totalFiles) * 100;
+        setImageUploadProgress(Math.round(completedProgress));
       } catch (error) {
         console.error('[압축] 실패:', error);
         // 압축 실패 시 원본 사용
@@ -185,6 +205,11 @@ export default function NewProductPage() {
 
         if (loadedCount === compressedFiles.length) {
           setImagePreviews(newPreviews);
+          // 로딩 완료
+          setTimeout(() => {
+            setIsUploadingImages(false);
+            setImageUploadProgress(0);
+          }, 300);
         }
       };
       reader.readAsDataURL(file);
@@ -607,13 +632,70 @@ export default function NewProductPage() {
             </div>
 
             {/* 상품 이미지 */}
-            <div>
+            <div style={{ position: 'relative' }}>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 상품 이미지 *
                 <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
                   (jpg/png, 3MB 이하, 최대 3장, 첫 번째가 대표 이미지)
                 </span>
               </label>
+
+              {/* 이미지 압축 중 로딩 오버레이 */}
+              {isUploadingImages && (
+                <div style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 9998,
+                  gap: '1.5rem'
+                }}>
+                  <div style={{
+                    width: '80px',
+                    height: '80px',
+                    border: '8px solid #f3f4f6',
+                    borderTop: '8px solid var(--primary)',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} />
+                  <div style={{
+                    color: 'white',
+                    fontSize: '1.5rem',
+                    fontWeight: '700',
+                    textAlign: 'center'
+                  }}>
+                    이미지 압축 중...
+                  </div>
+                  <div style={{
+                    color: 'white',
+                    fontSize: '2.5rem',
+                    fontWeight: '700'
+                  }}>
+                    {imageUploadProgress}%
+                  </div>
+                  <div style={{
+                    width: '80%',
+                    maxWidth: '400px',
+                    height: '12px',
+                    backgroundColor: '#374151',
+                    borderRadius: '6px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      height: '100%',
+                      backgroundColor: 'var(--primary)',
+                      width: `${imageUploadProgress}%`,
+                      transition: 'width 0.3s ease'
+                    }} />
+                  </div>
+                </div>
+              )}
 
               {/* 이미지 프리뷰 */}
               {imagePreviews.length > 0 && (
