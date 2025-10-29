@@ -127,37 +127,60 @@ export default function NewProductPage() {
 
     // 파일 타입 검증
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    const file = files[0]; // 첫 번째 파일만 사용
+    const validFiles: File[] = [];
 
-    if (!allowedTypes.includes(file.type)) {
-      alert('jpg, jpeg, png 파일만 업로드 가능합니다.');
-      e.target.value = '';
-      return;
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        alert('jpg, jpeg, png 파일만 업로드 가능합니다.');
+        continue;
+      }
+
+      // 파일 크기 검증 (3MB)
+      const maxSize = 3 * 1024 * 1024; // 3MB
+      if (file.size > maxSize) {
+        alert(`${file.name}은(는) 3MB 이하여야 합니다.\n서버에서 자동으로 압축됩니다.`);
+      }
+
+      validFiles.push(file);
     }
 
-    // 파일 크기 검증 (3MB)
-    const maxSize = 3 * 1024 * 1024; // 3MB
-    if (file.size > maxSize) {
-      alert('이미지는 3MB 이하여야 합니다.\n서버에서 자동으로 압축됩니다.');
+    // 최대 3장까지 (기존 이미지 + 새 이미지)
+    const remainingSlots = 3 - images.length;
+    const filesToAdd = validFiles.slice(0, remainingSlots);
+
+    if (validFiles.length > remainingSlots) {
+      alert(`최대 3장까지 업로드 가능합니다. ${remainingSlots}장만 추가됩니다.`);
     }
 
-    // 대표 이미지 1장만 (기존 이미지 교체)
-    setImages([file]);
+    const newImages = [...images, ...filesToAdd];
+    setImages(newImages);
 
     // 프리뷰 생성
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreviews([reader.result as string]);
-    };
-    reader.readAsDataURL(file);
+    const newPreviews = [...imagePreviews];
+    let loadedCount = 0;
+
+    filesToAdd.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        newPreviews.push(reader.result as string);
+        loadedCount++;
+
+        if (loadedCount === filesToAdd.length) {
+          setImagePreviews(newPreviews);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
 
     // input 초기화
     e.target.value = '';
   };
 
-  const removeImage = () => {
-    setImages([]);
-    setImagePreviews([]);
+  const removeImage = (indexToRemove: number) => {
+    const newImages = images.filter((_, index) => index !== indexToRemove);
+    const newPreviews = imagePreviews.filter((_, index) => index !== indexToRemove);
+    setImages(newImages);
+    setImagePreviews(newPreviews);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -203,6 +226,8 @@ export default function NewProductPage() {
       productFormData.append("categoryNo", selectedCategory);
       productFormData.append("display", formData.display);
       productFormData.append("selling", formData.selling);
+      productFormData.append("maximum_quantity", "1");
+      productFormData.append("minimum_quantity", "1");
 
       // 이미지들 추가
       images.forEach((image) => {
@@ -337,6 +362,24 @@ export default function NewProductPage() {
               </button>
             </div>
             <p className="text-center hero-subtitle" style={{ fontSize: '1.125rem' }}>상품 정보를 입력하세요</p>
+          </div>
+
+          {/* 중요 안내 */}
+          <div style={{
+            backgroundColor: '#fef3c7',
+            border: '2px solid #f59e0b',
+            borderRadius: '12px',
+            padding: '1rem',
+            marginBottom: '1.5rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#92400e', margin: 0 }}>중요 안내</h3>
+            </div>
+            <p style={{ fontSize: '1.125rem', color: '#92400e', margin: 0, lineHeight: '1.6' }}>
+              중고부품 특성상 <strong>최대 주문수량은 1개</strong>로 제한됩니다.<br/>
+              여러 개의 부품을 판매하시려면 각각 별도로 상품 등록을 해주세요.
+            </p>
           </div>
 
           {/* 에러/성공 메시지 */}
@@ -502,68 +545,92 @@ export default function NewProductPage() {
             {/* 상품 이미지 */}
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                대표 이미지 *
+                상품 이미지 * (최대 3장)
               </label>
               <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.75rem' }}>
                 • 파일 형식: jpg, jpeg, png<br/>
                 • 파일 크기: 3MB 이하 (자동 압축됨)<br/>
-                • 대표 이미지 1장만 업로드됩니다<br/>
-                • 추가 이미지 업로드 지원 예정입니다
+                • 첫 번째 이미지가 대표 이미지로 사용됩니다<br/>
+                • 최대 3장까지 업로드 가능합니다
               </p>
 
               {/* 이미지 프리뷰 */}
               {imagePreviews.length > 0 && (
-                <div style={{ marginBottom: '1rem' }}>
-                  <div style={{ position: 'relative', maxWidth: '400px' }}>
-                    <img
-                      src={imagePreviews[0]}
-                      alt="대표 이미지"
-                      style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: '12px', border: '2px solid #3b82f6' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={removeImage}
-                      className="btn btn-outline"
-                      style={{
+                <div style={{ marginBottom: '1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} style={{ position: 'relative' }}>
+                      <img
+                        src={preview}
+                        alt={`이미지 ${index + 1}`}
+                        style={{
+                          width: '100%',
+                          height: '250px',
+                          objectFit: 'cover',
+                          borderRadius: '12px',
+                          border: index === 0 ? '3px solid #3b82f6' : '2px solid #d1d5db'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="btn btn-outline"
+                        style={{
+                          position: 'absolute',
+                          top: '0.5rem',
+                          right: '0.5rem',
+                          backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                          color: 'white',
+                          padding: '0.5rem 0.75rem',
+                          fontSize: '0.875rem',
+                          fontWeight: '700',
+                          border: 'none',
+                          minWidth: 'auto'
+                        }}
+                      >
+                        🗑️
+                      </button>
+                      {index === 0 && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: '0.5rem',
+                          left: '0.5rem',
+                          backgroundColor: 'rgba(59, 130, 246, 0.9)',
+                          color: 'white',
+                          padding: '0.25rem 0.75rem',
+                          fontSize: '0.875rem',
+                          fontWeight: '700',
+                          borderRadius: '6px'
+                        }}>
+                          대표 이미지
+                        </div>
+                      )}
+                      <div style={{
                         position: 'absolute',
-                        top: '0.5rem',
+                        bottom: '0.5rem',
                         right: '0.5rem',
-                        backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
                         color: 'white',
-                        padding: '0.5rem 0.75rem',
-                        fontSize: '0.875rem',
-                        fontWeight: '700',
-                        border: 'none',
-                        minWidth: 'auto'
-                      }}
-                    >
-                      🗑️
-                    </button>
-                    <div style={{
-                      position: 'absolute',
-                      bottom: '0.5rem',
-                      left: '0.5rem',
-                      backgroundColor: 'rgba(59, 130, 246, 0.9)',
-                      color: 'white',
-                      padding: '0.25rem 0.75rem',
-                      fontSize: '0.875rem',
-                      fontWeight: '700',
-                      borderRadius: '6px'
-                    }}>
-                      대표 이미지
+                        padding: '0.25rem 0.5rem',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        borderRadius: '6px'
+                      }}>
+                        {index + 1}/3
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
               )}
 
-              {/* 업로드 버튼 - 이미지가 없을 때만 표시 */}
-              {images.length === 0 && (
+              {/* 업로드 버튼 - 3장 미만일 때만 표시 */}
+              {images.length < 3 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {/* 숨겨진 파일 입력 필드 */}
                   <input
                     id="albumInput"
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/gif"
+                    multiple
                     onChange={handleImageChange}
                     style={{ display: 'none' }}
                   />
@@ -607,7 +674,7 @@ export default function NewProductPage() {
                         style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700', width: '100%' }}
                       >
                         <span style={{ fontSize: '2.5rem' }}>📁</span>
-                        <span>사진 추가 ({images.length}/1)</span>
+                        <span>사진 추가 ({images.length}/3)</span>
                       </button>
                     </div>
                   )}

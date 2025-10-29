@@ -400,7 +400,7 @@ header {
 /* 데스크탑에서 hero-card 최소 너비 설정 */
 @media (min-width: 768px) {
   .hero-card {
-    min-width: 450px;
+    min-width: 600px;
   }
 }
 .hero-title { color: var(--gray-900); }
