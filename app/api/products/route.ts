@@ -320,33 +320,30 @@ export async function POST(request: NextRequest) {
     }
 
     // 카페24 CDN URL을 상대 경로로 변환 (image_upload_type: "A"일 때 필요)
-    // 예: https://.../web/upload/NNEditor/20251029/abc.jpg -> NNEditor/20251029/abc.jpg
+    // 예: https://.../web/upload/NNEditor/20251029/abc.jpg -> /web/upload/NNEditor/20251029/abc.jpg
     const convertToRelativePath = (url: string): string => {
-      // NNEditor 이후 경로 추출 (카페24가 기대하는 짧은 형식)
-      const match = url.match(/NNEditor\/\d{8}\/.+\.jpg$/);
-      if (match) {
-        console.log(`[Product Create] 경로 변환 성공: ${url} -> ${match[0]}`);
-        return match[0];
+      const match = url.match(/\/web\/upload\/.+$/);
+      if (!match) {
+        console.warn(`[Product Create] 경고: 상대 경로 변환 실패 - ${url}`);
+        return url;
       }
-
-      // 매치 실패 시 원본 URL에서 날짜/파일명만 추출 시도
-      const dateMatch = url.match(/(\d{8}\/.+\.jpg)$/);
-      if (dateMatch) {
-        console.log(`[Product Create] 경로 변환 (날짜/파일명): ${url} -> ${dateMatch[1]}`);
-        return dateMatch[1];
-      }
-
-      console.warn(`[Product Create] 경고: 경로 변환 실패, 원본 사용 - ${url}`);
-      return url;
+      return match[0];
     };
 
     const relativeImagePaths = cafe24ImageUrls.map(convertToRelativePath);
 
     console.log("[Product Create] 카페24 이미지 경로 변환:");
-    console.log("[Product Create] 절대 경로 -> 짧은 상대 경로");
+    console.log("[Product Create] 절대 경로 -> 상대 경로");
     cafe24ImageUrls.forEach((url, idx) => {
       console.log(`[Product Create] 이미지 ${idx + 1}: ${url} -> ${relativeImagePaths[idx]}`);
     });
+
+    // 상대 경로 검증
+    const invalidPaths = relativeImagePaths.filter(path => !path || !path.startsWith('/web/upload/'));
+    if (invalidPaths.length > 0) {
+      console.error("[Product Create] 유효하지 않은 이미지 경로 발견:", invalidPaths);
+      throw new Error("이미지 경로 변환에 실패했습니다");
+    }
 
     // 카페24 상품 생성 (이미지 포함)
     try {
@@ -396,17 +393,10 @@ export async function POST(request: NextRequest) {
         minimum_quantity: minimumQuantity ? parseInt(minimumQuantity) : 1, // 최소 주문수량
       };
 
-      // additional_image에는 모든 이미지를 포함 (카페24 요구사항)
+      // additional_image는 상품 생성 후 별도로 업데이트 (경로 충돌 방지)
       console.log(`[Product Create] 이미지 경로 개수: ${relativeImagePaths.length}`);
       console.log("[Product Create] 전체 이미지 경로:", relativeImagePaths);
-
-      if (relativeImagePaths.length > 0) {
-        console.log(`[Product Create] additional_image 설정: ${relativeImagePaths.length}장 (모든 이미지 포함)`);
-        console.log("[Product Create] additional_image 내용:", relativeImagePaths);
-        cafe24ProductData.additional_image = relativeImagePaths; // 모든 이미지 포함
-      } else {
-        console.log("[Product Create] additional_image: 없음");
-      }
+      console.log("[Product Create] additional_image는 상품 생성 후 별도 업데이트 예정");
 
       console.log("[Product Create] 카페24 상품 데이터:", {
         product_name: cafe24ProductData.product_name,
@@ -455,15 +445,21 @@ export async function POST(request: NextRequest) {
         console.log("\n========== [Product Create] 카페24 응답 분석 ==========");
         console.log("[Product Create] 상품 번호:", cafe24ProductNo);
         console.log("[Product Create] detail_image (응답):", cafe24Response.product?.detail_image);
-        console.log("[Product Create] additional_image (응답):");
-        if (cafe24Response.product?.additional_image) {
-          cafe24Response.product.additional_image.forEach((img: any, idx: number) => {
-            console.log(`[Product Create]   - 추가 이미지 ${idx + 1}:`, img);
-          });
-        } else {
-          console.log("[Product Create]   - 없음");
-        }
         console.log("=======================================================\n");
+
+        // Step 5: 추가 이미지 업데이트 (별도 API 호출)
+        if (cafe24ImageUrls.length > 0) {
+          console.log("[Product Create] Step 5: 추가 이미지 업데이트 시작");
+          console.log(`[Product Create] 업데이트할 이미지 수: ${cafe24ImageUrls.length}장`);
+
+          try {
+            await cafe24Client.updateProductImages(cafe24ProductNo.toString(), cafe24ImageUrls);
+            console.log("[Product Create] 추가 이미지 업데이트 성공!");
+          } catch (imageUpdateError: any) {
+            console.error("[Product Create] 추가 이미지 업데이트 실패:", imageUpdateError.message);
+            // 실패해도 상품은 등록되었으므로 계속 진행
+          }
+        }
 
         // 카페24 CDN URL (절대 경로)로 Firestore 업데이트
         await updateDoc(doc(db, "products", productDoc.id), {
