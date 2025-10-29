@@ -374,17 +374,16 @@ export async function POST(request: NextRequest) {
         minimum_quantity: minimumQuantity ? parseInt(minimumQuantity) : 1, // 최소 주문수량
       };
 
-      // 추가 이미지가 있는 경우만 (대표 이미지 제외한 나머지)
+      // additional_image에는 모든 이미지를 포함 (카페24 요구사항)
       console.log(`[Product Create] 이미지 경로 개수: ${relativeImagePaths.length}`);
       console.log("[Product Create] 전체 이미지 경로:", relativeImagePaths);
 
-      if (relativeImagePaths.length > 1) {
-        const additionalImages = relativeImagePaths.slice(1);
-        console.log(`[Product Create] additional_image 설정: ${additionalImages.length}장`);
-        console.log("[Product Create] additional_image 내용:", additionalImages);
-        cafe24ProductData.additional_image = additionalImages;
+      if (relativeImagePaths.length > 0) {
+        console.log(`[Product Create] additional_image 설정: ${relativeImagePaths.length}장 (모든 이미지 포함)`);
+        console.log("[Product Create] additional_image 내용:", relativeImagePaths);
+        cafe24ProductData.additional_image = relativeImagePaths; // 모든 이미지 포함
       } else {
-        console.log("[Product Create] additional_image: 없음 (이미지 1장만 있음)");
+        console.log("[Product Create] additional_image: 없음");
       }
 
       console.log("[Product Create] 카페24 상품 데이터:", {
