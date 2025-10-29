@@ -171,6 +171,7 @@ export async function POST(request: NextRequest) {
     // 이미지 처리 및 카페24 CDN 업로드
     let cafe24ImageUrls: string[] = [];
     let firebaseUrls: string[] = [];
+    let base64Images: string[] = [];
 
     try {
       console.log("[Product Create] Step 2: 이미지 처리 및 업로드 시작");
@@ -210,7 +211,6 @@ export async function POST(request: NextRequest) {
       // 모든 이미지 압축 및 Base64 변환
       // 카페24 제한: detail_image 5MB, additional_image 1MB
       const ADDITIONAL_IMAGE_MAX_SIZE = 1 * 1024 * 1024; // 1MB (additional_image용)
-      const base64Images: string[] = [];
 
       for (let i = 0; i < imagesToProcess.length; i++) {
         const imageFile = imagesToProcess[i];
@@ -291,18 +291,13 @@ export async function POST(request: NextRequest) {
         console.log(`[Product Create] 이미지 ${i + 1} Firebase 저장 완료`);
       }
 
-      // 카페24 CDN에 모든 이미지 업로드
-      console.log("[Product Create] Step 3: 카페24 CDN 업로드 시작");
-      console.log(`[Product Create] 업로드할 이미지 수: ${base64Images.length}장`);
+      // 카페24 CDN에 첫 번째 이미지만 업로드 (대표 이미지)
+      console.log("[Product Create] Step 3: 카페24 CDN 업로드 시작 (대표 이미지 1장)");
 
-      const uploadedImages = await cafe24Client.uploadProductImages(base64Images);
+      const uploadedImages = await cafe24Client.uploadProductImages([base64Images[0]]);
       cafe24ImageUrls = uploadedImages.map(img => img.path);
 
-      console.log("[Product Create] 카페24 CDN 업로드 성공!");
-      console.log(`[Product Create] 업로드된 이미지: ${cafe24ImageUrls.length}장`);
-      cafe24ImageUrls.forEach((url, idx) => {
-        console.log(`[Product Create] 이미지 ${idx + 1}: ${url}`);
-      });
+      console.log("[Product Create] 대표 이미지 업로드 성공:", cafe24ImageUrls[0]);
 
     } catch (imageError: any) {
       console.error("[Product Create] 이미지 처리 실패!");
@@ -373,7 +368,7 @@ export async function POST(request: NextRequest) {
         onTokenRefresh,
       });
 
-      // 카페24 상품 데이터 (이미지 포함)
+      // 카페24 상품 데이터 (대표 이미지 1장만 포함)
       const cafe24ProductData: any = {
         product_name: productName,
         summary_description: summaryDescription || "",
@@ -388,9 +383,8 @@ export async function POST(request: NextRequest) {
           recommend: "F",
           new: "F"
         }],
-        image_upload_type: "B", // 개별이미지등록 (POST /admin/products/images로 업로드한 이미지)
-        detail_image: relativeImagePaths[0], // 대표 이미지 (YYYYMMDD/파일명.jpg)
-        additional_image: relativeImagePaths, // 추가 이미지 (YYYYMMDD/파일명.jpg)
+        image_upload_type: "A", // 대표이미지등록
+        detail_image: relativeImagePaths[0], // 첫 번째 이미지 (상대 경로)
         maximum_quantity: maximumQuantity ? parseInt(maximumQuantity) : 1, // 최대 주문수량
         minimum_quantity: minimumQuantity ? parseInt(minimumQuantity) : 1, // 최소 주문수량
       };
@@ -447,6 +441,9 @@ export async function POST(request: NextRequest) {
         console.log("[Product Create] detail_image (응답):", cafe24Response.product?.detail_image);
         console.log("[Product Create] additional_image (응답):", cafe24Response.product?.additional_image);
         console.log("=======================================================\n");
+
+        // 추가 이미지는 별도 API에서 처리 (/api/products/[id]/additional-images)
+        console.log("[Product Create] 추가 이미지는 별도 요청으로 처리됩니다");
 
         // 카페24 CDN URL (절대 경로)로 Firestore 업데이트
         await updateDoc(doc(db, "products", productDoc.id), {

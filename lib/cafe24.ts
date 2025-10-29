@@ -261,22 +261,40 @@ export class Cafe24ApiClient {
     return uploadedPaths;
   }
 
-  // Product Images (여러 이미지) - 카페24 CDN URL 사용
-  async updateProductImages(productNo: string, cafe24ImageUrls: string[]): Promise<any> {
-    console.log("[Cafe24 API] 이미지 업데이트:", {
+  // Product Images - 추가 이미지 등록 (base64)
+  async addProductImages(productNo: string, base64Images: string[]): Promise<any[]> {
+    console.log("[Cafe24 API] 추가 이미지 등록:", {
       productNo,
-      imageCount: cafe24ImageUrls.length,
-      firstImageUrl: cafe24ImageUrls[0]
+      imageCount: base64Images.length
     });
 
-    return this.request("PUT", `/admin/products/${productNo}`, {
-      request: {
+    // base64를 data URI로 변환
+    const dataUris = base64Images.map(base64 => `data:image/jpeg;base64,${base64}`);
+
+    console.log("[Cafe24 API] 추가 이미지 API 호출 중...");
+
+    const response = await this.request<{ additionalimage: any }>(
+      "POST",
+      `/admin/products/${productNo}/additionalimages`,
+      {
         shop_no: 1,
-        image_upload_type: "A", // A = Additional (URL 사용)
-        detail_image: cafe24ImageUrls[0], // 첫 번째 이미지를 상세 페이지 이미지로
-        additional_image: cafe24ImageUrls, // 모든 이미지를 추가 이미지로
-      },
-    });
+        request: {
+          additional_image: dataUris,
+        }
+      }
+    );
+
+    console.log("[Cafe24 API] 추가 이미지 업로드 성공!");
+    console.log("[Cafe24 API] 응답:", JSON.stringify(response, null, 2));
+
+    // 응답에서 이미지 URL 추출 (big 이미지 사용)
+    const uploadedImages = response.additionalimage.additional_image.map((img: any) => ({
+      detail_image: img.big,
+      list_image: img.medium,
+      small_image: img.small,
+    }));
+
+    return uploadedImages;
   }
 
   // Suppliers

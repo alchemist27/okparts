@@ -316,16 +316,15 @@ export default function NewProductPage() {
       productFormData.append("maximum_quantity", "1");
       productFormData.append("minimum_quantity", "1");
 
-      // 이미지들 추가
-      console.log(`[프론트] 전송할 이미지 개수: ${images.length}`);
-      images.forEach((image, idx) => {
-        console.log(`[프론트] 이미지 ${idx + 1}:`, {
-          name: image.name,
-          type: image.type,
-          size: `${(image.size / 1024 / 1024).toFixed(2)}MB`
-        });
-        productFormData.append("images", image);
+      // 첫 번째 이미지만 추가 (대표 이미지)
+      console.log(`[프론트] 총 이미지 개수: ${images.length}`);
+      console.log(`[프론트] 상품 생성에 사용할 이미지: 1장 (대표 이미지)`);
+      console.log(`[프론트] 이미지 1:`, {
+        name: images[0].name,
+        type: images[0].type,
+        size: `${(images[0].size / 1024 / 1024).toFixed(2)}MB`
       });
+      productFormData.append("images", images[0]);
 
       console.log("[프론트] FormData 생성 완료, API 호출 시작...");
       setUploadProgress(45);
@@ -379,6 +378,44 @@ export default function NewProductPage() {
       console.log("[프론트] 응답 JSON 파싱 시작");
       const responseData = await productResponse.json();
       console.log("[프론트] 응답 데이터:", responseData);
+
+      setUploadProgress(90);
+
+      // 추가 이미지 업로드 (2장 이상인 경우)
+      if (images.length > 1) {
+        console.log(`[프론트] 추가 이미지 업로드 시작: ${images.length - 1}장`);
+        setLoadingStep(`추가 이미지 업로드 중... (${images.length - 1}장)`);
+
+        try {
+          const additionalFormData = new FormData();
+          images.slice(1).forEach((image, idx) => {
+            console.log(`[프론트] 추가 이미지 ${idx + 1}:`, {
+              name: image.name,
+              type: image.type,
+              size: `${(image.size / 1024 / 1024).toFixed(2)}MB`
+            });
+            additionalFormData.append("images", image);
+          });
+
+          const additionalResponse = await fetch(`/api/products/${responseData.productId}/additional-images`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: additionalFormData,
+          });
+
+          if (!additionalResponse.ok) {
+            console.warn("[프론트] 추가 이미지 업로드 실패, 하지만 상품은 생성됨");
+            // 실패해도 상품은 생성되었으므로 계속 진행
+          } else {
+            console.log("[프론트] 추가 이미지 업로드 성공!");
+          }
+        } catch (additionalError: any) {
+          console.warn("[프론트] 추가 이미지 업로드 에러:", additionalError.message);
+          // 실패해도 상품은 생성되었으므로 계속 진행
+        }
+      }
 
       setUploadProgress(95);
 
