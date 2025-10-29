@@ -208,7 +208,8 @@ export async function POST(request: NextRequest) {
       });
 
       // 모든 이미지 압축 및 Base64 변환
-      const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+      // 카페24 제한: detail_image 5MB, additional_image 1MB
+      const ADDITIONAL_IMAGE_MAX_SIZE = 1 * 1024 * 1024; // 1MB (additional_image용)
       const base64Images: string[] = [];
 
       for (let i = 0; i < imagesToProcess.length; i++) {
@@ -241,8 +242,20 @@ export async function POST(request: NextRequest) {
             .jpeg({ quality })
             .toBuffer();
 
-          while (processedImage.length > MAX_FILE_SIZE && quality > 30) {
+          // additional_image는 1MB 이하로 압축 (카페24 제한)
+          while (processedImage.length > ADDITIONAL_IMAGE_MAX_SIZE && quality > 30) {
             quality -= 5;
+            processedImage = await sharp(buffer)
+              .rotate()
+              .resize(maxWidth, maxWidth, { fit: "inside", withoutEnlargement: true })
+              .jpeg({ quality })
+              .toBuffer();
+          }
+
+          // 그래도 1MB 초과하면 해상도 낮춤
+          if (processedImage.length > ADDITIONAL_IMAGE_MAX_SIZE) {
+            maxWidth = 1200;
+            quality = 75;
             processedImage = await sharp(buffer)
               .rotate()
               .resize(maxWidth, maxWidth, { fit: "inside", withoutEnlargement: true })
@@ -251,7 +264,12 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        console.log(`[Product Create] 이미지 ${i + 1} 압축 완료: ${(processedImage.length / 1024 / 1024).toFixed(2)}MB`);
+        const finalSize = processedImage.length / 1024 / 1024;
+        console.log(`[Product Create] 이미지 ${i + 1} 압축 완료: ${finalSize.toFixed(2)}MB`);
+
+        if (finalSize > 1) {
+          console.warn(`[Product Create] ⚠️ 이미지 ${i + 1}이 1MB를 초과합니다 (${finalSize.toFixed(2)}MB). additional_image 등록 시 문제가 발생할 수 있습니다.`);
+        }
 
         // Base64 변환
         const base64 = processedImage.toString('base64');

@@ -239,9 +239,12 @@ export class Cafe24ApiClient {
           { requests: [{ image: base64Images[i] }] }
         );
 
+        console.log(`[Cafe24 API] 이미지 ${i + 1} 업로드 응답 전체:`, JSON.stringify(response, null, 2));
+
         if (response.images && response.images[0]) {
           uploadedPaths.push(response.images[0]);
           console.log(`[Cafe24 API] 이미지 ${i + 1} 업로드 완료:`, response.images[0].path);
+          console.log(`[Cafe24 API] 이미지 ${i + 1} 전체 객체:`, response.images[0]);
         } else {
           console.error(`[Cafe24 API] 이미지 ${i + 1} 응답에 이미지 없음:`, response);
         }
