@@ -205,6 +205,15 @@ export default function NewProductPage() {
         return;
       }
 
+      // 가격 유효성 검증
+      const cleanPrice = formData.sellingPrice.replace(/,/g, "").trim();
+      if (!cleanPrice || isNaN(Number(cleanPrice)) || Number(cleanPrice) <= 0) {
+        setError("올바른 판매가를 입력해주세요");
+        setLoading(false);
+        setLoadingStep("");
+        return;
+      }
+
       // 카테고리 선택: 가장 하위 선택된 카테고리 사용
       const selectedCategory = formData.detailCategory || formData.subCategory || formData.mainCategory;
 
@@ -221,8 +230,8 @@ export default function NewProductPage() {
       const productFormData = new FormData();
       productFormData.append("productName", formData.productName);
       productFormData.append("summaryDescription", formData.summaryDescription);
-      productFormData.append("sellingPrice", formData.sellingPrice.replace(/,/g, "")); // 컴마 제거
-      productFormData.append("supplyPrice", formData.supplyPrice.replace(/,/g, "")); // 컴마 제거
+      productFormData.append("sellingPrice", cleanPrice); // 검증된 가격
+      productFormData.append("supplyPrice", cleanPrice); // 검증된 가격
       productFormData.append("categoryNo", selectedCategory);
       productFormData.append("display", formData.display);
       productFormData.append("selling", formData.selling);
@@ -244,7 +253,8 @@ export default function NewProductPage() {
 
       if (!productResponse.ok) {
         const errorData = await productResponse.json();
-        throw new Error(errorData.error || "상품 등록에 실패했습니다");
+        console.error("상품 등록 실패:", errorData);
+        throw new Error(errorData.error || errorData.details || "상품 등록에 실패했습니다");
       }
 
       await productResponse.json();

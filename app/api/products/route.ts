@@ -89,8 +89,30 @@ export async function POST(request: NextRequest) {
 
     // 유효성 검사
     if (!productName || !sellingPrice || !supplyPrice || !categoryNo) {
+      console.error("[Product Create] 필수 필드 누락:", {
+        productName: !!productName,
+        sellingPrice: !!sellingPrice,
+        supplyPrice: !!supplyPrice,
+        categoryNo: !!categoryNo
+      });
       return NextResponse.json(
         { error: "Required fields: productName, sellingPrice, supplyPrice, categoryNo" },
+        { status: 400 }
+      );
+    }
+
+    // 가격 유효성 검증
+    const sellingPriceNum = parseInt(sellingPrice);
+    const supplyPriceNum = parseInt(supplyPrice);
+    if (isNaN(sellingPriceNum) || isNaN(supplyPriceNum) || sellingPriceNum <= 0 || supplyPriceNum <= 0) {
+      console.error("[Product Create] 유효하지 않은 가격:", {
+        sellingPrice,
+        supplyPrice,
+        sellingPriceNum,
+        supplyPriceNum
+      });
+      return NextResponse.json(
+        { error: "올바른 가격을 입력해주세요" },
         { status: 400 }
       );
     }
@@ -130,8 +152,8 @@ export async function POST(request: NextRequest) {
       supplierId: payload.supplierId,
       name: productName,
       summaryDescription: summaryDescription || "",
-      supplyPrice: parseInt(supplyPrice),
-      sellingPrice: parseInt(sellingPrice),
+      supplyPrice: supplyPriceNum,
+      sellingPrice: sellingPriceNum,
       display,
       selling,
       categoryNo: parseInt(categoryNo),
@@ -192,6 +214,9 @@ export async function POST(request: NextRequest) {
       for (let i = 0; i < imagesToProcess.length; i++) {
         const imageFile = imagesToProcess[i];
         console.log(`[Product Create] 이미지 ${i + 1}/${imagesToProcess.length} 처리 중...`);
+        console.log(`[Product Create] - 파일명: ${imageFile.name}`);
+        console.log(`[Product Create] - 파일 타입: ${imageFile.type}`);
+        console.log(`[Product Create] - 파일 크기: ${(imageFile.size / 1024 / 1024).toFixed(2)}MB`);
 
         const arrayBuffer = await imageFile.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
@@ -321,8 +346,8 @@ export async function POST(request: NextRequest) {
       const cafe24ProductData: any = {
         product_name: productName,
         summary_description: summaryDescription || "",
-        price: parseInt(sellingPrice),
-        supply_price: parseInt(supplyPrice),
+        price: sellingPriceNum,
+        supply_price: supplyPriceNum,
         display: display || "T",
         selling: selling || "T",
         product_condition: "U", // 중고
@@ -429,11 +454,13 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error("\n========== [Product Create] 치명적 오류 ==========");
-    console.error("[Product Create] 에러:", error.message);
+    console.error("[Product Create] 에러 메시지:", error.message);
+    console.error("[Product Create] 에러 스택:", error.stack);
+    console.error("[Product Create] 에러 전체:", JSON.stringify(error, null, 2));
     console.error("==============================================\n");
 
     return NextResponse.json(
-      { error: "Failed to create product", details: error.message },
+      { error: "상품 등록에 실패했습니다", details: error.message },
       { status: 500 }
     );
   }
