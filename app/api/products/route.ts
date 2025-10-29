@@ -327,7 +327,8 @@ export async function POST(request: NextRequest) {
         console.warn(`[Product Create] 경고: 상대 경로 변환 실패 - ${url}`);
         return url;
       }
-      return match[0];
+      // 맨 앞 슬래시 제거 (카페24가 경로 앞에 슬래시를 자동으로 추가하므로)
+      return match[0].substring(1);
     };
 
     const relativeImagePaths = cafe24ImageUrls.map(convertToRelativePath);

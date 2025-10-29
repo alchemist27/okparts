@@ -632,70 +632,13 @@ export default function NewProductPage() {
             </div>
 
             {/* 상품 이미지 */}
-            <div style={{ position: 'relative' }}>
+            <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 상품 이미지 *
                 <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
                   (jpg/png, 3MB 이하, 최대 3장, 첫 번째가 대표 이미지)
                 </span>
               </label>
-
-              {/* 이미지 압축 중 로딩 오버레이 */}
-              {isUploadingImages && (
-                <div style={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  zIndex: 9998,
-                  gap: '1.5rem'
-                }}>
-                  <div style={{
-                    width: '80px',
-                    height: '80px',
-                    border: '8px solid #f3f4f6',
-                    borderTop: '8px solid var(--primary)',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
-                  }} />
-                  <div style={{
-                    color: 'white',
-                    fontSize: '1.5rem',
-                    fontWeight: '700',
-                    textAlign: 'center'
-                  }}>
-                    이미지 압축 중...
-                  </div>
-                  <div style={{
-                    color: 'white',
-                    fontSize: '2.5rem',
-                    fontWeight: '700'
-                  }}>
-                    {imageUploadProgress}%
-                  </div>
-                  <div style={{
-                    width: '80%',
-                    maxWidth: '400px',
-                    height: '12px',
-                    backgroundColor: '#374151',
-                    borderRadius: '6px',
-                    overflow: 'hidden'
-                  }}>
-                    <div style={{
-                      height: '100%',
-                      backgroundColor: 'var(--primary)',
-                      width: `${imageUploadProgress}%`,
-                      transition: 'width 0.3s ease'
-                    }} />
-                  </div>
-                </div>
-              )}
 
               {/* 이미지 프리뷰 */}
               {imagePreviews.length > 0 && (
@@ -767,7 +710,7 @@ export default function NewProductPage() {
 
               {/* 업로드 버튼 - 3장 미만일 때만 표시 */}
               {images.length < 3 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {/* 숨겨진 파일 입력 필드 */}
                   <input
                     id="albumInput"
@@ -776,6 +719,7 @@ export default function NewProductPage() {
                     multiple
                     onChange={handleImageChange}
                     style={{ display: 'none' }}
+                    disabled={isUploadingImages}
                   />
                   <input
                     id="cameraInput"
@@ -784,6 +728,7 @@ export default function NewProductPage() {
                     capture="environment"
                     onChange={handleImageChange}
                     style={{ display: 'none' }}
+                    disabled={isUploadingImages}
                   />
 
                   {/* PC: 파일 선택 버튼 / 모바일: 앨범, 카메라 버튼 */}
@@ -794,6 +739,7 @@ export default function NewProductPage() {
                         onClick={() => document.getElementById('albumInput')?.click()}
                         className="btn btn-outline primary"
                         style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700' }}
+                        disabled={isUploadingImages}
                       >
                         <span style={{ fontSize: '2.5rem' }}>📁</span>
                         <span>앨범</span>
@@ -803,6 +749,7 @@ export default function NewProductPage() {
                         onClick={() => document.getElementById('cameraInput')?.click()}
                         className="btn btn-outline primary"
                         style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700' }}
+                        disabled={isUploadingImages}
                       >
                         <span style={{ fontSize: '2.5rem' }}>📷</span>
                         <span>카메라</span>
@@ -815,10 +762,68 @@ export default function NewProductPage() {
                         onClick={() => document.getElementById('albumInput')?.click()}
                         className="btn btn-outline primary"
                         style={{ fontSize: '1.25rem', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '700', width: '100%' }}
+                        disabled={isUploadingImages}
                       >
                         <span style={{ fontSize: '2.5rem' }}>📁</span>
                         <span>사진 추가 ({images.length}/3)</span>
                       </button>
+                    </div>
+                  )}
+
+                  {/* 이미지 압축 중 로딩 오버레이 */}
+                  {isUploadingImages && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '12px',
+                      gap: '1rem',
+                      zIndex: 10
+                    }}>
+                      <div style={{
+                        width: '50px',
+                        height: '50px',
+                        border: '5px solid #e5e7eb',
+                        borderTop: '5px solid var(--primary)',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                      }} />
+                      <div style={{
+                        color: '#1f2937',
+                        fontSize: '1.125rem',
+                        fontWeight: '600',
+                        textAlign: 'center'
+                      }}>
+                        이미지 압축 중...
+                      </div>
+                      <div style={{
+                        color: 'var(--primary)',
+                        fontSize: '2rem',
+                        fontWeight: '700'
+                      }}>
+                        {imageUploadProgress}%
+                      </div>
+                      <div style={{
+                        width: '80%',
+                        height: '8px',
+                        backgroundColor: '#e5e7eb',
+                        borderRadius: '4px',
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{
+                          height: '100%',
+                          backgroundColor: 'var(--primary)',
+                          width: `${imageUploadProgress}%`,
+                          transition: 'width 0.3s ease'
+                        }} />
+                      </div>
                     </div>
                   )}
                 </div>
