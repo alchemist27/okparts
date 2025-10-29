@@ -374,7 +374,7 @@ export default function NewProductPage() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '1.5rem' }}>⚠️</span>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#92400e', margin: 0 }}>중요 안내</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#92400e', margin: 0 }}>등록 전 참고사항</h3>
             </div>
             <p style={{ fontSize: '1.125rem', color: '#92400e', margin: 0, lineHeight: '1.6' }}>
               중고부품 특성상 <strong>최대 주문수량은 1개</strong>로 제한됩니다.<br/>

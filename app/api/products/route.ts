@@ -72,6 +72,8 @@ export async function POST(request: NextRequest) {
     const categoryNo = formData.get("categoryNo") as string;
     const display = formData.get("display") as string;
     const selling = formData.get("selling") as string;
+    const maximumQuantity = formData.get("maximum_quantity") as string;
+    const minimumQuantity = formData.get("minimum_quantity") as string;
     const imageFiles = formData.getAll("images") as File[];
 
     console.log("[Product Create] 요청 데이터:", {
@@ -80,6 +82,8 @@ export async function POST(request: NextRequest) {
       sellingPrice,
       supplyPrice,
       categoryNo,
+      maximumQuantity,
+      minimumQuantity,
       imageCount: imageFiles.length
     });
 
@@ -330,17 +334,29 @@ export async function POST(request: NextRequest) {
         }],
         image_upload_type: "A", // 외부 URL 사용
         detail_image: relativeImagePaths[0], // 대표 이미지 (상대 경로)
-        additional_image: relativeImagePaths, // 추가 이미지 (상대 경로)
+        maximum_quantity: maximumQuantity ? parseInt(maximumQuantity) : 1, // 최대 주문수량
+        minimum_quantity: minimumQuantity ? parseInt(minimumQuantity) : 1, // 최소 주문수량
       };
+
+      // 추가 이미지가 있는 경우만 (2번째, 3번째 이미지)
+      if (relativeImagePaths.length > 1) {
+        cafe24ProductData.additional_image = relativeImagePaths.slice(1); // 첫 번째 제외
+      }
 
       console.log("[Product Create] 카페24 상품 데이터:", {
         product_name: cafe24ProductData.product_name,
         price: cafe24ProductData.price,
         detail_image: cafe24ProductData.detail_image,
-        additional_image_count: cafe24ProductData.additional_image.length
+        additional_image_count: cafe24ProductData.additional_image?.length || 0,
+        maximum_quantity: cafe24ProductData.maximum_quantity,
+        minimum_quantity: cafe24ProductData.minimum_quantity
       });
-      console.log("[Product Create] detail_image:", cafe24ProductData.detail_image);
-      console.log("[Product Create] additional_image:", cafe24ProductData.additional_image);
+      console.log("[Product Create] detail_image (대표):", cafe24ProductData.detail_image);
+      if (cafe24ProductData.additional_image) {
+        console.log("[Product Create] additional_image (추가):", cafe24ProductData.additional_image);
+      } else {
+        console.log("[Product Create] additional_image: 없음 (이미지 1장만 등록)");
+      }
 
       console.log("[Product Create] 카페24 API 호출 중...");
       const cafe24Response = await cafe24Client.createProduct(cafe24ProductData);
