@@ -304,7 +304,11 @@ export async function POST(request: NextRequest) {
     // 카페24 CDN URL을 상대 경로로 변환 (image_upload_type: "A"일 때 필요)
     const convertToRelativePath = (url: string): string => {
       const match = url.match(/\/web\/upload\/.+$/);
-      return match ? match[0] : url;
+      if (!match) {
+        console.warn(`[Product Create] 경고: 상대 경로 변환 실패 - ${url}`);
+        return url;
+      }
+      return match[0];
     };
 
     const relativeImagePaths = cafe24ImageUrls.map(convertToRelativePath);
@@ -314,6 +318,13 @@ export async function POST(request: NextRequest) {
     cafe24ImageUrls.forEach((url, idx) => {
       console.log(`[Product Create] 이미지 ${idx + 1}: ${url} -> ${relativeImagePaths[idx]}`);
     });
+
+    // 상대 경로 검증
+    const invalidPaths = relativeImagePaths.filter(path => !path || !path.startsWith('/web/upload/'));
+    if (invalidPaths.length > 0) {
+      console.error("[Product Create] 유효하지 않은 이미지 경로 발견:", invalidPaths);
+      throw new Error("이미지 경로 변환에 실패했습니다");
+    }
 
     // 카페24 상품 생성 (이미지 포함)
     try {
@@ -364,8 +375,16 @@ export async function POST(request: NextRequest) {
       };
 
       // 추가 이미지가 있는 경우만 (대표 이미지 제외한 나머지)
+      console.log(`[Product Create] 이미지 경로 개수: ${relativeImagePaths.length}`);
+      console.log("[Product Create] 전체 이미지 경로:", relativeImagePaths);
+
       if (relativeImagePaths.length > 1) {
-        cafe24ProductData.additional_image = relativeImagePaths.slice(1); // 첫 번째 제외
+        const additionalImages = relativeImagePaths.slice(1);
+        console.log(`[Product Create] additional_image 설정: ${additionalImages.length}장`);
+        console.log("[Product Create] additional_image 내용:", additionalImages);
+        cafe24ProductData.additional_image = additionalImages;
+      } else {
+        console.log("[Product Create] additional_image: 없음 (이미지 1장만 있음)");
       }
 
       console.log("[Product Create] 카페24 상품 데이터:", {
@@ -391,9 +410,21 @@ export async function POST(request: NextRequest) {
       console.log("=================================================================\n");
 
       console.log("[Product Create] 카페24 API 호출 중...");
-      const cafe24Response = await cafe24Client.createProduct(cafe24ProductData);
-      console.log("[Product Create] 카페24 API 응답 받음");
-      console.log("[Product Create] 카페24 응답 데이터:", JSON.stringify(cafe24Response, null, 2));
+
+      let cafe24Response;
+      try {
+        cafe24Response = await cafe24Client.createProduct(cafe24ProductData);
+        console.log("[Product Create] 카페24 API 응답 받음");
+        console.log("[Product Create] 카페24 응답 데이터:", JSON.stringify(cafe24Response, null, 2));
+      } catch (cafe24ApiError: any) {
+        console.error("\n========== [Product Create] 카페24 API 호출 실패 ==========");
+        console.error("[Product Create] 에러 메시지:", cafe24ApiError.message);
+        console.error("[Product Create] 에러 상세:", JSON.stringify(cafe24ApiError, null, 2));
+        console.error("[Product Create] 요청했던 데이터:");
+        console.error(JSON.stringify(cafe24ProductData, null, 2));
+        console.error("==========================================================\n");
+        throw cafe24ApiError;
+      }
 
       const cafe24ProductNo =
         cafe24Response.product?.product_no ||

@@ -239,7 +239,13 @@ export default function NewProductPage() {
       productFormData.append("minimum_quantity", "1");
 
       // 이미지들 추가
-      images.forEach((image) => {
+      console.log(`[프론트] 전송할 이미지 개수: ${images.length}`);
+      images.forEach((image, idx) => {
+        console.log(`[프론트] 이미지 ${idx + 1}:`, {
+          name: image.name,
+          type: image.type,
+          size: `${(image.size / 1024 / 1024).toFixed(2)}MB`
+        });
         productFormData.append("images", image);
       });
 
@@ -387,7 +393,6 @@ export default function NewProductPage() {
               <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#92400e', margin: 0 }}>등록 전 참고사항</h3>
             </div>
             <p style={{ fontSize: '1.125rem', color: '#92400e', margin: 0, lineHeight: '1.6' }}>
-              중고부품 특성상 <strong>최대 주문수량은 1개</strong>로 제한됩니다.<br/>
               여러 개의 부품을 판매하시려면 각각 별도로 상품 등록을 해주세요.
             </p>
           </div>

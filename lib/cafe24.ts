@@ -73,6 +73,17 @@ export class Cafe24ApiClient {
     if (!response.ok) {
       const errorText = await response.text();
 
+      console.error(`[Cafe24 API] 에러 발생 - Status: ${response.status}`);
+      console.error(`[Cafe24 API] 에러 응답:`, errorText);
+
+      // JSON 파싱 시도
+      try {
+        const errorJson = JSON.parse(errorText);
+        console.error(`[Cafe24 API] 파싱된 에러:`, JSON.stringify(errorJson, null, 2));
+      } catch (e) {
+        console.error(`[Cafe24 API] JSON 파싱 실패, 원본 텍스트:`, errorText);
+      }
+
       // 401 에러이고 아직 재시도하지 않았으며 리프레시 토큰이 있는 경우
       if (response.status === 401 && !isRetry && this.refreshToken && this.clientId && this.clientSecret) {
         console.log("[Cafe24 API] Access token expired, attempting refresh...");
