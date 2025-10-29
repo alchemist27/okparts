@@ -276,18 +276,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 카페24 CDN URL을 상대 경로로 변환
-    // 예: https://ecimg.cafe24img.com/pg.../okayparts/web/upload/... → /web/upload/...
-    const convertToRelativePath = (url: string): string => {
-      const match = url.match(/\/web\/upload\/.+$/);
-      return match ? match[0] : url;
-    };
-
-    const relativeImagePaths = cafe24ImageUrls.map(convertToRelativePath);
-
-    console.log("[Product Create] 상대 경로로 변환:");
-    relativeImagePaths.forEach((path, idx) => {
-      console.log(`[Product Create] 이미지 ${idx + 1}: ${path}`);
+    // 카페24 CDN URL은 절대 경로 그대로 사용 (image_upload_type: "A"일 때)
+    console.log("[Product Create] 카페24 CDN URL (절대 경로):");
+    cafe24ImageUrls.forEach((url, idx) => {
+      console.log(`[Product Create] 이미지 ${idx + 1}: ${url}`);
     });
 
     // 카페24 상품 생성 (이미지 포함)
@@ -332,15 +324,15 @@ export async function POST(request: NextRequest) {
           recommend: "F",
           new: "F"
         }],
-        image_upload_type: "A", // 외부 URL 사용
-        detail_image: relativeImagePaths[0], // 대표 이미지 (상대 경로)
+        image_upload_type: "A", // 외부 URL 사용 (절대 경로)
+        detail_image: cafe24ImageUrls[0], // 대표 이미지 (절대 경로)
         maximum_quantity: maximumQuantity ? parseInt(maximumQuantity) : 1, // 최대 주문수량
         minimum_quantity: minimumQuantity ? parseInt(minimumQuantity) : 1, // 최소 주문수량
       };
 
       // 추가 이미지가 있는 경우만 (2번째, 3번째 이미지)
-      if (relativeImagePaths.length > 1) {
-        cafe24ProductData.additional_image = relativeImagePaths.slice(1); // 첫 번째 제외
+      if (cafe24ImageUrls.length > 1) {
+        cafe24ProductData.additional_image = cafe24ImageUrls.slice(1); // 첫 번째 제외한 절대 경로
       }
 
       console.log("[Product Create] 카페24 상품 데이터:", {
@@ -351,9 +343,9 @@ export async function POST(request: NextRequest) {
         maximum_quantity: cafe24ProductData.maximum_quantity,
         minimum_quantity: cafe24ProductData.minimum_quantity
       });
-      console.log("[Product Create] detail_image (대표):", cafe24ProductData.detail_image);
+      console.log("[Product Create] detail_image (대표 - 절대 경로):", cafe24ProductData.detail_image);
       if (cafe24ProductData.additional_image) {
-        console.log("[Product Create] additional_image (추가):", cafe24ProductData.additional_image);
+        console.log("[Product Create] additional_image (추가 - 절대 경로):", cafe24ProductData.additional_image);
       } else {
         console.log("[Product Create] additional_image: 없음 (이미지 1장만 등록)");
       }

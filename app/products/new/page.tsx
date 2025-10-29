@@ -221,8 +221,8 @@ export default function NewProductPage() {
       const productFormData = new FormData();
       productFormData.append("productName", formData.productName);
       productFormData.append("summaryDescription", formData.summaryDescription);
-      productFormData.append("sellingPrice", formData.sellingPrice);
-      productFormData.append("supplyPrice", formData.supplyPrice);
+      productFormData.append("sellingPrice", formData.sellingPrice.replace(/,/g, "")); // 컴마 제거
+      productFormData.append("supplyPrice", formData.supplyPrice.replace(/,/g, "")); // 컴마 제거
       productFormData.append("categoryNo", selectedCategory);
       productFormData.append("display", formData.display);
       productFormData.append("selling", formData.selling);
@@ -433,7 +433,7 @@ export default function NewProductPage() {
                   resize: 'vertical'
                 }}
                 maxLength={255}
-                placeholder="차량명, 연식, 부품번호, 차대번호 등 상세 제품 정보를 입력해주세요."
+                placeholder="차량명, 연식, 부품번호, 차대번호 등 상세 제품 정보와 판매자 위치 등을 입력해주세요."
                 inputMode="text"
                 autoComplete="off"
               />
@@ -501,45 +501,25 @@ export default function NewProductPage() {
             {/* 판매가 */}
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                판매가 *
+                상품 판매가 *
               </label>
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.75rem' }}>
+                거래 수수료(10%)를 포함한 부가세 포함 금액을 입력해주세요.
+              </p>
               <input
-                type="number"
+                type="text"
                 value={formData.sellingPrice}
-                onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^\d,]/g, ''); // 숫자와 컴마만 허용
+                  setFormData({ ...formData, sellingPrice: value, supplyPrice: value });
+                }}
                 onTouchStart={(e) => e.currentTarget.focus()}
                 style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
                 required
-                min="0"
                 placeholder="예: 150,000"
                 inputMode="decimal"
                 autoComplete="off"
               />
-              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                고객에게 판매되는 가격
-              </p>
-            </div>
-
-            {/* 공급가 */}
-            <div>
-              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                공급가 *
-              </label>
-              <input
-                type="number"
-                value={formData.supplyPrice}
-                onChange={(e) => setFormData({ ...formData, supplyPrice: e.target.value })}
-                onTouchStart={(e) => e.currentTarget.focus()}
-                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
-                required
-                min="0"
-                placeholder="예: 120,000"
-                inputMode="decimal"
-                autoComplete="off"
-              />
-              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                공급사가 쇼핑몰에 공급하는 가격
-              </p>
             </div>
 
             {/* 상품 이미지 */}
