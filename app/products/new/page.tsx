@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import imageCompression from "browser-image-compression";
 
 interface CategoryData {
   category_no: number;
@@ -120,7 +121,7 @@ export default function NewProductPage() {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
 
     if (files.length === 0) return;
@@ -135,12 +136,6 @@ export default function NewProductPage() {
         continue;
       }
 
-      // 파일 크기 검증 (3MB)
-      const maxSize = 3 * 1024 * 1024; // 3MB
-      if (file.size > maxSize) {
-        alert(`${file.name}은(는) 3MB 이하여야 합니다.\n서버에서 자동으로 압축됩니다.`);
-      }
-
       validFiles.push(file);
     }
 
@@ -152,20 +147,43 @@ export default function NewProductPage() {
       alert(`최대 3장까지 업로드 가능합니다. ${remainingSlots}장만 추가됩니다.`);
     }
 
-    const newImages = [...images, ...filesToAdd];
+    // 이미지 압축 (업로드 전에 클라이언트에서 압축)
+    const compressedFiles: File[] = [];
+    for (const file of filesToAdd) {
+      try {
+        console.log(`[압축] 원본: ${file.name}, ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+
+        const options = {
+          maxSizeMB: 1, // 최대 1MB
+          maxWidthOrHeight: 1920, // 최대 해상도
+          useWebWorker: true,
+        };
+
+        const compressedFile = await imageCompression(file, options);
+        console.log(`[압축] 완료: ${compressedFile.name}, ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+
+        compressedFiles.push(compressedFile);
+      } catch (error) {
+        console.error('[압축] 실패:', error);
+        // 압축 실패 시 원본 사용
+        compressedFiles.push(file);
+      }
+    }
+
+    const newImages = [...images, ...compressedFiles];
     setImages(newImages);
 
     // 프리뷰 생성
     const newPreviews = [...imagePreviews];
     let loadedCount = 0;
 
-    filesToAdd.forEach((file, index) => {
+    compressedFiles.forEach((file, index) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         newPreviews.push(reader.result as string);
         loadedCount++;
 
-        if (loadedCount === filesToAdd.length) {
+        if (loadedCount === compressedFiles.length) {
           setImagePreviews(newPreviews);
         }
       };
@@ -206,13 +224,24 @@ export default function NewProductPage() {
       }
 
       // 가격 유효성 검증
-      const cleanPrice = formData.sellingPrice.replace(/,/g, "").trim();
+      console.log("[프론트] 가격 검증 시작");
+      console.log("[프론트] formData.sellingPrice:", formData.sellingPrice);
+      console.log("[프론트] typeof:", typeof formData.sellingPrice);
+
+      const cleanPrice = (formData.sellingPrice || "").replace(/,/g, "").trim();
+      console.log("[프론트] cleanPrice:", cleanPrice);
+      console.log("[프론트] isNaN(Number(cleanPrice)):", isNaN(Number(cleanPrice)));
+      console.log("[프론트] Number(cleanPrice):", Number(cleanPrice));
+
       if (!cleanPrice || isNaN(Number(cleanPrice)) || Number(cleanPrice) <= 0) {
+        console.error("[프론트] 가격 검증 실패!");
         setError("올바른 판매가를 입력해주세요");
         setLoading(false);
         setLoadingStep("");
         return;
       }
+
+      console.log("[프론트] 가격 검증 통과:", cleanPrice);
 
       // 카테고리 선택: 가장 하위 선택된 카테고리 사용
       const selectedCategory = formData.detailCategory || formData.subCategory || formData.mainCategory;
@@ -226,6 +255,15 @@ export default function NewProductPage() {
 
       // 1. 상품 기본 정보 + 이미지 함께 등록
       setLoadingStep("상품 등록중... 잠시만 기다려주세요... 등록 중 화면을 벗어나면 등록이 취소됩니다.");
+
+      console.log("========== [프론트] 상품 등록 데이터 ==========");
+      console.log("상품명:", formData.productName);
+      console.log("상세 설명:", formData.summaryDescription);
+      console.log("판매가 (원본):", formData.sellingPrice);
+      console.log("판매가 (정제):", cleanPrice);
+      console.log("카테고리:", selectedCategory);
+      console.log("이미지 개수:", images.length);
+      console.log("===============================================");
 
       const productFormData = new FormData();
       productFormData.append("productName", formData.productName);
@@ -249,6 +287,8 @@ export default function NewProductPage() {
         productFormData.append("images", image);
       });
 
+      console.log("[프론트] FormData 생성 완료, API 호출 시작...");
+
       const productResponse = await fetch("/api/products", {
         method: "POST",
         headers: {
@@ -258,9 +298,26 @@ export default function NewProductPage() {
       });
 
       if (!productResponse.ok) {
-        const errorData = await productResponse.json();
-        console.error("상품 등록 실패:", errorData);
-        throw new Error(errorData.error || errorData.details || "상품 등록에 실패했습니다");
+        console.error("상품 등록 실패 - Status:", productResponse.status);
+
+        // 413 에러 (Content Too Large) 체크
+        if (productResponse.status === 413) {
+          throw new Error("업로드 용량이 너무 큽니다. 이미지 크기를 줄여주세요.");
+        }
+
+        let errorMessage = "상품 등록에 실패했습니다";
+        try {
+          const errorData = await productResponse.json();
+          console.error("상품 등록 실패 데이터:", errorData);
+          errorMessage = errorData.error || errorData.details || errorMessage;
+        } catch (jsonError) {
+          // JSON 파싱 실패 시 텍스트로 시도
+          const errorText = await productResponse.text();
+          console.error("상품 등록 실패 (텍스트):", errorText);
+          errorMessage = `서버 오류 (${productResponse.status})`;
+        }
+
+        throw new Error(errorMessage);
       }
 
       await productResponse.json();
@@ -274,7 +331,13 @@ export default function NewProductPage() {
         router.push("/products/success");
       }, 1000);
     } catch (err: any) {
-      setError(err.message);
+      console.error("========== 상품 등록 에러 발생 ==========");
+      console.error("에러 메시지:", err.message);
+      console.error("에러 스택:", err.stack);
+      console.error("에러 전체:", err);
+      console.error("=========================================");
+
+      setError(err.message || "상품 등록에 실패했습니다");
       setLoading(false);
       setLoadingStep("");
 
