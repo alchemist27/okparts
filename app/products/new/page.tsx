@@ -232,8 +232,10 @@ export default function NewProductPage() {
     setError("");
     setSuccess(false);
     setLoading(true);
-    setUploadProgress(0);
+    setUploadProgress(20);
     setLoadingStep("상품 정보 확인 중...");
+
+    let progressInterval: NodeJS.Timeout | null = null;
 
     try {
       const token = localStorage.getItem("token");
@@ -242,7 +244,7 @@ export default function NewProductPage() {
         return;
       }
 
-      setUploadProgress(10);
+      setUploadProgress(25);
 
       // 필수 항목 검증
       if (images.length === 0) {
@@ -253,7 +255,7 @@ export default function NewProductPage() {
         return;
       }
 
-      setUploadProgress(20);
+      setUploadProgress(30);
 
       // 가격 유효성 검증
       console.log("[프론트] 가격 검증 시작");
@@ -276,7 +278,7 @@ export default function NewProductPage() {
 
       console.log("[프론트] 가격 검증 통과:", cleanPrice);
 
-      setUploadProgress(30);
+      setUploadProgress(35);
 
       // 카테고리 선택: 가장 하위 선택된 카테고리 사용
       const selectedCategory = formData.detailCategory || formData.subCategory || formData.mainCategory;
@@ -289,8 +291,9 @@ export default function NewProductPage() {
         return;
       }
 
-      // 1. 상품 기본 정보 + 이미지 함께 등록
       setUploadProgress(40);
+
+      // 1. 상품 기본 정보 + 이미지 함께 등록
       setLoadingStep("상품 등록중... 잠시만 기다려주세요... 등록 중 화면을 벗어나면 등록이 취소됩니다.");
 
       console.log("========== [프론트] 상품 등록 데이터 ==========");
@@ -325,7 +328,16 @@ export default function NewProductPage() {
       });
 
       console.log("[프론트] FormData 생성 완료, API 호출 시작...");
-      setUploadProgress(50);
+      setUploadProgress(45);
+
+      // API 호출 중 진행률을 점진적으로 증가 (시뮬레이션)
+      let currentProgress = 45;
+      progressInterval = setInterval(() => {
+        currentProgress += 1;
+        if (currentProgress <= 85) {
+          setUploadProgress(currentProgress);
+        }
+      }, 200); // 200ms마다 1%씩 증가
 
       console.log("[프론트] fetch 호출 직전");
       const productResponse = await fetch("/api/products", {
@@ -337,7 +349,9 @@ export default function NewProductPage() {
       });
       console.log("[프론트] fetch 응답 받음 - Status:", productResponse.status);
 
-      setUploadProgress(80);
+      // 진행률 시뮬레이션 중지
+      if (progressInterval) clearInterval(progressInterval);
+      setUploadProgress(90);
 
       if (!productResponse.ok) {
         console.error("상품 등록 실패 - Status:", productResponse.status);
@@ -366,7 +380,7 @@ export default function NewProductPage() {
       const responseData = await productResponse.json();
       console.log("[프론트] 응답 데이터:", responseData);
 
-      setUploadProgress(90);
+      setUploadProgress(95);
 
       // 성공 메시지 표시
       setLoadingStep("등록 완료!");
@@ -385,6 +399,9 @@ export default function NewProductPage() {
       console.error("에러 스택:", err.stack);
       console.error("에러 전체:", err);
       console.error("=========================================");
+
+      // 진행률 시뮬레이션 중지
+      if (progressInterval) clearInterval(progressInterval);
 
       setError(err.message || "상품 등록에 실패했습니다");
       setLoading(false);
