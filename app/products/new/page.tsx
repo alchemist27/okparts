@@ -478,6 +478,9 @@ export default function NewProductPage() {
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 상품명 *
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                  (알림 발송을 위해 핵심 키워드를 포함해주세요)
+                </span>
               </label>
               <input
                 type="text"
@@ -486,7 +489,7 @@ export default function NewProductPage() {
                 onTouchStart={(e) => e.currentTarget.focus()}
                 style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
                 required
-                placeholder="알림 발송을 위해 핵심 키워드를 포함한 상품명을 입력해주세요. 예) 현대 아반떼 앞범퍼"
+                placeholder="현대 아반떼 2023 앞범퍼"
                 inputMode="text"
                 autoComplete="off"
               />
@@ -496,6 +499,9 @@ export default function NewProductPage() {
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 상품 상세정보
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                  (차량명, 연식, 부품번호, 차대번호, 판매자 위치 등 상세 정보 입력)
+                </span>
               </label>
               <textarea
                 value={formData.summaryDescription}
@@ -511,7 +517,7 @@ export default function NewProductPage() {
                   resize: 'vertical'
                 }}
                 maxLength={255}
-                placeholder="차량명, 연식, 부품번호, 차대번호 등 상세 제품 정보와 판매자 위치 등을 입력해주세요."
+                placeholder="아반떼 AD 2020년식, 부품번호: 86511-2H000, 판매자 위치: 서울 강남구"
                 inputMode="text"
                 autoComplete="off"
               />
@@ -580,10 +586,10 @@ export default function NewProductPage() {
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 상품 판매가 *
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                  (거래 수수료 10% + 부가세 포함 금액)
+                </span>
               </label>
-              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.75rem' }}>
-                거래 수수료(10%)를 포함한 부가세 포함 금액을 입력해주세요.
-              </p>
               <input
                 type="text"
                 value={formData.sellingPrice}
@@ -594,7 +600,7 @@ export default function NewProductPage() {
                 onTouchStart={(e) => e.currentTarget.focus()}
                 style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
                 required
-                placeholder="예: 150,000"
+                placeholder="150000"
                 inputMode="decimal"
                 autoComplete="off"
               />
@@ -603,14 +609,11 @@ export default function NewProductPage() {
             {/* 상품 이미지 */}
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                상품 이미지 * (최대 3장)
+                상품 이미지 *
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                  (jpg/png, 3MB 이하, 최대 3장, 첫 번째가 대표 이미지)
+                </span>
               </label>
-              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.75rem' }}>
-                • 파일 형식: jpg, jpeg, png<br/>
-                • 파일 크기: 3MB 이하 (자동 압축됨)<br/>
-                • 첫 번째 이미지가 대표 이미지로 사용됩니다<br/>
-                • 최대 3장까지 업로드 가능합니다
-              </p>
 
               {/* 이미지 프리뷰 */}
               {imagePreviews.length > 0 && (

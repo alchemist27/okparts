@@ -320,29 +320,33 @@ export async function POST(request: NextRequest) {
     }
 
     // 카페24 CDN URL을 상대 경로로 변환 (image_upload_type: "A"일 때 필요)
+    // 예: https://.../web/upload/NNEditor/20251029/abc.jpg -> NNEditor/20251029/abc.jpg
     const convertToRelativePath = (url: string): string => {
-      const match = url.match(/\/web\/upload\/.+$/);
-      if (!match) {
-        console.warn(`[Product Create] 경고: 상대 경로 변환 실패 - ${url}`);
-        return url;
+      // NNEditor 이후 경로 추출 (카페24가 기대하는 짧은 형식)
+      const match = url.match(/NNEditor\/\d{8}\/.+\.jpg$/);
+      if (match) {
+        console.log(`[Product Create] 경로 변환 성공: ${url} -> ${match[0]}`);
+        return match[0];
       }
-      return match[0];
+
+      // 매치 실패 시 원본 URL에서 날짜/파일명만 추출 시도
+      const dateMatch = url.match(/(\d{8}\/.+\.jpg)$/);
+      if (dateMatch) {
+        console.log(`[Product Create] 경로 변환 (날짜/파일명): ${url} -> ${dateMatch[1]}`);
+        return dateMatch[1];
+      }
+
+      console.warn(`[Product Create] 경고: 경로 변환 실패, 원본 사용 - ${url}`);
+      return url;
     };
 
     const relativeImagePaths = cafe24ImageUrls.map(convertToRelativePath);
 
     console.log("[Product Create] 카페24 이미지 경로 변환:");
-    console.log("[Product Create] 절대 경로 -> 상대 경로");
+    console.log("[Product Create] 절대 경로 -> 짧은 상대 경로");
     cafe24ImageUrls.forEach((url, idx) => {
       console.log(`[Product Create] 이미지 ${idx + 1}: ${url} -> ${relativeImagePaths[idx]}`);
     });
-
-    // 상대 경로 검증
-    const invalidPaths = relativeImagePaths.filter(path => !path || !path.startsWith('/web/upload/'));
-    if (invalidPaths.length > 0) {
-      console.error("[Product Create] 유효하지 않은 이미지 경로 발견:", invalidPaths);
-      throw new Error("이미지 경로 변환에 실패했습니다");
-    }
 
     // 카페24 상품 생성 (이미지 포함)
     try {
