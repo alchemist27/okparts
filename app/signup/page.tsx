@@ -15,6 +15,8 @@ function generateDummyData() {
   const bizNum1 = String(randomNum).padStart(3, '1').substring(0, 3);
   const bizNum2 = String(randomNum).padStart(2, '0').substring(0, 2);
   const bizNum3 = String(randomNum).padStart(5, '0');
+  // 계좌번호: 랜덤 생성
+  const accountNum = String(randomNum).padStart(10, '0');
   return {
     userId: `user${randomNum}`,
     password: password,
@@ -24,6 +26,9 @@ function generateDummyData() {
     phone: `010-${String(randomNum).padStart(4, '0')}-${String(randomNum).padStart(4, '0')}`,
     businessNumber: `${bizNum1}-${bizNum2}-${bizNum3}`,
     presidentName: `대표${randomNum}`,
+    bankCode: "bank_04",
+    bankAccountNo: accountNum,
+    bankAccountName: `예금주${randomNum}`,
   };
 }
 
@@ -40,6 +45,9 @@ export default function SignupPage() {
     phone: "",
     businessNumber: "",
     presidentName: "",
+    bankCode: "",
+    bankAccountNo: "",
+    bankAccountName: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -103,22 +111,29 @@ export default function SignupPage() {
           phone: formData.phone,
           businessNumber: accountType === "business" ? formData.businessNumber : null,
           presidentName: accountType === "business" ? formData.presidentName : null,
+          bankCode: formData.bankCode,
+          bankAccountNo: formData.bankAccountNo,
+          bankAccountName: formData.bankAccountName,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // 서버 에러 메시지를 더 자세히 표시
+        // 콘솔에 상세 에러 로그 출력
+        console.error("========== 회원가입 에러 발생 ==========");
+        console.error("Status:", response.status);
+        console.error("Error:", data.error);
+        console.error("Details:", data.details);
+        console.error("Note:", data.note);
+        console.error("======================================");
+
+        // 사용자에게는 간결한 메시지만 표시
         let errorMessage = data.error || "회원가입에 실패했습니다";
 
-        // 카페24 연동 실패 시 상세 정보 추가
+        // 상세 정보가 있으면 추가 (사업자번호 에러 등)
         if (data.details) {
-          errorMessage += `\n\n상세 정보: ${data.details}`;
-        }
-
-        if (data.note) {
-          errorMessage += `\n\n${data.note}`;
+          errorMessage += `\n\n${data.details}`;
         }
 
         throw new Error(errorMessage);
@@ -458,6 +473,130 @@ export default function SignupPage() {
                   </div>
                 </>
               )}
+
+              {/* 계좌 정보 섹션 */}
+              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.75rem', textAlign: 'center' }}>
+                  정산 계좌 정보
+                </h3>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                  은행 *
+                  <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                    (정산받을 은행 선택)
+                  </span>
+                </label>
+                <select
+                  value={formData.bankCode}
+                  onChange={(e) => setFormData({ ...formData, bankCode: e.target.value })}
+                  style={{
+                    fontSize: '1.125rem',
+                    padding: '0.875rem',
+                    borderRadius: '8px',
+                    width: '100%',
+                    border: '1px solid #d1d5db',
+                    backgroundColor: 'white'
+                  }}
+                  required
+                >
+                  <option value="">은행을 선택해주세요</option>
+                  <option value="bank_04">KB국민은행</option>
+                  <option value="bank_25">신한은행</option>
+                  <option value="bank_81">하나은행</option>
+                  <option value="bank_20">우리은행</option>
+                  <option value="bank_11">NH농협은행</option>
+                  <option disabled>──────────────</option>
+                  <option value="bank_02">산업은행</option>
+                  <option value="bank_03">기업은행</option>
+                  <option value="bank_05">하나(외환)은행</option>
+                  <option value="bank_07">수협중앙회</option>
+                  <option value="bank_12">농협개인</option>
+                  <option value="bank_13">농협법인</option>
+                  <option value="bank_21">조흥은행</option>
+                  <option value="bank_23">SC제일은행</option>
+                  <option value="bank_27">한미은행</option>
+                  <option value="bank_31">iM은행</option>
+                  <option value="bank_32">부산은행</option>
+                  <option value="bank_34">광주은행</option>
+                  <option value="bank_35">제주은행</option>
+                  <option value="bank_37">전북은행</option>
+                  <option value="bank_39">경남은행</option>
+                  <option value="bank_53">씨티은행</option>
+                  <option value="bank_71">우체국</option>
+                  <option value="bank_86">수협은행</option>
+                  <option value="bank_87">신협중앙회</option>
+                  <option value="bank_82">삼성증권현물</option>
+                  <option value="bank_84">삼성저축은행</option>
+                  <option value="bank_85">현대증권</option>
+                  <option value="bank_209">유안타증권</option>
+                  <option value="bank_218">KB증권</option>
+                  <option value="bank_230">미래에셋증권</option>
+                  <option value="bank_238">대우증권</option>
+                  <option value="bank_240">삼성증권</option>
+                  <option value="bank_243">한국투자증권</option>
+                  <option value="bank_247">NH투자증권</option>
+                  <option value="bank_261">교보증권</option>
+                  <option value="bank_266">SK증권</option>
+                  <option value="bank_267">대신증권</option>
+                  <option value="bank_269">한화증권</option>
+                  <option value="bank_270">하이투자증권</option>
+                  <option value="bank_278">신한금융투자</option>
+                  <option value="bank_279">동부증권</option>
+                  <option value="bank_280">유진투자증권</option>
+                  <option value="bank_287">메리츠종합금융</option>
+                  <option value="bank_288">카카오페이증권</option>
+                  <option value="bank_290">부국증권</option>
+                  <option value="bank_291">신영증권</option>
+                  <option value="bank_292">케이프증권</option>
+                  <option value="bank_293">키움증권</option>
+                  <option value="bank_295">OK저축은행</option>
+                  <option value="bank_296">토스뱅크</option>
+                  <option value="bank_297">토스증권</option>
+                  <option value="bank_999">기타</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                  계좌번호 *
+                  <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                    (정산받을 계좌번호)
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.bankAccountNo}
+                  onChange={(e) => setFormData({ ...formData, bankAccountNo: e.target.value.replace(/[^0-9]/g, '') })}
+                  onTouchStart={(e) => e.currentTarget.focus()}
+                  placeholder="1234567890"
+                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                  autoComplete="off"
+                  inputMode="numeric"
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                  예금주 *
+                  <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                    (계좌의 예금주명)
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.bankAccountName}
+                  onChange={(e) => setFormData({ ...formData, bankAccountName: e.target.value })}
+                  onTouchStart={(e) => e.currentTarget.focus()}
+                  placeholder="홍길동"
+                  style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                  autoComplete="off"
+                  inputMode="text"
+                  required
+                />
+              </div>
 
               {/* 제출 버튼 */}
               <button

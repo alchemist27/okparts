@@ -18,7 +18,8 @@ export async function POST(request: NextRequest) {
       companyName: body.companyName,
       phone: body.phone,
       hasBusinessNumber: !!body.businessNumber,
-      hasPresidentName: !!body.presidentName
+      hasPresidentName: !!body.presidentName,
+      hasBankInfo: !!(body.bankCode && body.bankAccountNo && body.bankAccountName)
     });
 
     const {
@@ -29,11 +30,14 @@ export async function POST(request: NextRequest) {
       name,
       phone,
       businessNumber,
-      presidentName
+      presidentName,
+      bankCode,
+      bankAccountNo,
+      bankAccountName
     } = body;
 
     // 유효성 검사
-    if (!userId || !password || !name || !phone || !accountType) {
+    if (!userId || !password || !name || !phone || !accountType || !bankCode || !bankAccountNo || !bankAccountName) {
       console.error("[SIGNUP] 필수 필드 누락");
       return NextResponse.json(
         { error: "모든 필수 필드를 입력해주세요" },
@@ -84,7 +88,10 @@ export async function POST(request: NextRequest) {
     if (!existingSuppliers.empty) {
       console.error("[SIGNUP] 아이디 중복:", userId);
       return NextResponse.json(
-        { error: "이미 사용 중인 아이디입니다" },
+        {
+          error: "이미 사용 중인 아이디입니다",
+          details: "다른 아이디를 입력해주세요. 이미 가입된 계정이 있다면 로그인을 이용해주세요."
+        },
         { status: 400 }
       );
     }
@@ -105,6 +112,9 @@ export async function POST(request: NextRequest) {
       businessNumber: businessNumber || null,
       presidentName: presidentName || null,
       commission: accountType === "business" ? "10.00" : "0.00",
+      bankCode,
+      bankAccountNo,
+      bankAccountName,
       status: "pending",
       cafe24SupplierNo: null,
       cafe24UserId: null,
@@ -157,10 +167,10 @@ export async function POST(request: NextRequest) {
         supplier_name: companyName || name,
         use_supplier: "T",
         trading_type: "D",
-        supplier_type: "WS",
+        supplier_type: "BS",
         status: "A",
         business_item: "중고부품",
-        payment_type: "D",
+        payment_type: "P",
         commission: accountType === "business" ? "10.00" : "0.00",
         payment_period: "A",
         payment_method: "30",
@@ -171,6 +181,9 @@ export async function POST(request: NextRequest) {
         zipcode: "00000",
         address1: "주소 미입력",
         address2: "",
+        bank_code: bankCode,
+        bank_account_no: bankAccountNo,
+        bank_account_name: bankAccountName,
         manager_information: [{
           no: 1,
           name: name,
@@ -195,7 +208,9 @@ export async function POST(request: NextRequest) {
         supplier_name: cafe24SupplierData.supplier_name,
         accountType,
         commission: cafe24SupplierData.commission,
-        company_registration_no: cafe24SupplierData.company_registration_no
+        company_registration_no: cafe24SupplierData.company_registration_no,
+        bank_code: cafe24SupplierData.bank_code,
+        bank_account_name: cafe24SupplierData.bank_account_name
       });
 
       const cafe24SupplierResponse = await cafe24Client.createSupplier(cafe24SupplierData);
@@ -244,14 +259,40 @@ export async function POST(request: NextRequest) {
       console.error("\n[SIGNUP] 카페24 연동 실패:", cafe24Error.message);
       console.error("[SIGNUP] 카페24 에러 상세:", cafe24Error);
 
-      // 카페24 연동 실패 시에도 앱 내부 계정은 유지 (pending 상태)
-      console.log("[SIGNUP] 앱 내부 계정은 pending 상태로 유지됨");
+      // 카페24 연동 실패 시 Firestore 데이터 삭제 (롤백)
+      try {
+        console.log("[SIGNUP] 카페24 연동 실패로 인한 Firestore 데이터 롤백 시작");
+        console.log("[SIGNUP] 삭제할 Firestore 문서 ID:", supplierDoc.id);
+
+        const { deleteDoc } = await import("firebase/firestore");
+        await deleteDoc(doc(firestore, "suppliers", supplierDoc.id));
+
+        console.log("[SIGNUP] Firestore 데이터 삭제 완료 - 사용자는 동일 아이디로 재시도 가능");
+      } catch (deleteError: any) {
+        console.error("[SIGNUP] Firestore 데이터 삭제 실패:", deleteError.message);
+        console.error("[SIGNUP] 경고: 미승인 계정이 Firestore에 남아있을 수 있음 (문서 ID:", supplierDoc.id, ")");
+      }
+
+      // 사업자번호 유효성 에러인지 확인
+      const errorMessage = cafe24Error.message || "";
+      const isBusinessNumberError = errorMessage.includes("Invalid Business Registration Number")
+        || errorMessage.includes("company_registration_no");
+
+      if (isBusinessNumberError) {
+        console.error("[SIGNUP] 사업자번호 유효성 검증 실패 - 사용자에게 안내 메시지 전송");
+        return NextResponse.json(
+          {
+            error: "유효한 사업자등록번호를 입력해주세요",
+            details: "입력하신 사업자등록번호가 국세청에 등록되지 않았거나 유효하지 않습니다. 실제 운영 중인 사업자등록번호를 입력해주세요."
+          },
+          { status: 400 }
+        );
+      }
 
       return NextResponse.json(
         {
           error: "카페24 연동 중 오류가 발생했습니다",
-          details: cafe24Error.message,
-          note: "계정은 생성되었으나 승인 대기 중입니다"
+          details: "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
         },
         { status: 500 }
       );
