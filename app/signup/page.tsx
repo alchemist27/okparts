@@ -254,6 +254,9 @@ export default function SignupPage() {
               <div>
                 <label htmlFor="userId" style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   아이디 *
+                  <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                    (영문 소문자와 숫자만 사용 가능, 최소 4자)
+                  </span>
                 </label>
                 <input
                   id="userId"
@@ -265,20 +268,20 @@ export default function SignupPage() {
                   onChange={(e) => setFormData({ ...formData, userId: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') })}
                   onTouchStart={(e) => e.currentTarget.focus()}
                   style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
-                  placeholder="영문 소문자, 숫자만 가능"
+                  placeholder="user1234"
                   required
                   pattern="[a-z0-9]+"
                   minLength={4}
                 />
-                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                  영문 소문자와 숫자만 사용 가능 (최소 4자)
-                </p>
               </div>
 
               {/* 비밀번호 */}
               <div>
                 <label htmlFor="password" style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   비밀번호 *
+                  <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                    (영문/숫자/특수문자 조합 최소 6자 이상)
+                  </span>
                 </label>
                 <input
                   id="password"
@@ -290,18 +293,19 @@ export default function SignupPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   onTouchStart={(e) => e.currentTarget.focus()}
                   style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                  placeholder="pass1234!@"
                   required
                   minLength={6}
                 />
-                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                  영문/숫자/특수문자 조합 최소 6자 이상
-                </p>
               </div>
 
               {/* 비밀번호 확인 */}
               <div>
                 <label htmlFor="passwordConfirm" style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   비밀번호 확인 *
+                  <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                    (위와 동일하게 입력)
+                  </span>
                 </label>
                 <input
                   id="passwordConfirm"
@@ -313,6 +317,7 @@ export default function SignupPage() {
                   onChange={(e) => setFormData({ ...formData, passwordConfirm: e.target.value })}
                   onTouchStart={(e) => e.currentTarget.focus()}
                   style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                  placeholder="pass1234!@"
                   required
                 />
               </div>
@@ -322,6 +327,9 @@ export default function SignupPage() {
                 <div>
                   <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                     회원명 *
+                    <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                      (실명 또는 사업자명 입력)
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -329,6 +337,7 @@ export default function SignupPage() {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     onTouchStart={(e) => e.currentTarget.focus()}
                     style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                    placeholder="홍길동"
                     autoComplete="off"
                     inputMode="text"
                     required
@@ -339,6 +348,9 @@ export default function SignupPage() {
                   <div>
                     <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                       상호명 *
+                      <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                        (사업자등록증의 상호명)
+                      </span>
                     </label>
                     <input
                       type="text"
@@ -346,6 +358,7 @@ export default function SignupPage() {
                       onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                       onTouchStart={(e) => e.currentTarget.focus()}
                       style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                      placeholder="OK부품상사"
                       autoComplete="off"
                       inputMode="text"
                       required
@@ -355,6 +368,9 @@ export default function SignupPage() {
                   <div>
                     <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                       담당자명 *
+                      <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                        (거래 및 연락 담당자)
+                      </span>
                     </label>
                     <input
                       type="text"
@@ -362,6 +378,7 @@ export default function SignupPage() {
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       onTouchStart={(e) => e.currentTarget.focus()}
                       style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                      placeholder="김담당"
                       autoComplete="off"
                       inputMode="text"
                       required
@@ -374,6 +391,9 @@ export default function SignupPage() {
               <div>
                 <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   휴대폰 *
+                  <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                    (하이픈(-) 포함하여 입력)
+                  </span>
                 </label>
                 <input
                   type="tel"
@@ -400,6 +420,9 @@ export default function SignupPage() {
                   <div>
                     <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                       사업자등록번호 *
+                      <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                        (XXX-XX-XXXXX 형식)
+                      </span>
                     </label>
                     <input
                       type="text"
@@ -412,20 +435,21 @@ export default function SignupPage() {
                       inputMode="text"
                       required
                     />
-                    <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                      XXX-XX-XXXXX 형식으로 입력해주세요 (예: 118-81-20586)
-                    </p>
                   </div>
 
                   <div>
                     <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                       대표자명 *
+                      <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                        (사업자등록증의 대표자명)
+                      </span>
                     </label>
                     <input
                       type="text"
                       value={formData.presidentName}
                       onChange={(e) => setFormData({ ...formData, presidentName: e.target.value })}
                       onTouchStart={(e) => e.currentTarget.focus()}
+                      placeholder="홍대표"
                       style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
                       autoComplete="off"
                       inputMode="text"
