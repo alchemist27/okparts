@@ -46,9 +46,10 @@ export default function SignupPage() {
     phone: "",
     businessNumber: "",
     presidentName: "",
-    bankCode: "",
-    bankAccountNo: "",
-    bankAccountName: "",
+    // 계좌 정보는 보류
+    // bankCode: "",
+    // bankAccountNo: "",
+    // bankAccountName: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
