@@ -19,6 +19,7 @@ export default function NewProductPage() {
   const [subCategories, setSubCategories] = useState<CategoryData[]>([]);
   const [detailCategories, setDetailCategories] = useState<CategoryData[]>([]);
   const [isMobile, setIsMobile] = useState(false);
+  const [userId, setUserId] = useState<string>("");
 
   const [formData, setFormData] = useState({
     productName: "",
@@ -47,6 +48,17 @@ export default function NewProductPage() {
     if (!token) {
       router.push("/login");
       return;
+    }
+
+    // 사용자 정보 가져오기
+    const supplierData = localStorage.getItem("supplier");
+    if (supplierData) {
+      try {
+        const supplier = JSON.parse(supplierData);
+        setUserId(supplier.email || supplier.userId || "");
+      } catch (error) {
+        console.error("Failed to parse supplier data:", error);
+      }
     }
 
     // 모바일 감지
@@ -542,10 +554,35 @@ export default function NewProductPage() {
         </div>
 
         <div className="hero-card" style={{ padding: '2rem' }}>
-          {/* 제목 및 로그아웃 버튼 */}
+          {/* 제목, 사용자 정보 및 로그아웃 버튼 */}
           <div className="mb-6">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <h1 className="hero-title" style={{ fontSize: '1.75rem', margin: 0 }}>새 상품 등록</h1>
+            <h1 className="hero-title" style={{ fontSize: '1.75rem', margin: 0, marginBottom: '1rem' }}>새 상품 등록</h1>
+
+            {/* 사용자 정보 및 로그아웃 버튼 - 모바일 반응형 */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: isMobile ? '0.75rem' : '1rem',
+              padding: '0.75rem 1rem',
+              backgroundColor: '#f3f4f6',
+              borderRadius: '12px'
+            }}>
+              {/* 사용자 환영 메시지 */}
+              {userId && (
+                <div style={{
+                  fontSize: isMobile ? '1.125rem' : '1.25rem',
+                  fontWeight: '700',
+                  color: '#1f2937',
+                  textAlign: isMobile ? 'center' : 'left',
+                  width: isMobile ? '100%' : 'auto'
+                }}>
+                  <span style={{ color: 'var(--primary)' }}>{userId}</span>님 반갑습니다
+                </div>
+              )}
+
+              {/* 로그아웃 버튼 */}
               <button
                 type="button"
                 onClick={() => {
@@ -554,14 +591,16 @@ export default function NewProductPage() {
                   router.push("/login");
                 }}
                 style={{
-                  fontSize: '1rem',
+                  fontSize: isMobile ? '1rem' : '1rem',
                   padding: '0.5rem 1rem',
                   backgroundColor: '#6b7280',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
                   cursor: 'pointer',
-                  fontWeight: '600'
+                  fontWeight: '600',
+                  width: isMobile ? '100%' : 'auto',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 로그아웃
