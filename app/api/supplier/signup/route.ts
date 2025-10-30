@@ -273,8 +273,10 @@ export async function POST(request: NextRequest) {
         console.error("[SIGNUP] 경고: 미승인 계정이 Firestore에 남아있을 수 있음 (문서 ID:", supplierDoc.id, ")");
       }
 
-      // 사업자번호 유효성 에러인지 확인
+      // 에러 타입별 처리
       const errorMessage = cafe24Error.message || "";
+
+      // 사업자번호 유효성 에러
       const isBusinessNumberError = errorMessage.includes("Invalid Business Registration Number")
         || errorMessage.includes("company_registration_no");
 
@@ -284,6 +286,21 @@ export async function POST(request: NextRequest) {
           {
             error: "유효한 사업자등록번호를 입력해주세요",
             details: "입력하신 사업자등록번호가 국세청에 등록되지 않았거나 유효하지 않습니다. 실제 운영 중인 사업자등록번호를 입력해주세요."
+          },
+          { status: 400 }
+        );
+      }
+
+      // 비밀번호 연속 문자 에러
+      const isPasswordError = errorMessage.includes("Password cannot contain more than four consecutive characters")
+        || errorMessage.includes("parameter.password");
+
+      if (isPasswordError) {
+        console.error("[SIGNUP] 비밀번호 형식 오류 - 연속된 문자 4개 이상 사용");
+        return NextResponse.json(
+          {
+            error: "비밀번호 형식이 올바르지 않습니다",
+            details: "비밀번호에 4개 이상 연속된 문자(예: aaaa, 1111)를 사용할 수 없습니다. 다른 비밀번호를 입력해주세요."
           },
           { status: 400 }
         );

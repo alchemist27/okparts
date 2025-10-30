@@ -252,17 +252,6 @@ export default function SignupPage() {
               * 표시는 필수 입력 항목입니다
             </p>
 
-            {/* 에러 메시지 */}
-            {error && (
-              <div className="alert alert-error mb-4" style={{
-                fontSize: '1rem',
-                whiteSpace: 'pre-line',
-                lineHeight: '1.6'
-              }}>
-                {error}
-              </div>
-            )}
-
             {/* 폼 */}
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {/* 아이디 */}
@@ -295,7 +284,7 @@ export default function SignupPage() {
                 <label htmlFor="password" style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   비밀번호 *
                   <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
-                    (영문/숫자/특수문자 조합 최소 6자 이상)
+                    (영문/숫자/특수문자 조합 6자 이상, 연속 문자 4개 이상 금지)
                   </span>
                 </label>
                 <input
@@ -308,10 +297,13 @@ export default function SignupPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   onTouchStart={(e) => e.currentTarget.focus()}
                   style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
-                  placeholder="pass1234!@"
+                  placeholder="pass12!@"
                   required
                   minLength={6}
                 />
+                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                  ※ 연속된 문자 사용 불가 (예: aaaa, 1111, abcd 등)
+                </p>
               </div>
 
               {/* 비밀번호 확인 */}
@@ -597,6 +589,18 @@ export default function SignupPage() {
                   required
                 />
               </div>
+
+              {/* 에러 메시지 - 제출 버튼 바로 위 */}
+              {error && (
+                <div className="alert alert-error" style={{
+                  fontSize: '1rem',
+                  whiteSpace: 'pre-line',
+                  lineHeight: '1.6',
+                  marginTop: '1rem'
+                }}>
+                  {error}
+                </div>
+              )}
 
               {/* 제출 버튼 */}
               <button
