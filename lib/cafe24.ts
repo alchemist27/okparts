@@ -331,16 +331,30 @@ export class Cafe24ApiClient {
   // Suppliers
   async createSupplier(supplierData: any): Promise<any> {
     console.log("[Cafe24 API] 공급사 생성 요청:", `/admin/suppliers`);
-    return this.request("POST", "/admin/suppliers", {
+    const requestData = {
       shop_no: 1,
       request: {
         ...supplierData,
       },
-    });
+    };
+    console.log("[Cafe24 API] 전송 데이터:", JSON.stringify(requestData, null, 2));
+    return this.request("POST", "/admin/suppliers", requestData);
   }
 
   async getSuppliers(): Promise<any> {
     return this.request("GET", "/admin/suppliers");
+  }
+
+  async updateSupplier(supplierCode: string, supplierData: any): Promise<any> {
+    console.log("[Cafe24 API] 공급사 수정 요청:", `/admin/suppliers/${supplierCode}`);
+    const requestData = {
+      shop_no: 1,
+      request: {
+        ...supplierData,
+      },
+    };
+    console.log("[Cafe24 API] 수정 데이터:", JSON.stringify(requestData, null, 2));
+    return this.request("PUT", `/admin/suppliers/${supplierCode}`, requestData);
   }
 
   // Supplier Users

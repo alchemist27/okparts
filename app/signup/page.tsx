@@ -26,9 +26,10 @@ function generateDummyData() {
     phone: `010-${String(randomNum).padStart(4, '0')}-${String(randomNum).padStart(4, '0')}`,
     businessNumber: `${bizNum1}-${bizNum2}-${bizNum3}`,
     presidentName: `대표${randomNum}`,
-    bankCode: "bank_04",
-    bankAccountNo: accountNum,
-    bankAccountName: `예금주${randomNum}`,
+    // 계좌 정보는 보류
+    // bankCode: "bank_04",
+    // bankAccountNo: accountNum,
+    // bankAccountName: `예금주${randomNum}`,
   };
 }
 
@@ -111,9 +112,10 @@ export default function SignupPage() {
           phone: formData.phone,
           businessNumber: accountType === "business" ? formData.businessNumber : null,
           presidentName: accountType === "business" ? formData.presidentName : null,
-          bankCode: formData.bankCode,
-          bankAccountNo: formData.bankAccountNo,
-          bankAccountName: formData.bankAccountName,
+          // 계좌 정보는 보류
+          // bankCode: formData.bankCode,
+          // bankAccountNo: formData.bankAccountNo,
+          // bankAccountName: formData.bankAccountName,
         }),
       });
 
@@ -466,14 +468,14 @@ export default function SignupPage() {
                 </>
               )}
 
-              {/* 계좌 정보 섹션 */}
-              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', marginTop: '0.5rem' }}>
+              {/* 계좌 정보 섹션 - 보류 */}
+              {/* <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', marginTop: '0.5rem' }}>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.75rem', textAlign: 'center' }}>
                   정산 계좌 정보
                 </h3>
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   은행 *
                   <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
@@ -548,9 +550,9 @@ export default function SignupPage() {
                   <option value="bank_297">토스증권</option>
                   <option value="bank_999">기타</option>
                 </select>
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   계좌번호 *
                   <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
@@ -568,9 +570,9 @@ export default function SignupPage() {
                   inputMode="numeric"
                   required
                 />
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   예금주 *
                   <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
@@ -588,7 +590,7 @@ export default function SignupPage() {
                   inputMode="text"
                   required
                 />
-              </div>
+              </div> */}
 
               {/* 에러 메시지 - 제출 버튼 바로 위 */}
               {error && (

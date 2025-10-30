@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
       phone: body.phone,
       hasBusinessNumber: !!body.businessNumber,
       hasPresidentName: !!body.presidentName,
-      hasBankInfo: !!(body.bankCode && body.bankAccountNo && body.bankAccountName)
+      // 계좌 정보는 보류
+      // hasBankInfo: !!(body.bankCode && body.bankAccountNo && body.bankAccountName)
     });
 
     const {
@@ -31,13 +32,14 @@ export async function POST(request: NextRequest) {
       phone,
       businessNumber,
       presidentName,
-      bankCode,
-      bankAccountNo,
-      bankAccountName
+      // 계좌 정보는 보류
+      // bankCode,
+      // bankAccountNo,
+      // bankAccountName
     } = body;
 
     // 유효성 검사
-    if (!userId || !password || !name || !phone || !accountType || !bankCode || !bankAccountNo || !bankAccountName) {
+    if (!userId || !password || !name || !phone || !accountType) {
       console.error("[SIGNUP] 필수 필드 누락");
       return NextResponse.json(
         { error: "모든 필수 필드를 입력해주세요" },
@@ -112,9 +114,10 @@ export async function POST(request: NextRequest) {
       businessNumber: businessNumber || null,
       presidentName: presidentName || null,
       commission: accountType === "business" ? "10.00" : "0.00",
-      bankCode,
-      bankAccountNo,
-      bankAccountName,
+      // 계좌 정보는 보류
+      // bankCode,
+      // bankAccountNo,
+      // bankAccountName,
       status: "pending",
       cafe24SupplierNo: null,
       cafe24UserId: null,
@@ -166,7 +169,7 @@ export async function POST(request: NextRequest) {
       const cafe24SupplierData: any = {
         supplier_name: companyName || name,
         use_supplier: "T",
-        trading_type: "D",
+        trading_type: "C",
         supplier_type: "BS",
         status: "A",
         business_item: "중고부품",
@@ -181,9 +184,10 @@ export async function POST(request: NextRequest) {
         zipcode: "00000",
         address1: "주소 미입력",
         address2: "",
-        bank_code: bankCode,
-        bank_account_no: bankAccountNo,
-        bank_account_name: bankAccountName,
+        // 계좌 정보는 보류
+        // bank_code: bankCode,
+        // bank_account_no: bankAccountNo,
+        // bank_account_name: bankAccountName,
         manager_information: [{
           no: 1,
           name: name,
@@ -209,9 +213,11 @@ export async function POST(request: NextRequest) {
         accountType,
         commission: cafe24SupplierData.commission,
         company_registration_no: cafe24SupplierData.company_registration_no,
-        bank_code: cafe24SupplierData.bank_code,
-        bank_account_name: cafe24SupplierData.bank_account_name
+        // 계좌 정보는 보류
+        // bank_code: cafe24SupplierData.bank_code,
+        // bank_account_name: cafe24SupplierData.bank_account_name
       });
+      console.log("[SIGNUP Step 6-1] 전체 cafe24SupplierData:", JSON.stringify(cafe24SupplierData, null, 2));
 
       const cafe24SupplierResponse = await cafe24Client.createSupplier(cafe24SupplierData);
       supplierCode = cafe24SupplierResponse.supplier?.supplier_code;
@@ -221,6 +227,21 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("[SIGNUP Step 6-2] 카페24 공급사 생성 완료, 코드:", supplierCode);
+
+      // 카페24 공급사 계좌 정보 업데이트 - 보류
+      // console.log("[SIGNUP Step 6-3] 카페24 공급사 계좌 정보 업데이트 시작");
+      // try {
+      //   await cafe24Client.updateSupplier(supplierCode, {
+      //     bank_code: bankCode,
+      //     bank_account_no: bankAccountNo,
+      //     bank_account_name: bankAccountName,
+      //   });
+      //   console.log("[SIGNUP Step 6-3] 카페24 공급사 계좌 정보 업데이트 완료");
+      // } catch (bankUpdateError: any) {
+      //   console.error("[SIGNUP Step 6-3] 계좌 정보 업데이트 실패:", bankUpdateError.message);
+      //   console.error("[SIGNUP] 경고: 공급사는 생성되었으나 계좌 정보 업데이트 실패");
+      //   // 계좌 정보 업데이트 실패는 치명적이지 않으므로 계속 진행
+      // }
 
       // 카페24 공급사 사용자 생성
       console.log("[SIGNUP Step 7] 카페24 공급사 사용자 생성 시작");
