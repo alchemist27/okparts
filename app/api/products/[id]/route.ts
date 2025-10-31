@@ -6,10 +6,10 @@ import { verifyToken } from "@/lib/auth";
 // 상품 상세 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // 토큰 검증
     const authHeader = request.headers.get("Authorization");
@@ -56,10 +56,10 @@ export async function GET(
 // 상품 수정
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // 토큰 검증
     const authHeader = request.headers.get("Authorization");
@@ -202,10 +202,10 @@ export async function PUT(
 // 상품 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // 토큰 검증
     const authHeader = request.headers.get("Authorization");
