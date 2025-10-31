@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
     const productsRef = collection(db, "products");
     const q = query(
       productsRef,
-      where("supplierId", "==", payload.supplierId),
-      orderBy("createdAt", "desc")
+      where("supplierId", "==", payload.supplierId)
+      // orderBy는 Firestore 복합 인덱스가 필요하므로 클라이언트에서 정렬
     );
 
     const productsSnapshot = await getDocs(q);
@@ -34,6 +34,13 @@ export async function GET(request: NextRequest) {
       id: doc.id,
       ...doc.data(),
     }));
+
+    // 클라이언트에서 정렬 (최신순)
+    products.sort((a: any, b: any) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA; // 내림차순 (최신순)
+    });
 
     return NextResponse.json({ products });
   } catch (error: any) {
