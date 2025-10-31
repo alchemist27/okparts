@@ -41,6 +41,7 @@ export default function NewProductPage() {
   const [success, setSuccess] = useState(false);
   const [imageUploadProgress, setImageUploadProgress] = useState(0);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
     // 로그인 확인
@@ -74,8 +75,11 @@ export default function NewProductPage() {
 
     loadCategories();
 
+    // 인증 확인 완료
+    setCheckingAuth(false);
+
     return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
+  }, [router]);
 
   const loadCategories = async () => {
     try {
@@ -463,6 +467,46 @@ export default function NewProductPage() {
       }, 100);
     }
   };
+
+  // 인증 확인 중 로딩 화면
+  if (checkingAuth) {
+    return (
+      <main id="main" className="min-h-screen hero flex items-center justify-center py-4">
+        <div className="container">
+          <div className="text-center mb-6">
+            <Image
+              src="/logo.png"
+              alt="OK중고부품"
+              width={750}
+              height={300}
+              priority
+              style={{ width: "100%", height: "auto", maxWidth: "280px" }}
+            />
+          </div>
+          <div className="hero-card" style={{ padding: '2rem', textAlign: 'center' }}>
+            <div style={{
+              width: '60px',
+              height: '60px',
+              border: '6px solid #f3f4f6',
+              borderTop: '6px solid var(--primary)',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto'
+            }} />
+            <p style={{ fontSize: '1.25rem', marginTop: '1.5rem', color: '#6b7280' }}>
+              인증 확인 중...
+            </p>
+          </div>
+        </div>
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </main>
+    );
+  }
 
   return (
     <main id="main" className="min-h-screen hero flex items-center justify-center py-4" style={{ WebkitOverflowScrolling: 'touch' }}>

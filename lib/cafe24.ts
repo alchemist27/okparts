@@ -195,6 +195,10 @@ export class Cafe24ApiClient {
     });
   }
 
+  async deleteProduct(productNo: string): Promise<any> {
+    return this.request("DELETE", `/admin/products/${productNo}`);
+  }
+
   async getProducts(params?: {
     limit?: number;
     offset?: number;

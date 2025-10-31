@@ -29,7 +29,7 @@ export default function LoginPage() {
 
       // 토큰과 공급사 정보가 있으면 자동 로그인
       if (token && supplier) {
-        router.push("/products/new");
+        router.push("/dashboard");
         return;
       }
 
@@ -71,8 +71,8 @@ export default function LoginPage() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("supplier", JSON.stringify(data.supplier));
 
-      // 상품등록 페이지로 이동
-      router.push("/products/new");
+      // 대시보드 페이지로 이동
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
     } finally {
