@@ -45,10 +45,19 @@ export default function ProductSuccessPage() {
             gap: '1rem',
             marginTop: '2.5rem'
           }}>
+            {/* 대시보드로 돌아가기 */}
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="btn btn-primary btn-xl btn-block"
+              style={{ fontSize: '1.25rem' }}
+            >
+              대시보드로 돌아가기
+            </button>
+
             {/* 다른 상품 등록하기 */}
             <button
               onClick={() => router.push('/products/new')}
-              className="btn btn-primary btn-xl btn-block"
+              className="btn btn-outline primary btn-xl btn-block"
               style={{ fontSize: '1.25rem' }}
             >
               다른 상품 등록하기
@@ -57,8 +66,8 @@ export default function ProductSuccessPage() {
             {/* 등록된 상품 보러가기 */}
             <button
               onClick={() => window.location.href = 'https://okayparts.shop'}
-              className="btn btn-outline primary btn-xl btn-block"
-              style={{ fontSize: '1.25rem' }}
+              className="btn btn-outline btn-xl btn-block"
+              style={{ fontSize: '1.125rem', color: '#6b7280' }}
             >
               등록된 상품 보러가기
             </button>

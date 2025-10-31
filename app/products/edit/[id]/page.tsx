@@ -592,13 +592,12 @@ export default function EditProductPage() {
             </div>
 
             {/* 버튼들 */}
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <button
                 type="submit"
                 disabled={loading || success}
-                className="btn btn-primary btn-xl"
+                className="btn btn-primary btn-xl btn-block"
                 style={{
-                  flex: 1,
                   opacity: loading || success ? 0.6 : 1,
                   cursor: loading || success ? 'not-allowed' : 'pointer'
                 }}
@@ -608,8 +607,8 @@ export default function EditProductPage() {
               <button
                 type="button"
                 onClick={() => router.push("/dashboard")}
-                className="btn btn-outline"
-                style={{ fontSize: '1.125rem', padding: '1rem 1.5rem' }}
+                className="btn btn-outline btn-block"
+                style={{ fontSize: '1.125rem', padding: '1rem' }}
               >
                 취소
               </button>
