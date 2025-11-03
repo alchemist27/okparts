@@ -888,7 +888,7 @@ export default function NewProductPage() {
                 }}
                 onTouchStart={(e) => e.currentTarget.focus()}
                 style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
-                placeholder="010-1234-5678 또는 01012345678"
+                placeholder="010-1234-5678"
                 inputMode="tel"
                 autoComplete="tel"
               />

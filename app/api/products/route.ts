@@ -391,7 +391,7 @@ export async function POST(request: NextRequest) {
       if (sellerPhone) {
         cafe24ProductData.additional_information = [
           {
-            key: "custom_option7",
+            key: "custom_option45",
             name: "판매자 전화번호",
             value: sellerPhone
           }
