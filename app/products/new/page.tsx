@@ -24,6 +24,7 @@ export default function NewProductPage() {
   const [formData, setFormData] = useState({
     productName: "",
     summaryDescription: "",
+    description: "",
     sellingPrice: "",
     supplyPrice: "",
     mainCategory: "",
@@ -31,6 +32,7 @@ export default function NewProductPage() {
     detailCategory: "",
     display: "T" as "T" | "F",
     selling: "T" as "T" | "F",
+    sellerPhone: "",
   });
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -314,16 +316,33 @@ export default function NewProductPage() {
 
       console.log("========== [프론트] 상품 등록 데이터 ==========");
       console.log("상품명:", formData.productName);
-      console.log("상세 설명:", formData.summaryDescription);
+      console.log("요약 정보:", formData.summaryDescription);
+      console.log("상세 정보:", formData.description);
       console.log("판매가 (원본):", formData.sellingPrice);
       console.log("판매가 (정제):", cleanPrice);
       console.log("카테고리:", selectedCategory);
       console.log("이미지 개수:", images.length);
+      console.log("판매자 전화번호:", formData.sellerPhone);
       console.log("===============================================");
+
+      // 전화번호 형식 변환 (슬래시 제거 후 하이픈 형식으로 변환)
+      const formatPhoneNumber = (phone: string) => {
+        if (!phone) return "";
+        // 숫자만 추출
+        const numbers = phone.replace(/[^0-9]/g, "");
+        // 010-XXXX-XXXX 형식으로 변환
+        if (numbers.length === 11 && numbers.startsWith("010")) {
+          return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7)}`;
+        }
+        return numbers;
+      };
+
+      const formattedPhone = formatPhoneNumber(formData.sellerPhone);
 
       const productFormData = new FormData();
       productFormData.append("productName", formData.productName);
       productFormData.append("summaryDescription", formData.summaryDescription);
+      productFormData.append("description", formData.description);
       productFormData.append("sellingPrice", cleanPrice); // 검증된 가격
       productFormData.append("supplyPrice", cleanPrice); // 검증된 가격
       productFormData.append("categoryNo", selectedCategory);
@@ -331,6 +350,11 @@ export default function NewProductPage() {
       productFormData.append("selling", formData.selling);
       productFormData.append("maximum_quantity", "1");
       productFormData.append("minimum_quantity", "1");
+
+      // 판매자 전화번호 추가 (7번 옵션)
+      if (formattedPhone) {
+        productFormData.append("sellerPhone", formattedPhone);
+      }
 
       // 첫 번째 이미지만 추가 (대표 이미지)
       console.log(`[프론트] 총 이미지 개수: ${images.length}`);
@@ -706,12 +730,12 @@ export default function NewProductPage() {
               />
             </div>
 
-            {/* 상품 상세정보 */}
+            {/* 상품 요약정보 */}
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                상품 상세정보
+                상품 요약 정보
                 <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
-                  (차량명, 연식, 부품번호, 차대번호, 판매자 위치 등 상세 정보 입력)
+                  (차량명, 연식, 부품번호, 차대번호, 판매자 위치 등 핵심 정보 입력)
                 </span>
               </label>
               <textarea
@@ -735,6 +759,36 @@ export default function NewProductPage() {
               <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
                 {formData.summaryDescription.length}/255자
               </p>
+            </div>
+
+            {/* 상품 상세정보 */}
+            <div>
+              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                상품 상세 정보
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                  (제품의 상태, 특징, 주의사항 등 상세한 설명 입력)
+                </span>
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onTouchStart={(e) => e.currentTarget.focus()}
+                style={{
+                  fontSize: '1.25rem',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  WebkitUserSelect: 'text',
+                  WebkitTouchCallout: 'default',
+                  minHeight: '200px',
+                  resize: 'vertical'
+                }}
+                placeholder="제품 상태: 사용감 적음, 동작 정상
+주요 특징: 정품 부품, 2023년 생산
+배송 정보: 착불 또는 직거래 가능
+기타 사항: 반품 불가, 실물 확인 환영"
+                inputMode="text"
+                autoComplete="off"
+              />
             </div>
 
             {/* 카테고리 */}
@@ -798,7 +852,7 @@ export default function NewProductPage() {
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 상품 판매가 *
                 <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
-                  (거래 수수료 10% + 부가세 포함 금액)
+                  (부가세 포함 금액을 입력해주세요.)
                 </span>
               </label>
               <input
@@ -814,6 +868,29 @@ export default function NewProductPage() {
                 placeholder="150000"
                 inputMode="decimal"
                 autoComplete="off"
+              />
+            </div>
+
+            {/* 판매자 전화번호 */}
+            <div>
+              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                판매자 전화번호
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                  (구매자와의 연락을 위해 입력해주세요. 제품 상세정보 페이지에 노출됩니다.)
+                </span>
+              </label>
+              <input
+                type="text"
+                value={formData.sellerPhone}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({ ...formData, sellerPhone: value });
+                }}
+                onTouchStart={(e) => e.currentTarget.focus()}
+                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                placeholder="010-1234-5678 또는 01012345678"
+                inputMode="tel"
+                autoComplete="tel"
               />
             </div>
 

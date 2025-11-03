@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const productName = formData.get("productName") as string;
     const summaryDescription = formData.get("summaryDescription") as string;
+    const description = formData.get("description") as string;
     const sellingPrice = formData.get("sellingPrice") as string;
     const supplyPrice = formData.get("supplyPrice") as string;
     const categoryNo = formData.get("categoryNo") as string;
@@ -81,16 +82,19 @@ export async function POST(request: NextRequest) {
     const selling = formData.get("selling") as string;
     const maximumQuantity = formData.get("maximum_quantity") as string;
     const minimumQuantity = formData.get("minimum_quantity") as string;
+    const sellerPhone = formData.get("sellerPhone") as string;
     const imageFiles = formData.getAll("images") as File[];
 
     console.log("[Product Create] 요청 데이터:", {
       productName,
       summaryDescription,
+      description,
       sellingPrice,
       supplyPrice,
       categoryNo,
       maximumQuantity,
       minimumQuantity,
+      sellerPhone,
       imageCount: imageFiles.length
     });
 
@@ -159,6 +163,7 @@ export async function POST(request: NextRequest) {
       supplierId: payload.supplierId,
       name: productName,
       summaryDescription: summaryDescription || "",
+      description: description || "",
       supplyPrice: supplyPriceNum,
       sellingPrice: sellingPriceNum,
       display,
@@ -364,6 +369,7 @@ export async function POST(request: NextRequest) {
       const cafe24ProductData: any = {
         product_name: productName,
         summary_description: summaryDescription || "",
+        description: description || "",
         price: sellingPriceNum,
         supply_price: supplyPriceNum,
         display: display || "T",
@@ -380,6 +386,18 @@ export async function POST(request: NextRequest) {
         maximum_quantity: maximumQuantity ? parseInt(maximumQuantity) : 1, // 최대 주문수량
         minimum_quantity: minimumQuantity ? parseInt(minimumQuantity) : 1, // 최소 주문수량
       };
+
+      // 판매자 전화번호가 있으면 추가 정보에 포함
+      if (sellerPhone) {
+        cafe24ProductData.additional_information = [
+          {
+            key: "custom_option7",
+            name: "판매자 전화번호",
+            value: sellerPhone
+          }
+        ];
+        console.log("[Product Create] 판매자 전화번호 추가:", sellerPhone);
+      }
 
       // 첫 번째 이미지만 detail_image로 설정 (나머지는 additionalimages API로 등록)
       console.log(`[Product Create] 첫 번째 이미지를 detail_image로 설정`);
