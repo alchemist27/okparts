@@ -92,7 +92,8 @@ export default function LoginPage() {
               width={750}
               height={300}
               priority
-              style={{ width: "100%", height: "auto", maxWidth: "280px" }}
+              onClick={() => router.push("/")}
+              style={{ width: "100%", height: "auto", maxWidth: "280px", cursor: "pointer" }}
             />
           </div>
           <div className="hero-card" style={{ padding: '2rem', textAlign: 'center' }}>
@@ -131,7 +132,8 @@ export default function LoginPage() {
             width={750}
             height={300}
             priority
-            style={{ width: "100%", height: "auto", maxWidth: "280px" }}
+            onClick={() => router.push("/")}
+            style={{ width: "100%", height: "auto", maxWidth: "280px", cursor: "pointer" }}
           />
         </div>
 

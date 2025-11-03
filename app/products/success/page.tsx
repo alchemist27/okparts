@@ -17,7 +17,8 @@ export default function ProductSuccessPage() {
             width={750}
             height={300}
             priority
-            style={{ width: "100%", height: "auto", maxWidth: "280px" }}
+            onClick={() => router.push("/dashboard")}
+            style={{ width: "100%", height: "auto", maxWidth: "280px", cursor: "pointer" }}
           />
         </div>
 
@@ -51,7 +52,7 @@ export default function ProductSuccessPage() {
               className="btn btn-primary btn-xl btn-block"
               style={{ fontSize: '1.25rem' }}
             >
-              대시보드로 돌아가기
+              상품 목록 이동하기
             </button>
 
             {/* 다른 상품 등록하기 */}

@@ -2,14 +2,14 @@
 
 export default function Footer() {
   return (
-    <footer style={{
+    <header style={{
       position: 'fixed',
-      bottom: 0,
+      top: 0,
       left: 0,
       right: 0,
       padding: '0.75rem 1rem',
       textAlign: 'center',
-      borderTop: '1px solid #e5e7eb',
+      borderBottom: '1px solid #e5e7eb',
       backgroundColor: 'white',
       zIndex: 100
     }}>
@@ -43,6 +43,6 @@ export default function Footer() {
           🛒 쇼핑몰 바로가기
         </a>
       </div>
-    </footer>
+    </header>
   );
 }
