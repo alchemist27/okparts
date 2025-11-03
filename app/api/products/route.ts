@@ -455,11 +455,12 @@ export async function POST(request: NextRequest) {
           console.log("[Product Create] 추가 이미지 없음 (이미지 1장만 등록)");
         }
 
-        // Step 6: 메인 진열 영역에 상품 추가 (신상품)
+        // Step 6: 메인 진열 영역에 상품 추가
+        // display_group: 2 = "Main Recommendations" (product_listmain_1)
         try {
-          console.log("[Product Create] Step 6: 메인 진열 영역(신상품)에 추가");
-          await cafe24Client.addProductToMain(1, [parseInt(cafe24ProductNo)]);
-          console.log("[Product Create] 메인 진열 영역 추가 성공!");
+          console.log("[Product Create] Step 6: 메인 진열 영역(product_listmain_1)에 추가");
+          await cafe24Client.addProductToMain(2, [parseInt(cafe24ProductNo)]);
+          console.log("[Product Create] 메인 진열 영역(product_listmain_1) 추가 성공!");
         } catch (mainError: any) {
           console.error("[Product Create] 메인 진열 영역 추가 실패:", mainError.message);
           // 실패해도 상품은 등록되었으므로 계속 진행

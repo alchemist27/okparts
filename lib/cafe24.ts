@@ -199,9 +199,14 @@ export class Cafe24ApiClient {
     return this.request("DELETE", `/admin/products/${productNo}`);
   }
 
+  // 메인 진열 영역 목록 조회
+  async getMains(): Promise<any> {
+    return this.request("GET", `/admin/mains`);
+  }
+
   // 메인 진열 영역에 상품 추가
-  async addProductToMain(mainNo: number, productNos: number[]): Promise<any> {
-    return this.request("POST", `/admin/mains/${mainNo}/products`, {
+  async addProductToMain(displayGroup: number, productNos: number[]): Promise<any> {
+    return this.request("POST", `/admin/mains/${displayGroup}/products`, {
       shop_no: 1,
       request: {
         product_no: productNos,
