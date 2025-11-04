@@ -197,56 +197,84 @@ export default function DashboardPage() {
   }
 
   return (
-    <main id="main" className="min-h-screen hero flex items-center justify-center py-4">
-      <div className="container">
-        {/* 로고 */}
-        <div className="text-center mb-6">
-          <Image
-            src="/logo.png"
-            alt="OK중고부품"
-            width={750}
-            height={300}
-            priority
-            onClick={() => router.push("/dashboard")}
-            style={{ width: "100%", height: "auto", maxWidth: "280px", cursor: "pointer" }}
-          />
-        </div>
-
-        <div className="hero-card" style={{ padding: '2rem' }}>
-          {/* 헤더 - 사용자 정보 및 버튼들 */}
-          <div className="mb-6" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <div>
-              <h1 className="hero-title" style={{ fontSize: '1.75rem', margin: 0, marginBottom: '0.5rem' }}>상품 관리</h1>
-              {userId && (
-                <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>
-                  <span style={{ color: 'var(--primary)', fontWeight: '700' }}>{userId}</span>님의 상품
-                </p>
-              )}
+    <main id="main" className="min-h-screen hero" style={{ paddingTop: '0' }}>
+      {/* 고정 헤더 */}
+      <div style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        backgroundColor: 'white',
+        borderBottom: '2px solid #e5e7eb',
+        padding: '0.75rem 1rem',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
+            {/* 로고 */}
+            <div onClick={() => router.push("/dashboard")} style={{ cursor: 'pointer', flexShrink: 0 }}>
+              <Image
+                src="/logo.png"
+                alt="OK중고부품"
+                width={280}
+                height={112}
+                priority
+                style={{ width: "auto", height: "35px", maxWidth: "140px" }}
+              />
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+
+            {/* 사용자 정보 및 버튼들 */}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'nowrap' }}>
               <button
                 onClick={() => router.push("/products/new")}
                 className="btn btn-primary"
-                style={{ fontSize: '1.125rem', padding: '0.75rem 1.5rem', fontWeight: '700' }}
+                style={{
+                  fontSize: '0.8rem',
+                  padding: '0.5rem 0.75rem',
+                  fontWeight: '700',
+                  whiteSpace: 'nowrap'
+                }}
               >
-                + 새 상품등록
+                + 등록
               </button>
               <button
                 onClick={handleLogout}
                 style={{
-                  fontSize: '1.125rem',
-                  padding: '0.75rem 1.5rem',
+                  fontSize: '0.8rem',
+                  padding: '0.5rem 0.75rem',
                   backgroundColor: '#6b7280',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
                   cursor: 'pointer',
-                  fontWeight: '600'
+                  fontWeight: '600',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 로그아웃
               </button>
             </div>
+          </div>
+
+          {/* 사용자 정보 - 두 번째 줄 (모바일) */}
+          {userId && (
+            <div style={{
+              marginTop: '0.5rem',
+              fontSize: '0.75rem',
+              color: '#6b7280',
+              textAlign: 'left'
+            }}>
+              <span style={{ color: 'var(--primary)', fontWeight: '700' }}>{userId}</span>님
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 메인 컨텐츠 */}
+      <div className="container" style={{ padding: '2rem 1rem' }}>
+        <div className="hero-card" style={{ padding: '2rem' }}>
+          {/* 페이지 타이틀 */}
+          <div className="mb-6">
+            <h1 className="hero-title" style={{ fontSize: '1.75rem', margin: 0, marginBottom: '0.5rem' }}>상품 관리</h1>
           </div>
 
           {/* 에러 메시지 */}
@@ -297,8 +325,8 @@ export default function DashboardPage() {
                   key={product.id}
                   style={{
                     display: 'flex',
-                    gap: '1.5rem',
-                    padding: '1.5rem',
+                    gap: '1rem',
+                    padding: '1rem',
                     backgroundColor: '#f9fafb',
                     borderRadius: '12px',
                     border: '2px solid #e5e7eb'
@@ -307,8 +335,8 @@ export default function DashboardPage() {
                   {/* 왼쪽: 정사각형 이미지 */}
                   <div style={{ flexShrink: 0 }}>
                     <div style={{
-                      width: '150px',
-                      height: '150px',
+                      width: '120px',
+                      height: '120px',
                       position: 'relative',
                       borderRadius: '8px',
                       overflow: 'hidden',
@@ -331,7 +359,7 @@ export default function DashboardPage() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '3rem'
+                          fontSize: '2.5rem'
                         }}>
                           📦
                         </div>
@@ -340,14 +368,15 @@ export default function DashboardPage() {
                   </div>
 
                   {/* 오른쪽: 상품 정보 */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: 0 }}>
                     {/* 상품명 */}
                     <h3 style={{
-                      fontSize: '1.375rem',
+                      fontSize: '1.125rem',
                       fontWeight: '700',
                       color: '#1f2937',
                       margin: 0,
-                      lineHeight: '1.4'
+                      lineHeight: '1.3',
+                      wordBreak: 'break-word'
                     }}>
                       {product.name}
                     </h3>
@@ -355,10 +384,15 @@ export default function DashboardPage() {
                     {/* 상세정보 */}
                     {product.summaryDescription && (
                       <p style={{
-                        fontSize: '1.125rem',
+                        fontSize: '0.875rem',
                         color: '#6b7280',
                         margin: 0,
-                        lineHeight: '1.5'
+                        lineHeight: '1.4',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical'
                       }}>
                         {product.summaryDescription}
                       </p>
@@ -366,7 +400,7 @@ export default function DashboardPage() {
 
                     {/* 가격 */}
                     <p style={{
-                      fontSize: '1.5rem',
+                      fontSize: '1.25rem',
                       fontWeight: '700',
                       color: 'var(--primary)',
                       margin: 0
@@ -374,34 +408,42 @@ export default function DashboardPage() {
                       {product.sellingPrice.toLocaleString()}원
                     </p>
 
-                    {/* 상태 배지 */}
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    {/* 상태 배지 및 상품번호 - 한 줄로 */}
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                       <span style={{
-                        fontSize: '0.875rem',
+                        fontSize: '0.75rem',
                         fontWeight: '600',
-                        padding: '0.25rem 0.75rem',
+                        padding: '0.25rem 0.5rem',
                         borderRadius: '6px',
                         backgroundColor: product.status === 'active' ? '#d1fae5' : '#fef3c7',
-                        color: product.status === 'active' ? '#065f46' : '#92400e'
+                        color: product.status === 'active' ? '#065f46' : '#92400e',
+                        whiteSpace: 'nowrap'
                       }}>
                         {product.status === 'active' ? '등록완료' : '임시저장'}
                       </span>
                       {product.cafe24ProductNo && (
                         <span style={{
-                          fontSize: '0.875rem',
-                          color: '#6b7280'
+                          fontSize: '0.75rem',
+                          color: '#6b7280',
+                          whiteSpace: 'nowrap'
                         }}>
                           상품번호: {product.cafe24ProductNo}
                         </span>
                       )}
                     </div>
 
-                    {/* 버튼들 */}
-                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: 'auto' }}>
+                    {/* 버튼들 - 가로로 배치 */}
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
                       <button
                         onClick={() => router.push(`/products/edit/${product.id}`)}
                         className="btn btn-outline primary"
-                        style={{ fontSize: '1rem', padding: '0.625rem 1.25rem', fontWeight: '600' }}
+                        style={{
+                          fontSize: '0.875rem',
+                          padding: '0.5rem 1rem',
+                          fontWeight: '600',
+                          flex: 1,
+                          minWidth: 0
+                        }}
                       >
                         수정
                       </button>
@@ -409,14 +451,16 @@ export default function DashboardPage() {
                         onClick={() => handleDelete(product.id)}
                         disabled={deleteLoading === product.id}
                         style={{
-                          fontSize: '1rem',
-                          padding: '0.625rem 1.25rem',
+                          fontSize: '0.875rem',
+                          padding: '0.5rem 1rem',
                           backgroundColor: deleteLoading === product.id ? '#d1d5db' : '#ef4444',
                           color: 'white',
                           border: 'none',
                           borderRadius: '8px',
                           cursor: deleteLoading === product.id ? 'not-allowed' : 'pointer',
-                          fontWeight: '600'
+                          fontWeight: '600',
+                          flex: 1,
+                          minWidth: 0
                         }}
                       >
                         {deleteLoading === product.id ? '삭제 중...' : '삭제'}
