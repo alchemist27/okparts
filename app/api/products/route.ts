@@ -7,19 +7,32 @@ import sharp from "sharp";
 
 // 내 상품 목록 조회
 export async function GET(request: NextRequest) {
+  console.log("\n========== [API] 상품 목록 조회 시작 ==========");
+
   try {
     // 토큰 검증
     const authHeader = request.headers.get("Authorization");
+    console.log("[API] Authorization 헤더 존재:", !!authHeader);
+
     if (!authHeader?.startsWith("Bearer ")) {
+      console.log("[API] Authorization 헤더 형식 오류");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const token = authHeader.substring(7);
     const payload = verifyToken(token);
 
+    console.log("[API] 토큰 검증 결과:", payload ? "성공" : "실패");
+
     if (!payload) {
+      console.log("[API] 유효하지 않은 토큰");
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
+
+    console.log("[API] JWT Payload:", {
+      supplierId: payload.supplierId,
+      email: payload.email
+    });
 
     // 내 상품만 조회
     const productsRef = collection(db, "products");
@@ -29,11 +42,28 @@ export async function GET(request: NextRequest) {
       // orderBy는 Firestore 복합 인덱스가 필요하므로 클라이언트에서 정렬
     );
 
+    console.log("[API] Firestore 쿼리 조건:", {
+      collection: "products",
+      where: `supplierId == ${payload.supplierId}`
+    });
+
     const productsSnapshot = await getDocs(q);
+    console.log("[API] Firestore 쿼리 결과: 총", productsSnapshot.docs.length, "개 문서");
+
     const products = productsSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
+
+    // 각 상품 정보 로그
+    if (products.length > 0) {
+      console.log("[API] 조회된 상품 목록:");
+      products.forEach((product: any, index: number) => {
+        console.log(`  ${index + 1}. [${product.id}] ${product.name} - supplierId: ${product.supplierId}`);
+      });
+    } else {
+      console.log("[API] 조회된 상품 없음");
+    }
 
     // 클라이언트에서 정렬 (최신순)
     products.sort((a: any, b: any) => {
@@ -42,9 +72,16 @@ export async function GET(request: NextRequest) {
       return dateB - dateA; // 내림차순 (최신순)
     });
 
+    console.log("[API] 응답 전송: 총", products.length, "개 상품");
+    console.log("========== [API] 상품 목록 조회 완료 ==========\n");
+
     return NextResponse.json({ products });
   } catch (error: any) {
-    console.error("Products fetch error:", error);
+    console.error("\n========== [API] 상품 목록 조회 에러 ==========");
+    console.error("[API] 에러 메시지:", error.message);
+    console.error("[API] 에러 스택:", error.stack);
+    console.error("===============================================\n");
+
     return NextResponse.json(
       { error: "Failed to fetch products" },
       { status: 500 }

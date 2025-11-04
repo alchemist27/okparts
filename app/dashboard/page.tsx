@@ -56,10 +56,27 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
+      const supplierData = localStorage.getItem("supplier");
+
+      console.log("========== [Dashboard] 상품 목록 조회 시작 ==========");
+      console.log("[Dashboard] 토큰 존재:", !!token);
+      console.log("[Dashboard] 공급사 데이터:", supplierData);
 
       if (!token) {
         router.push("/login");
         return;
+      }
+
+      // JWT 토큰 디코딩하여 supplierId 확인
+      try {
+        const tokenParts = token.split('.');
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]));
+          console.log("[Dashboard] JWT 페이로드:", payload);
+          console.log("[Dashboard] supplierId:", payload.supplierId);
+        }
+      } catch (e) {
+        console.error("[Dashboard] JWT 디코딩 실패:", e);
       }
 
       const response = await fetch("/api/products", {
@@ -69,13 +86,28 @@ export default function DashboardPage() {
         },
       });
 
+      console.log("[Dashboard] API 응답 상태:", response.status);
+
       if (!response.ok) {
         throw new Error("상품 목록을 불러오는데 실패했습니다");
       }
 
       const data = await response.json();
+      console.log("[Dashboard] 받은 상품 수:", data.products?.length || 0);
+
+      // 각 상품의 supplierId 로그
+      if (data.products && data.products.length > 0) {
+        console.log("[Dashboard] 상품별 supplierId:");
+        data.products.forEach((product: Product, index: number) => {
+          console.log(`  ${index + 1}. ${product.name} - supplierId: ${(product as any).supplierId}`);
+        });
+      }
+
+      console.log("========== [Dashboard] 상품 목록 조회 완료 ==========\n");
+
       setProducts(data.products || []);
     } catch (err: any) {
+      console.error("[Dashboard] 에러 발생:", err);
       setError(err.message);
     } finally {
       setLoading(false);
