@@ -4,16 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-// 랜덤 더미 데이터 생성
-function generateDummyData() {
-  const randomNum = Math.floor(Math.random() * 10000);
-  const password = `pw${randomNum}ab!`;
-  return {
-    userId: `user${randomNum}`,
-    password: password,
-  };
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({ userId: "", password: "" });
@@ -39,13 +29,6 @@ export default function LoginPage() {
 
     checkAutoLogin();
   }, [router]);
-
-  // 개발 환경에서만 더미 데이터 자동 입력
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && !checkingAuth) {
-      setFormData(generateDummyData());
-    }
-  }, [checkingAuth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,12 +143,11 @@ export default function LoginPage() {
                 id="userId"
                 name="userId"
                 type="text"
-                autoComplete="off"
+                autoComplete="username"
                 inputMode="text"
                 value={formData.userId}
                 onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
-                onTouchStart={(e) => e.currentTarget.focus()}
-                style={{ fontSize: "1.25rem", padding: "1rem", borderRadius: "12px", WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                style={{ fontSize: "1.25rem", padding: "1rem", borderRadius: "12px" }}
                 required
               />
             </div>
@@ -179,12 +161,11 @@ export default function LoginPage() {
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="off"
+                autoComplete="current-password"
                 inputMode="text"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                onTouchStart={(e) => e.currentTarget.focus()}
-                style={{ fontSize: "1.25rem", padding: "1rem", borderRadius: "12px", WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                style={{ fontSize: "1.25rem", padding: "1rem", borderRadius: "12px" }}
                 required
               />
             </div>

@@ -113,7 +113,9 @@ export async function POST(request: NextRequest) {
       phone,
       businessNumber: businessNumber || null,
       presidentName: presidentName || null,
-      commission: accountType === "business" ? "10.00" : "0.00",
+      // [프로모션] 모든 회원 0% 수수료 적용 (기존: 사업자 10%, 개인 0%)
+      commission: "0.00",
+      // commission: accountType === "business" ? "10.00" : "0.00",
       // 계좌 정보는 보류
       // bankCode,
       // bankAccountNo,
@@ -174,7 +176,9 @@ export async function POST(request: NextRequest) {
         status: "A",
         business_item: "중고부품",
         payment_type: "P",
-        commission: accountType === "business" ? "10.00" : "0.00",
+        // [프로모션] 모든 회원 0% 수수료 적용 (기존: 사업자 10%, 개인 0%)
+        commission: "0.00",
+        // commission: accountType === "business" ? "10.00" : "0.00",
         payment_period: "A",
         payment_method: "30",
         payment_start_date: 9,

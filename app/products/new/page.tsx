@@ -36,6 +36,8 @@ export default function NewProductPage() {
   });
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [descriptionImages, setDescriptionImages] = useState<File[]>([]);
+  const [descriptionImagePreviews, setDescriptionImagePreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -43,6 +45,8 @@ export default function NewProductPage() {
   const [success, setSuccess] = useState(false);
   const [imageUploadProgress, setImageUploadProgress] = useState(0);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [isUploadingDescImages, setIsUploadingDescImages] = useState(false);
+  const [descImageUploadProgress, setDescImageUploadProgress] = useState(0);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
@@ -245,6 +249,106 @@ export default function NewProductPage() {
     setImagePreviews(newPreviews);
   };
 
+  // 상세설명 이미지 업로드 핸들러
+  const handleDescriptionImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+
+    if (files.length === 0) return;
+
+    // 파일 타입 검증
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    const validFiles: File[] = [];
+
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        alert('jpg, jpeg, png 파일만 업로드 가능합니다.');
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    // 최대 3장까지 (기존 이미지 + 새 이미지)
+    const remainingSlots = 3 - descriptionImages.length;
+    const filesToAdd = validFiles.slice(0, remainingSlots);
+
+    if (validFiles.length > remainingSlots) {
+      alert(`최대 3장까지 업로드 가능합니다. ${remainingSlots}장만 추가됩니다.`);
+    }
+
+    if (filesToAdd.length === 0) return;
+
+    // 로딩 시작
+    setIsUploadingDescImages(true);
+    setDescImageUploadProgress(0);
+
+    // 이미지 압축
+    const compressedFiles: File[] = [];
+    const totalFiles = filesToAdd.length;
+
+    for (let i = 0; i < filesToAdd.length; i++) {
+      const file = filesToAdd[i];
+      try {
+        console.log(`[상세설명 이미지 압축] 원본: ${file.name}, ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+
+        const options = {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+          onProgress: (progress: number) => {
+            const overallProgress = ((i / totalFiles) + (progress / 100 / totalFiles)) * 100;
+            setDescImageUploadProgress(Math.round(overallProgress));
+          },
+        };
+
+        const compressedFile = await imageCompression(file, options);
+        console.log(`[상세설명 이미지 압축] 완료: ${compressedFile.name}, ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+
+        compressedFiles.push(compressedFile);
+
+        const completedProgress = ((i + 1) / totalFiles) * 100;
+        setDescImageUploadProgress(Math.round(completedProgress));
+      } catch (error) {
+        console.error('[상세설명 이미지 압축] 실패:', error);
+        compressedFiles.push(file);
+      }
+    }
+
+    const newImages = [...descriptionImages, ...compressedFiles];
+    setDescriptionImages(newImages);
+
+    // 프리뷰 생성
+    const newPreviews = [...descriptionImagePreviews];
+    let loadedCount = 0;
+
+    compressedFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        newPreviews.push(reader.result as string);
+        loadedCount++;
+
+        if (loadedCount === compressedFiles.length) {
+          setDescriptionImagePreviews(newPreviews);
+          setTimeout(() => {
+            setIsUploadingDescImages(false);
+            setDescImageUploadProgress(0);
+          }, 300);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // input 초기화
+    e.target.value = '';
+  };
+
+  const removeDescriptionImage = (indexToRemove: number) => {
+    const newImages = descriptionImages.filter((_, index) => index !== indexToRemove);
+    const newPreviews = descriptionImagePreviews.filter((_, index) => index !== indexToRemove);
+    setDescriptionImages(newImages);
+    setDescriptionImagePreviews(newPreviews);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -356,8 +460,8 @@ export default function NewProductPage() {
         productFormData.append("sellerPhone", formattedPhone);
       }
 
-      // 첫 번째 이미지만 추가 (대표 이미지)
-      console.log(`[프론트] 총 이미지 개수: ${images.length}`);
+      // 썸네일 이미지 추가 (대표 이미지)
+      console.log(`[프론트] 총 썸네일 이미지 개수: ${images.length}`);
       console.log(`[프론트] 상품 생성에 사용할 이미지: 1장 (대표 이미지)`);
       console.log(`[프론트] 이미지 1:`, {
         name: images[0].name,
@@ -365,6 +469,19 @@ export default function NewProductPage() {
         size: `${(images[0].size / 1024 / 1024).toFixed(2)}MB`
       });
       productFormData.append("images", images[0]);
+
+      // 상세설명 이미지 추가
+      if (descriptionImages.length > 0) {
+        console.log(`[프론트] 상세설명 이미지 개수: ${descriptionImages.length}`);
+        descriptionImages.forEach((image, index) => {
+          console.log(`[프론트] 상세설명 이미지 ${index + 1}:`, {
+            name: image.name,
+            type: image.type,
+            size: `${(image.size / 1024 / 1024).toFixed(2)}MB`
+          });
+          productFormData.append("descriptionImages", image);
+        });
+      }
 
       console.log("[프론트] FormData 생성 완료, API 호출 시작...");
       setUploadProgress(45);
@@ -772,13 +889,10 @@ export default function NewProductPage() {
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                onTouchStart={(e) => e.currentTarget.focus()}
                 style={{
                   fontSize: '1.25rem',
                   padding: '1rem',
                   borderRadius: '12px',
-                  WebkitUserSelect: 'text',
-                  WebkitTouchCallout: 'default',
                   minHeight: '200px',
                   resize: 'vertical'
                 }}
@@ -789,6 +903,139 @@ export default function NewProductPage() {
                 inputMode="text"
                 autoComplete="off"
               />
+            </div>
+
+            {/* 상세설명 이미지 업로드 */}
+            <div>
+              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                상세설명 이미지
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                  (상품 상세페이지에 표시될 이미지, 최대 3장)
+                </span>
+              </label>
+
+              {/* 업로드 버튼 */}
+              <input
+                type="file"
+                accept="image/jpeg,image/jpg,image/png"
+                multiple
+                onChange={handleDescriptionImageChange}
+                style={{ display: 'none' }}
+                id="descriptionImageInput"
+              />
+              <label
+                htmlFor="descriptionImageInput"
+                className="btn btn-outline primary"
+                style={{
+                  fontSize: '1.125rem',
+                  padding: '1rem 2rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span>📷</span>
+                상세설명 이미지 추가 ({descriptionImages.length}/3)
+              </label>
+
+              {/* 업로드 진행률 */}
+              {isUploadingDescImages && (
+                <div style={{ marginTop: '1rem' }}>
+                  <div style={{
+                    width: '100%',
+                    height: '8px',
+                    backgroundColor: '#e5e7eb',
+                    borderRadius: '4px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      width: `${descImageUploadProgress}%`,
+                      height: '100%',
+                      backgroundColor: 'var(--primary)',
+                      transition: 'width 0.3s'
+                    }} />
+                  </div>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                    이미지 처리 중... {descImageUploadProgress}%
+                  </p>
+                </div>
+              )}
+
+              {/* 이미지 미리보기 */}
+              {descriptionImagePreviews.length > 0 && (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+                  gap: '1rem',
+                  marginTop: '1rem'
+                }}>
+                  {descriptionImagePreviews.map((preview, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        position: 'relative',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        backgroundColor: '#f3f4f6',
+                        aspectRatio: '1'
+                      }}
+                    >
+                      <img
+                        src={preview}
+                        alt={`상세설명 이미지 ${index + 1}`}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeDescriptionImage(index)}
+                        style={{
+                          position: 'absolute',
+                          top: '0.5rem',
+                          right: '0.5rem',
+                          width: '2rem',
+                          height: '2rem',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                          color: 'white',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '1.25rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: '700'
+                        }}
+                      >
+                        ×
+                      </button>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: '0.5rem',
+                          left: '0.5rem',
+                          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                          color: 'white',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          fontSize: '0.75rem',
+                          fontWeight: '600'
+                        }}
+                      >
+                        {index + 1}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.75rem' }}>
+                * 상세설명 이미지는 상품 상세페이지 본문에 자동으로 삽입됩니다
+              </p>
             </div>
 
             {/* 카테고리 */}
