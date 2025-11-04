@@ -196,7 +196,7 @@ export default function DashboardPage() {
         <div className="hero-card" style={{
           padding: '2rem',
           width: '100%',
-          maxWidth: '1200px'
+          maxWidth: '600px'
         }}>
           {/* 페이지 타이틀 */}
           <div className="mb-6">

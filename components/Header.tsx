@@ -47,7 +47,7 @@ export default function Header() {
         padding: '0.75rem 1rem',
         boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
       }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
             {/* 왼쪽: 로고 + 쇼핑몰 바로가기 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 1, minWidth: 0 }}>
@@ -69,11 +69,12 @@ export default function Header() {
                 className="shop-button"
                 style={{
                   fontSize: '1.5rem',
-                  padding: '0.75rem 1rem',
+                  padding: '0.5rem 1rem',
                   backgroundColor: 'var(--primary)',
+                  marginLeft: '1rem',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '40px',
                   cursor: 'pointer',
                   fontWeight: '700',
                   textDecoration: 'none',
