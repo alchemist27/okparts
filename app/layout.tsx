@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { RegisterServiceWorker } from "./register-sw";
 import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "OKPARTS ADMIN",
@@ -34,6 +35,7 @@ export default function RootLayout({
         <a href="#main" className="skip-link">본문 바로가기</a>
         <RegisterServiceWorker />
         <Footer />
+        <Header />
         {children}
       </body>
     </html>
