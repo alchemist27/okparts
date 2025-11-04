@@ -878,275 +878,12 @@ export default function NewProductPage() {
               </p>
             </div>
 
-            {/* 상품 상세정보 */}
+            {/* 썸네일 이미지 */}
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                상품 상세 정보
+                대표 이미지 *
                 <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
-                  (제품의 상태, 특징, 주의사항 등 상세한 설명 입력)
-                </span>
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                style={{
-                  fontSize: '1.25rem',
-                  padding: '1rem',
-                  borderRadius: '12px',
-                  minHeight: '200px',
-                  resize: 'vertical'
-                }}
-                placeholder="제품 상태: 사용감 적음, 동작 정상
-주요 특징: 정품 부품, 2023년 생산
-배송 정보: 착불 또는 직거래 가능
-기타 사항: 반품 불가, 실물 확인 환영"
-                inputMode="text"
-                autoComplete="off"
-              />
-            </div>
-
-            {/* 상세설명 이미지 업로드 */}
-            <div>
-              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                상세설명 이미지
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
-                  (상품 상세페이지에 표시될 이미지, 최대 3장)
-                </span>
-              </label>
-
-              {/* 업로드 버튼 */}
-              <input
-                type="file"
-                accept="image/jpeg,image/jpg,image/png"
-                multiple
-                onChange={handleDescriptionImageChange}
-                style={{ display: 'none' }}
-                id="descriptionImageInput"
-              />
-              <label
-                htmlFor="descriptionImageInput"
-                className="btn btn-outline primary"
-                style={{
-                  fontSize: '1.125rem',
-                  padding: '1rem 2rem',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                <span>📷</span>
-                상세설명 이미지 추가 ({descriptionImages.length}/3)
-              </label>
-
-              {/* 업로드 진행률 */}
-              {isUploadingDescImages && (
-                <div style={{ marginTop: '1rem' }}>
-                  <div style={{
-                    width: '100%',
-                    height: '8px',
-                    backgroundColor: '#e5e7eb',
-                    borderRadius: '4px',
-                    overflow: 'hidden'
-                  }}>
-                    <div style={{
-                      width: `${descImageUploadProgress}%`,
-                      height: '100%',
-                      backgroundColor: 'var(--primary)',
-                      transition: 'width 0.3s'
-                    }} />
-                  </div>
-                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                    이미지 처리 중... {descImageUploadProgress}%
-                  </p>
-                </div>
-              )}
-
-              {/* 이미지 미리보기 */}
-              {descriptionImagePreviews.length > 0 && (
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
-                  gap: '1rem',
-                  marginTop: '1rem'
-                }}>
-                  {descriptionImagePreviews.map((preview, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        position: 'relative',
-                        borderRadius: '12px',
-                        overflow: 'hidden',
-                        backgroundColor: '#f3f4f6',
-                        aspectRatio: '1'
-                      }}
-                    >
-                      <img
-                        src={preview}
-                        alt={`상세설명 이미지 ${index + 1}`}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover'
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeDescriptionImage(index)}
-                        style={{
-                          position: 'absolute',
-                          top: '0.5rem',
-                          right: '0.5rem',
-                          width: '2rem',
-                          height: '2rem',
-                          borderRadius: '50%',
-                          backgroundColor: 'rgba(239, 68, 68, 0.9)',
-                          color: 'white',
-                          border: 'none',
-                          cursor: 'pointer',
-                          fontSize: '1.25rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: '700'
-                        }}
-                      >
-                        ×
-                      </button>
-                      <div
-                        style={{
-                          position: 'absolute',
-                          bottom: '0.5rem',
-                          left: '0.5rem',
-                          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                          color: 'white',
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          fontWeight: '600'
-                        }}
-                      >
-                        {index + 1}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.75rem' }}>
-                * 상세설명 이미지는 상품 상세페이지 본문에 자동으로 삽입됩니다
-              </p>
-            </div>
-
-            {/* 카테고리 */}
-            <div>
-              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                카테고리 *
-              </label>
-
-              {/* 대분류 */}
-              <select
-                value={formData.mainCategory}
-                onChange={(e) => handleMainCategoryChange(e.target.value)}
-                onTouchStart={(e) => e.currentTarget.focus()}
-                style={{ fontSize: '1.125rem', padding: '1rem', borderRadius: '12px', marginBottom: '0.75rem', WebkitUserSelect: 'text' }}
-              >
-                <option value="">대분류 선택</option>
-                {mainCategories.map((cat) => (
-                  <option key={cat.category_no} value={cat.category_no.toString()}>
-                    {cat.category_name}
-                  </option>
-                ))}
-              </select>
-
-              {/* 중분류 */}
-              {subCategories.length > 0 && (
-                <select
-                  value={formData.subCategory}
-                  onChange={(e) => handleSubCategoryChange(e.target.value)}
-                  onTouchStart={(e) => e.currentTarget.focus()}
-                  style={{ fontSize: '1.125rem', padding: '1rem', borderRadius: '12px', marginBottom: '0.75rem', WebkitUserSelect: 'text' }}
-                >
-                  <option value="">중분류 선택</option>
-                  {subCategories.map((cat) => (
-                    <option key={cat.category_no} value={cat.category_no.toString()}>
-                      {cat.category_name}
-                    </option>
-                  ))}
-                </select>
-              )}
-
-              {/* 소분류 */}
-              {detailCategories.length > 0 && (
-                <select
-                  value={formData.detailCategory}
-                  onChange={(e) => setFormData({ ...formData, detailCategory: e.target.value })}
-                  onTouchStart={(e) => e.currentTarget.focus()}
-                  style={{ fontSize: '1.125rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text' }}
-                >
-                  <option value="">소분류 선택</option>
-                  {detailCategories.map((cat) => (
-                    <option key={cat.category_no} value={cat.category_no.toString()}>
-                      {cat.category_name}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-
-            {/* 판매가 */}
-            <div>
-              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                상품 판매가 *
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
-                  (부가세 포함 금액을 입력해주세요.)
-                </span>
-              </label>
-              <input
-                type="text"
-                value={formData.sellingPrice}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/[^\d,]/g, ''); // 숫자와 컴마만 허용
-                  setFormData({ ...formData, sellingPrice: value, supplyPrice: value });
-                }}
-                onTouchStart={(e) => e.currentTarget.focus()}
-                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
-                required
-                placeholder="150000"
-                inputMode="decimal"
-                autoComplete="off"
-              />
-            </div>
-
-            {/* 판매자 전화번호 */}
-            <div>
-              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                판매자 전화번호
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
-                  (구매자와의 연락을 위해 입력해주세요. 제품 상세정보 페이지에 노출됩니다.)
-                </span>
-              </label>
-              <input
-                type="text"
-                value={formData.sellerPhone}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setFormData({ ...formData, sellerPhone: value });
-                }}
-                onTouchStart={(e) => e.currentTarget.focus()}
-                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
-                placeholder="010-1234-5678"
-                inputMode="tel"
-                autoComplete="tel"
-              />
-            </div>
-
-            {/* 상품 이미지 */}
-            <div>
-              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
-                상품 이미지 *
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
-                  (jpg/png, 3MB 이하, 최대 3장, 첫 번째가 대표 이미지)
+                  (jpg/png, 3MB 이하, 최대 3장, 첫 번째가 제품 목록에 표시되는 이미지)
                 </span>
               </label>
 
@@ -1339,6 +1076,264 @@ export default function NewProductPage() {
                 </div>
               )}
             </div>
+
+            {/* 상품 상세정보 */}
+            <div>
+              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                상품 상세 정보
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                  (제품의 상태, 특징, 주의사항 등 상세한 설명 입력)
+                </span>
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                style={{
+                  fontSize: '1.25rem',
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  minHeight: '200px',
+                  resize: 'vertical'
+                }}
+                placeholder="제품 상태: 사용감 적음, 동작 정상
+주요 특징: 정품 부품, 2023년 생산
+배송 정보: 착불 또는 직거래 가능
+기타 사항: 반품 불가, 실물 확인 환영"
+                inputMode="text"
+                autoComplete="off"
+              />
+            </div>
+
+            {/* 상세설명 이미지 업로드 */}
+            <div>
+              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                상세 설명 이미지
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                  (상품 상세페이지에 표시될 이미지, 최대 3장)
+                </span>
+              </label>
+
+              {/* 업로드 버튼 */}
+              <input
+                type="file"
+                accept="image/jpeg,image/jpg,image/png"
+                multiple
+                onChange={handleDescriptionImageChange}
+                style={{ display: 'none' }}
+                id="descriptionImageInput"
+              />
+              <label
+                htmlFor="descriptionImageInput"
+                className="btn btn-outline primary"
+                style={{
+                  fontSize: '1.125rem',
+                  padding: '1rem 2rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span>📷</span>
+                상세설명 이미지 추가 ({descriptionImages.length}/3)
+              </label>
+
+              {/* 업로드 진행률 */}
+              {isUploadingDescImages && (
+                <div style={{ marginTop: '1rem' }}>
+                  <div style={{
+                    width: '100%',
+                    height: '8px',
+                    backgroundColor: '#e5e7eb',
+                    borderRadius: '4px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      width: `${descImageUploadProgress}%`,
+                      height: '100%',
+                      backgroundColor: 'var(--primary)',
+                      transition: 'width 0.3s'
+                    }} />
+                  </div>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                    이미지 처리 중... {descImageUploadProgress}%
+                  </p>
+                </div>
+              )}
+
+              {/* 이미지 미리보기 */}
+              {descriptionImagePreviews.length > 0 && (
+                <div style={{
+                  marginTop: '1rem',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                  gap: '1rem'
+                }}>
+                  {descriptionImagePreviews.map((preview, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        position: 'relative'
+                      }}
+                    >
+                      <img
+                        src={preview}
+                        alt={`상세설명 이미지 ${index + 1}`}
+                        style={{
+                          width: '100%',
+                          height: '250px',
+                          objectFit: 'cover',
+                          borderRadius: '12px',
+                          border: '2px solid #d1d5db'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeDescriptionImage(index)}
+                        className="btn btn-outline"
+                        style={{
+                          position: 'absolute',
+                          top: '0.5rem',
+                          right: '0.5rem',
+                          backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                          color: 'white',
+                          padding: '0.5rem 0.75rem',
+                          fontSize: '0.875rem',
+                          fontWeight: '700',
+                          border: 'none',
+                          minWidth: 'auto'
+                        }}
+                      >
+                        🗑️
+                      </button>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: '0.5rem',
+                          right: '0.5rem',
+                          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                          color: 'white',
+                          padding: '0.25rem 0.5rem',
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          borderRadius: '6px'
+                        }}
+                      >
+                        {index + 1}/3
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.75rem' }}>
+                * 상세설명 이미지는 상품 상세페이지 본문에 자동으로 삽입됩니다
+              </p>
+            </div>
+
+            {/* 카테고리 */}
+            <div>
+              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                카테고리 *
+              </label>
+
+              {/* 대분류 */}
+              <select
+                value={formData.mainCategory}
+                onChange={(e) => handleMainCategoryChange(e.target.value)}
+                onTouchStart={(e) => e.currentTarget.focus()}
+                style={{ fontSize: '1.125rem', padding: '1rem', borderRadius: '12px', marginBottom: '0.75rem', WebkitUserSelect: 'text' }}
+              >
+                <option value="">대분류 선택</option>
+                {mainCategories.map((cat) => (
+                  <option key={cat.category_no} value={cat.category_no.toString()}>
+                    {cat.category_name}
+                  </option>
+                ))}
+              </select>
+
+              {/* 중분류 */}
+              {subCategories.length > 0 && (
+                <select
+                  value={formData.subCategory}
+                  onChange={(e) => handleSubCategoryChange(e.target.value)}
+                  onTouchStart={(e) => e.currentTarget.focus()}
+                  style={{ fontSize: '1.125rem', padding: '1rem', borderRadius: '12px', marginBottom: '0.75rem', WebkitUserSelect: 'text' }}
+                >
+                  <option value="">중분류 선택</option>
+                  {subCategories.map((cat) => (
+                    <option key={cat.category_no} value={cat.category_no.toString()}>
+                      {cat.category_name}
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {/* 소분류 */}
+              {detailCategories.length > 0 && (
+                <select
+                  value={formData.detailCategory}
+                  onChange={(e) => setFormData({ ...formData, detailCategory: e.target.value })}
+                  onTouchStart={(e) => e.currentTarget.focus()}
+                  style={{ fontSize: '1.125rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text' }}
+                >
+                  <option value="">소분류 선택</option>
+                  {detailCategories.map((cat) => (
+                    <option key={cat.category_no} value={cat.category_no.toString()}>
+                      {cat.category_name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {/* 판매가 */}
+            <div>
+              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                상품 판매가 *
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                  (부가세 포함 금액을 입력해주세요.)
+                </span>
+              </label>
+              <input
+                type="text"
+                value={formData.sellingPrice}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^\d,]/g, ''); // 숫자와 컴마만 허용
+                  setFormData({ ...formData, sellingPrice: value, supplyPrice: value });
+                }}
+                onTouchStart={(e) => e.currentTarget.focus()}
+                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                required
+                placeholder="150000"
+                inputMode="decimal"
+                autoComplete="off"
+              />
+            </div>
+
+            {/* 판매자 전화번호 */}
+            <div>
+              <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
+                판매자 전화번호
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                  (구매자와의 연락을 위해 입력해주세요. 제품 상세정보 페이지에 노출됩니다.)
+                </span>
+              </label>
+              <input
+                type="text"
+                value={formData.sellerPhone}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({ ...formData, sellerPhone: value });
+                }}
+                onTouchStart={(e) => e.currentTarget.focus()}
+                style={{ fontSize: '1.25rem', padding: '1rem', borderRadius: '12px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
+                placeholder="010-1234-5678"
+                inputMode="tel"
+                autoComplete="tel"
+              />
+            </div>
+
 
             {/* Submit Button */}
             <button

@@ -504,7 +504,7 @@ export async function POST(request: NextRequest) {
         let imagesHtml = "";
         if (descriptionCafe24ImageUrls.length > 0) {
           imagesHtml = descriptionCafe24ImageUrls
-            .map(url => `<p><img src="${url}" alt="상품 상세 이미지" style="max-width:100%; height:auto; display:block; margin:10px 0;" /></p>`)
+            .map(url => `<p style="text-align:center;"><img src="${url}" alt="상품 상세 이미지" style="max-width:100%; height:auto; display:inline-block; margin:10px auto;" /></p>`)
             .join('\n');
         }
 
