@@ -4,6 +4,9 @@ import { collection, getDocs, doc, getDoc, updateDoc, addDoc } from "firebase/fi
 import type { UserNotification, NotificationLog } from "@/lib/types/notifications";
 import { getSmsTemplate, checkMessageLength } from "@/lib/sms-templates";
 
+// Promise Queue for sequential webhook processing (Rate Limit 방지)
+let processingQueue = Promise.resolve();
+
 // 카페24 Webhook 페이로드 타입
 interface Cafe24WebhookPayload {
   event_no: number; // 이벤트 번호 (90001 = 상품 등록)
@@ -29,62 +32,6 @@ function matchKeywords(productName: string, keywords: string[]): string[] {
   }
 
   return matched;
-}
-
-// SMS 발송 함수 (실제 카페24 API 또는 Mock)
-async function sendSMS(
-  phone: string,
-  productName: string,
-  keywords: string[],
-  cafe24Client: any,
-  productNo: string
-): Promise<boolean> {
-  // 템플릿을 사용하여 메시지 생성
-  const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID || "okayparts";
-  const message = getSmsTemplate("basic", {
-    keywords,
-    productName,
-    productNo,
-    mallId,
-  });
-
-  // 메시지 길이 체크
-  const messageCheck = checkMessageLength(message);
-  console.log(`[SMS] 메시지 타입: ${messageCheck.type}, 길이: ${messageCheck.length}byte`);
-
-  if (!messageCheck.isValid) {
-    console.error(`[SMS] 메시지가 너무 깁니다: ${messageCheck.length}byte`);
-    throw new Error(`메시지 길이 초과: ${messageCheck.length}byte`);
-  }
-
-  // 환경변수에서 발신자 번호 ID 확인
-  const senderNo = process.env.CAFE24_SMS_SENDER_NO;
-
-  if (!senderNo) {
-    // Mock 모드
-    console.log(`[SMS Mock] 발송 대상: ${phone}`);
-    console.log(`[SMS Mock] 상품명: ${productName}`);
-    console.log(`[SMS Mock] 매칭 키워드: ${keywords.join(", ")}`);
-    console.log(`[SMS Mock] 메시지: ${message}`);
-    console.log(`[SMS Mock] ⚠️ Mock 모드: CAFE24_SMS_SENDER_NO 환경변수가 설정되지 않았습니다`);
-    return true;
-  }
-
-  // 실제 SMS 발송
-  try {
-    const result = await cafe24Client.sendSMS({
-      sender_no: senderNo,
-      recipients: [phone],
-      content: message,
-      type: messageCheck.type, // SMS 또는 LMS 자동 선택
-    });
-
-    console.log(`[SMS] 발송 성공: ${phone}`, result);
-    return true;
-  } catch (error: any) {
-    console.error(`[SMS] 발송 실패: ${phone} -`, error.message);
-    throw error;
-  }
 }
 
 // 비동기 Webhook 처리 함수
@@ -157,10 +104,14 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
       return;
     }
 
-    // 4. 키워드 매칭 및 SMS 발송
+    // 4. 키워드 매칭 및 배치 SMS 발송 (최대 100명)
     const matchedUsers: Array<{ phone: string; keywords: string[] }> = [];
     const sentPhones: string[] = [];
 
+    // 발송 큐 생성
+    const sendQueue: Array<{ userData: UserNotification; matchedKeywords: string[] }> = [];
+
+    // 먼저 매칭된 사용자들을 큐에 추가
     for (const userDoc of usersSnapshot.docs) {
       const userData = userDoc.data() as UserNotification;
 
@@ -186,11 +137,81 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
         continue;
       }
 
-      // SMS 발송
-      try {
-        const success = await sendSMS(userData.phone, productName, matchedKeywords, cafe24Client, productNo);
+      // 큐에 추가
+      sendQueue.push({ userData, matchedKeywords });
+    }
 
-        if (success) {
+    console.log(`[Webhook Process] 발송 큐: ${sendQueue.length}명`);
+
+    // 발송 대상이 없으면 종료
+    if (sendQueue.length === 0) {
+      console.log("[Webhook Process] 발송 대상 없음 - 종료");
+      return;
+    }
+
+    // 배치 발송 (카페24 API는 recipients 배열로 최대 100명까지 동시 발송 가능)
+    const recipientPhones = sendQueue.map(item => item.userData.phone);
+
+    // 대표 키워드 (첫 번째 사용자의 매칭 키워드 사용 - 모든 사용자에게 동일 메시지 발송)
+    const representativeKeywords = sendQueue[0].matchedKeywords;
+
+    // 템플릿을 사용하여 메시지 생성
+    const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID || "okayparts";
+    const message = getSmsTemplate("basic", {
+      keywords: representativeKeywords,
+      productName,
+      productNo,
+      mallId,
+    });
+
+    // 메시지 길이 체크
+    const messageCheck = checkMessageLength(message);
+    console.log(`[Webhook Process] 메시지 타입: ${messageCheck.type}, 길이: ${messageCheck.length}byte`);
+
+    if (!messageCheck.isValid) {
+      console.error(`[Webhook Process] 메시지가 너무 깁니다: ${messageCheck.length}byte`);
+      throw new Error(`메시지 길이 초과: ${messageCheck.length}byte`);
+    }
+
+    // 환경변수에서 발신자 번호 ID 확인
+    const senderNo = process.env.CAFE24_SMS_SENDER_NO;
+
+    if (!senderNo) {
+      // Mock 모드
+      console.log(`[Webhook Process] Mock 모드: ${recipientPhones.length}명에게 발송 예정`);
+      console.log(`[Webhook Process] 수신자: ${recipientPhones.join(", ")}`);
+      console.log(`[Webhook Process] 메시지: ${message}`);
+
+      // Mock 모드에서도 발송 성공으로 처리
+      for (const { userData, matchedKeywords } of sendQueue) {
+        matchedUsers.push({
+          phone: userData.phone,
+          keywords: matchedKeywords,
+        });
+        sentPhones.push(userData.phone);
+
+        // Firestore에 발송 이력 저장
+        const userDocRef = doc(db, "users_notifications", userData.phone);
+        await updateDoc(userDocRef, {
+          [`last_notified.${productNo}`]: new Date().toISOString(),
+        });
+      }
+    } else {
+      // 실제 배치 SMS 발송
+      try {
+        console.log(`[Webhook Process] 배치 SMS 발송 시작: ${recipientPhones.length}명`);
+
+        const result = await cafe24Client.sendSMS({
+          sender_no: senderNo,
+          recipients: recipientPhones,
+          content: message,
+          type: messageCheck.type,
+        });
+
+        console.log(`[Webhook Process] 배치 SMS 발송 성공:`, result);
+
+        // 발송 성공한 사용자들 처리
+        for (const { userData, matchedKeywords } of sendQueue) {
           matchedUsers.push({
             phone: userData.phone,
             keywords: matchedKeywords,
@@ -202,11 +223,10 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
           await updateDoc(userDocRef, {
             [`last_notified.${productNo}`]: new Date().toISOString(),
           });
-
-          console.log(`[Webhook Process] SMS 발송 성공: ${userData.phone}`);
         }
       } catch (smsError: any) {
-        console.error(`[Webhook Process] SMS 발송 실패: ${userData.phone} -`, smsError.message);
+        console.error(`[Webhook Process] 배치 SMS 발송 실패:`, smsError.message);
+        throw smsError;
       }
     }
 
@@ -284,10 +304,15 @@ export async function POST(request: NextRequest) {
     console.log("[Webhook] 즉시 응답 반환 (200 OK)");
     console.log("========== [Webhook] 수신 완료 ==========\n");
 
-    // 백그라운드 비동기 처리 (Fire and Forget)
-    processWebhookAsync(payload).catch((error) => {
-      console.error("[Webhook] 비동기 처리 실패:", error);
-    });
+    // Promise Queue에 추가하여 순차 처리 (Rate Limit 방지)
+    processingQueue = processingQueue
+      .then(() => {
+        console.log(`[Webhook Queue] 처리 시작: ${payload.resource?.resource_id}`);
+        return processWebhookAsync(payload);
+      })
+      .catch((error) => {
+        console.error(`[Webhook Queue] 처리 실패: ${payload.resource?.resource_id}`, error);
+      });
 
     return response;
   } catch (error: any) {

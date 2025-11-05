@@ -432,6 +432,12 @@ export class Cafe24ApiClient {
     return this.request("PUT", `/admin/suppliers/users/${userId}`, requestBody);
   }
 
+  // SMS 발신번호 목록 조회
+  async getSmsSenders(): Promise<any> {
+    console.log("[Cafe24 API] SMS 발신번호 목록 조회");
+    return this.request("GET", "/admin/sms/senders");
+  }
+
   // SMS 발송
   async sendSMS(params: {
     sender_no: number | string; // 발신자 아이디 (카페24 관리자에서 등록한 발신자 번호 ID)

@@ -177,12 +177,16 @@ export async function POST(request: NextRequest) {
       console.log("[Webhook Test] CAFE24_SMS_SENDER_NO 없음 - Mock 모드로 진행");
     }
 
-    // 2. 키워드 매칭 및 SMS 발송
-    console.log("\n[Webhook Test] Step 2: 키워드 매칭 및 SMS 발송");
+    // 2. 키워드 매칭 및 SMS 발송 (순차 큐 처리)
+    console.log("\n[Webhook Test] Step 2: 키워드 매칭 및 SMS 발송 (순차 큐)");
     const matchedUsers: Array<{ phone: string; name: string; keywords: string[] }> = [];
     const sentPhones: string[] = [];
     const skippedUsers: Array<{ phone: string; reason: string }> = [];
 
+    // 발송 큐 생성
+    const sendQueue: Array<{ userData: UserNotification; matchedKeywords: string[] }> = [];
+
+    // 먼저 매칭된 사용자들을 큐에 추가
     for (const userDoc of usersSnapshot.docs) {
       const userData = userDoc.data() as UserNotification;
 
@@ -214,11 +218,57 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // SMS 발송
-      try {
-        const success = await sendSMS(userData.phone, testProductName, matchedKeywords, cafe24Client, testProductNo);
+      // 큐에 추가
+      sendQueue.push({ userData, matchedKeywords });
+    }
 
-        if (success) {
+    // 배치 발송 (한 번의 API 호출로 모든 사용자에게 발송)
+    console.log(`\n[Webhook Test] 발송 큐: ${sendQueue.length}명`);
+
+    if (sendQueue.length === 0) {
+      console.log("[Webhook Test] 발송할 사용자 없음");
+    } else {
+      // 같은 메시지를 받을 사용자들을 그룹화 (상품명은 동일하므로 모두 같은 메시지)
+      const recipientPhones = sendQueue.map(item => item.userData.phone);
+
+      console.log(`[Webhook Test] 배치 발송 시작: ${recipientPhones.length}명`);
+      console.log(`[Webhook Test] 수신자 목록: ${recipientPhones.join(", ")}`);
+
+      // 템플릿을 사용하여 메시지 생성 (대표 키워드 사용)
+      const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID || "okayparts";
+      const allKeywords = [...new Set(sendQueue.flatMap(item => item.matchedKeywords))];
+      const message = getSmsTemplate("basic", {
+        keywords: allKeywords,
+        productName: testProductName,
+        productNo: testProductNo,
+        mallId,
+      });
+
+      const messageCheck = checkMessageLength(message);
+      console.log(`[SMS] 메시지 타입: ${messageCheck.type}, 길이: ${messageCheck.length}byte`);
+      console.log(`[SMS] 메시지:\n${message}`);
+
+      const senderNo = process.env.CAFE24_SMS_SENDER_NO;
+
+      try {
+        if (!senderNo || !cafe24Client) {
+          console.log("⚠️  Mock 모드 - 실제 발송 안함");
+          throw new Error("CAFE24_SMS_SENDER_NO 또는 cafe24Client 없음");
+        }
+
+        // 한 번의 API 호출로 모든 사용자에게 발송
+        const result = await cafe24Client.sendSMS({
+          sender_no: senderNo,
+          recipients: recipientPhones,
+          content: message,
+          type: messageCheck.type,
+        });
+
+        console.log(`✅ 배치 발송 성공!`);
+        console.log(`   발송 결과:`, result);
+
+        // 모든 사용자의 발송 이력 저장
+        for (const { userData, matchedKeywords } of sendQueue) {
           matchedUsers.push({
             phone: userData.phone,
             name: userData.name,
@@ -231,12 +281,15 @@ export async function POST(request: NextRequest) {
           await updateDoc(userDocRef, {
             [`last_notified.${testProductNo}`]: new Date().toISOString(),
           });
-
-          console.log(`   ✅ SMS 발송 성공 및 이력 저장 완료`);
         }
+
+        console.log(`✅ 모든 사용자(${sendQueue.length}명)에게 발송 및 이력 저장 완료`);
       } catch (smsError: any) {
-        console.error(`   ❌ SMS 발송 실패:`, smsError.message);
-        skippedUsers.push({ phone: userData.phone, reason: `발송 실패: ${smsError.message}` });
+        console.error(`❌ 배치 발송 실패:`, smsError.message);
+        // 배치 발송 실패 시 모든 사용자를 skipped에 추가
+        for (const { userData } of sendQueue) {
+          skippedUsers.push({ phone: userData.phone, reason: `발송 실패: ${smsError.message}` });
+        }
       }
     }
 
