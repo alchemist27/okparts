@@ -102,8 +102,8 @@ export async function POST(request: NextRequest) {
     console.log("[SIGNUP Step 4] 비밀번호 해싱");
     const hashedPassword = await hashPassword(password);
 
-    // Firestore에 임시 저장 (pending 상태)
-    console.log("[SIGNUP Step 5] Firestore에 임시 계정 생성 (status: pending)");
+    // Firestore에 저장 (active 상태로 생성, 카페24 연동 실패 시 롤백으로 삭제됨)
+    console.log("[SIGNUP Step 5] Firestore에 계정 생성 (status: active)");
     const supplierData = {
       accountType,
       userId,
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
       // bankCode,
       // bankAccountNo,
       // bankAccountName,
-      status: "pending",
+      status: "active",
       cafe24SupplierNo: null,
       cafe24UserId: null,
       createdAt: new Date().toISOString(),
@@ -268,17 +268,16 @@ export async function POST(request: NextRequest) {
 
       console.log("[SIGNUP Step 7-1] 카페24 사용자 접속 비밀번호 업데이트 완료");
 
-      // Firestore 업데이트 (active 상태)
-      console.log("[SIGNUP Step 8] Firestore 계정 활성화");
+      // Firestore에 카페24 연동 정보 업데이트
+      console.log("[SIGNUP Step 8] Firestore에 카페24 연동 정보 업데이트");
       const { updateDoc } = await import("firebase/firestore");
       await updateDoc(doc(firestore, "suppliers", supplierDoc.id), {
-        status: "active",
         cafe24SupplierNo: supplierCode,
         cafe24UserId: userId,
         updatedAt: new Date().toISOString(),
       });
 
-      console.log("[SIGNUP Step 8] 계정 활성화 완료");
+      console.log("[SIGNUP Step 8] 카페24 연동 정보 업데이트 완료");
 
     } catch (cafe24Error: any) {
       console.error("\n[SIGNUP] 카페24 연동 실패:", cafe24Error.message);

@@ -218,13 +218,8 @@ export default function SignupPage() {
                 }}
               >
                 <div style={{ fontSize: '1.375rem', fontWeight: '700' }}>사업자회원</div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-                  <div style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.7)', textDecoration: 'line-through' }}>
-                    수수료 10%
-                  </div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#fff' }}>
-                    OPEN 축하 수수료 0% 진행중
-                  </div>
+                <div style={{ fontSize: '1.125rem', color: 'rgba(255,255,255,0.9)', fontWeight: 'normal' }}>
+                  수수료 없음 (0%)
                 </div>
               </button>
             </div>
