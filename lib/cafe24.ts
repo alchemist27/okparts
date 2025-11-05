@@ -431,6 +431,53 @@ export class Cafe24ApiClient {
 
     return this.request("PUT", `/admin/suppliers/users/${userId}`, requestBody);
   }
+
+  // SMS 발송
+  async sendSMS(params: {
+    sender_no: number | string; // 발신자 아이디 (카페24 관리자에서 등록한 발신자 번호 ID)
+    recipients: string[]; // 수신자 전화번호 배열 (최대 100개)
+    content: string; // 메시지 내용
+    type?: "SMS" | "LMS"; // SMS(90byte) 또는 LMS(2000byte)
+    title?: string; // 제목 (LMS일 때 사용)
+  }): Promise<any> {
+    console.log("[Cafe24 API] SMS 발송 요청");
+    console.log(`[Cafe24 API] 수신자 수: ${params.recipients.length}명`);
+    console.log(`[Cafe24 API] 메시지: ${params.content}`);
+
+    // 수신자 100명씩 배치 처리 (카페24 제한)
+    const BATCH_SIZE = 100;
+    const results: any[] = [];
+
+    for (let i = 0; i < params.recipients.length; i += BATCH_SIZE) {
+      const batch = params.recipients.slice(i, i + BATCH_SIZE);
+
+      console.log(`[Cafe24 API] 배치 ${Math.floor(i / BATCH_SIZE) + 1}: ${batch.length}명`);
+
+      const requestData = {
+        shop_no: 1,
+        request: {
+          sender_no: params.sender_no,
+          content: params.content,
+          recipients: batch,
+          exclude_unsubscriber: "T", // 수신거부자 제외
+          type: params.type || "SMS",
+          ...(params.title && { title: params.title }),
+        },
+      };
+
+      try {
+        const response = await this.request("POST", "/admin/sms", requestData);
+        results.push(response);
+        console.log(`[Cafe24 API] 배치 ${Math.floor(i / BATCH_SIZE) + 1} 발송 성공:`, response.sms?.queue_code);
+      } catch (error: any) {
+        console.error(`[Cafe24 API] 배치 ${Math.floor(i / BATCH_SIZE) + 1} 발송 실패:`, error.message);
+        throw error;
+      }
+    }
+
+    console.log(`[Cafe24 API] SMS 발송 완료: 총 ${results.length}개 배치`);
+    return results;
+  }
 }
 
 // OAuth helper functions
@@ -449,6 +496,8 @@ export function getOAuthUrl(
     "mall.write_product",
     "mall.read_supply",
     "mall.write_supply",
+    "mall.read_notification",
+    "mall.write_notification",
   ].join(",");
 
   return `https://${mallId}.cafe24api.com/api/v2/oauth/authorize?response_type=code&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(
