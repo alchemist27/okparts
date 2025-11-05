@@ -156,7 +156,6 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
     const representativeKeywords = sendQueue[0].matchedKeywords;
 
     // 템플릿을 사용하여 메시지 생성
-    const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID || "okayparts";
     const message = getSmsTemplate("basic", {
       keywords: representativeKeywords,
       productName,
