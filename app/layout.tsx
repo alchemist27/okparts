@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: "OKPARTS ADMIN",
   description: "오케이중고부품 공급사 상품 등록 시스템",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/sellerLogo.png",
+    apple: "/sellerLogo.png",
+  },
 };
 
 export const viewport: Viewport = {
