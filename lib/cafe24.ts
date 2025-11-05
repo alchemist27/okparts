@@ -466,7 +466,7 @@ export class Cafe24ApiClient {
       };
 
       try {
-        const response = await this.request("POST", "/admin/sms", requestData);
+        const response = await this.request<{ sms: { queue_code: string } }>("POST", "/admin/sms", requestData);
         results.push(response);
         console.log(`[Cafe24 API] 배치 ${Math.floor(i / BATCH_SIZE) + 1} 발송 성공:`, response.sms?.queue_code);
       } catch (error: any) {
