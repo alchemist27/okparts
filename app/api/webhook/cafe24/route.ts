@@ -82,8 +82,42 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
 
     if (payload.event_no === 90002) {
       // 상품 수정 이벤트
-      console.log("[Webhook Process] 상품 수정 이벤트 (현재 알림 발송 없음)");
-      // TODO: 필요시 수정 이벤트 처리 추가
+      console.log("[Webhook Process] 상품 수정 이벤트 처리");
+
+      // Firestore에서 해당 상품 찾아서 업데이트
+      const { query, where } = await import("firebase/firestore");
+      const productsRef = collection(db, "products");
+      const q = query(productsRef, where("cafe24ProductNo", "==", productNo));
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        for (const docSnapshot of snapshot.docs) {
+          const updateData: any = {
+            updatedAt: new Date().toISOString(),
+          };
+
+          // 카페24에서 받은 데이터로 업데이트
+          if (payload.resource.product_name) {
+            updateData.name = payload.resource.product_name;
+          }
+          if (payload.resource.price) {
+            updateData.sellingPrice = parseInt(payload.resource.price);
+          }
+          if (payload.resource.display) {
+            updateData.display = payload.resource.display;
+          }
+          if (payload.resource.selling) {
+            updateData.selling = payload.resource.selling;
+          }
+
+          await updateDoc(doc(db, "products", docSnapshot.id), updateData);
+          console.log(`[Webhook Process] Firestore 상품 업데이트: ${docSnapshot.id}`);
+          console.log(`[Webhook Process] 업데이트 데이터:`, updateData);
+        }
+      } else {
+        console.log("[Webhook Process] Firestore에 해당 상품 없음");
+      }
+
       return;
     }
 
