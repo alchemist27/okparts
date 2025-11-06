@@ -830,7 +830,14 @@ export default function NewProductPage() {
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 상품명 *
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                <span style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#3b82f6',
+                  marginLeft: isMobile ? '0' : '0.5rem',
+                  display: isMobile ? 'block' : 'inline',
+                  marginTop: isMobile ? '0.25rem' : '0'
+                }}>
                   (알림 발송을 위해 핵심 키워드를 포함해주세요)
                 </span>
               </label>
@@ -851,7 +858,14 @@ export default function NewProductPage() {
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 상품 요약 정보
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                <span style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#3b82f6',
+                  marginLeft: isMobile ? '0' : '0.5rem',
+                  display: isMobile ? 'block' : 'inline',
+                  marginTop: isMobile ? '0.25rem' : '0'
+                }}>
                   (차량명, 연식, 부품번호, 차대번호, 판매자 위치 등 핵심 정보 입력)
                 </span>
               </label>
@@ -882,7 +896,14 @@ export default function NewProductPage() {
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 대표 이미지 *
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                <span style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#3b82f6',
+                  marginLeft: isMobile ? '0' : '0.5rem',
+                  display: isMobile ? 'block' : 'inline',
+                  marginTop: isMobile ? '0.25rem' : '0'
+                }}>
                   (jpg/png, 3MB 이하, 최대 3장, 첫 번째가 제품 목록에 표시되는 이미지)
                 </span>
               </label>
@@ -1081,7 +1102,14 @@ export default function NewProductPage() {
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 상품 상세 정보
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                <span style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#3b82f6',
+                  marginLeft: isMobile ? '0' : '0.5rem',
+                  display: isMobile ? 'block' : 'inline',
+                  marginTop: isMobile ? '0.25rem' : '0'
+                }}>
                   (제품의 상태, 특징, 주의사항 등 상세한 설명 입력)
                 </span>
               </label>
@@ -1108,7 +1136,14 @@ export default function NewProductPage() {
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 상세 설명 이미지
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                <span style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#3b82f6',
+                  marginLeft: isMobile ? '0' : '0.5rem',
+                  display: isMobile ? 'block' : 'inline',
+                  marginTop: isMobile ? '0.25rem' : '0'
+                }}>
                   (상품 상세페이지에 표시될 이미지, 최대 3장)
                 </span>
               </label>
@@ -1291,7 +1326,14 @@ export default function NewProductPage() {
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 상품 판매가 *
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                <span style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#3b82f6',
+                  marginLeft: isMobile ? '0' : '0.5rem',
+                  display: isMobile ? 'block' : 'inline',
+                  marginTop: isMobile ? '0.25rem' : '0'
+                }}>
                   (부가세 포함 금액을 입력해주세요.)
                 </span>
               </label>
@@ -1315,7 +1357,14 @@ export default function NewProductPage() {
             <div>
               <label style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                 판매자 전화번호
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                <span style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#3b82f6',
+                  marginLeft: isMobile ? '0' : '0.5rem',
+                  display: isMobile ? 'block' : 'inline',
+                  marginTop: isMobile ? '0.25rem' : '0'
+                }}>
                   (구매자와의 연락을 위해 입력해주세요. 제품 상세정보 페이지에 노출됩니다.)
                 </span>
               </label>
