@@ -126,11 +126,20 @@ export async function POST(request: NextRequest) {
       const existingData = existingDoc.data() as UserNotification;
 
       console.log("[Notification Register] 기존 사용자 업데이트:", normalizedPhone);
+      console.log("[Notification Register] 기존 키워드:", existingData.keywords);
+      console.log("[Notification Register] 새 키워드:", cleanedKeywords);
+
+      // 기존 키워드와 새 키워드 병합 (중복 제거)
+      const mergedKeywords = Array.from(
+        new Set([...existingData.keywords, ...cleanedKeywords])
+      );
+
+      console.log("[Notification Register] 병합된 키워드:", mergedKeywords);
 
       const updatedData: UserNotification = {
         ...existingData,
         name,
-        keywords: cleanedKeywords,
+        keywords: mergedKeywords,
         consent_sms,
         updatedAt: now,
       };
