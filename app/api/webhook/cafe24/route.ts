@@ -13,9 +13,16 @@ interface Cafe24WebhookPayload {
   resource: {
     mall_id: string;
     event_shop_no: string;
-    event_no: number;
-    resource_type: string; // "products"
-    resource_id: string; // product_no
+    product_no: number; // 상품 번호
+    product_code: string;
+    product_name: string;
+    created_date: string;
+    updated_date: string;
+    display: string;
+    selling: string;
+    price: string;
+    category_no: string;
+    // ... 기타 필드들
   };
 }
 
@@ -46,13 +53,13 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
       return;
     }
 
-    const productNo = payload.resource.resource_id;
+    const productNo = String(payload.resource.product_no);
+    const productName = payload.resource.product_name;
+
     console.log("[Webhook Process] 상품 번호:", productNo);
+    console.log("[Webhook Process] 상품명:", productName);
 
-    // 2. 카페24 API에서 상품 정보 조회
-    console.log("[Webhook Process] 카페24 상품 정보 조회 중...");
-
-    // Cafe24 API 클라이언트 초기화
+    // 2. 카페24 API 클라이언트 초기화 (SMS 발송용)
     const { Cafe24ApiClient } = await import("@/lib/cafe24");
     const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID;
 
@@ -84,13 +91,6 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
       clientSecret: process.env.CAFE24_CLIENT_SECRET,
       onTokenRefresh,
     });
-
-    // 상품 정보 조회
-    const productResponse = await cafe24Client.getProduct(productNo);
-    const product = productResponse.product;
-    const productName = product.product_name;
-
-    console.log("[Webhook Process] 상품명:", productName);
 
     // 3. 모든 사용자 키워드 조회
     console.log("[Webhook Process] 등록된 사용자 키워드 조회 중...");
@@ -258,8 +258,8 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
     try {
       const logData: NotificationLog = {
         webhook_event_id: `webhook_${Date.now()}`,
-        product_no: payload.resource.resource_id,
-        product_name: "(조회 실패)",
+        product_no: String(payload.resource.product_no),
+        product_name: payload.resource.product_name || "(조회 실패)",
         matched_keywords: [],
         sent_to: [],
         processed_at: new Date().toISOString(),
@@ -285,8 +285,8 @@ export async function POST(request: NextRequest) {
 
     console.log("[Webhook] 수신 데이터:", {
       event_no: payload.event_no,
-      resource_type: payload.resource?.resource_type,
-      resource_id: payload.resource?.resource_id,
+      product_no: payload.resource?.product_no,
+      product_name: payload.resource?.product_name,
     });
 
     // 즉시 200 OK 반환 (카페24 Webhook 신뢰성 확보)
@@ -295,7 +295,7 @@ export async function POST(request: NextRequest) {
       {
         received: true,
         event_no: payload.event_no,
-        resource_id: payload.resource?.resource_id,
+        product_no: payload.resource?.product_no,
       },
       { status: 200 }
     );
@@ -306,11 +306,11 @@ export async function POST(request: NextRequest) {
     // Promise Queue에 추가하여 순차 처리 (Rate Limit 방지)
     processingQueue = processingQueue
       .then(() => {
-        console.log(`[Webhook Queue] 처리 시작: ${payload.resource?.resource_id}`);
+        console.log(`[Webhook Queue] 처리 시작: ${payload.resource?.product_no} - ${payload.resource?.product_name}`);
         return processWebhookAsync(payload);
       })
       .catch((error) => {
-        console.error(`[Webhook Queue] 처리 실패: ${payload.resource?.resource_id}`, error);
+        console.error(`[Webhook Queue] 처리 실패: ${payload.resource?.product_no}`, error);
       });
 
     return response;

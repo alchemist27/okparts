@@ -504,6 +504,8 @@ export function getOAuthUrl(
     "mall.write_supply",
     "mall.read_notification",
     "mall.write_notification",
+    "mall.read_collection",
+    "mall.read_promotion",
   ].join(",");
 
   return `https://${mallId}.cafe24api.com/api/v2/oauth/authorize?response_type=code&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(
