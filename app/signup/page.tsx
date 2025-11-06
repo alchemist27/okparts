@@ -670,14 +670,8 @@ export default function SignupPage() {
                 className="btn btn-primary btn-xl btn-block"
                 style={{ marginTop: '1rem' }}
               >
-                {loading ? "계정 생성 중..(30초 이상 소요 가능)" : "회원가입"}
+                {loading ? "처리 중..." : "회원가입"}
               </button>
-
-              {loading && (
-                <div className="alert alert-info" style={{ fontSize: '0.875rem', marginTop: '0.5rem', textAlign: 'center' }}>
-                  카페24 서버 연동 중입니다. 잠시만 기다려주세요...
-                </div>
-              )}
             </form>
 
             {/* 하단 링크 */}
