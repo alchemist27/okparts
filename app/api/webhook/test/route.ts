@@ -78,6 +78,7 @@ async function sendSMS(
       recipients: [phone],
       content: message,
       type: messageCheck.type, // SMS 또는 LMS 자동 선택
+      title: messageCheck.title, // LMS일 때 제목
     });
 
     console.log(`✅ SMS 발송 성공:`, result);
@@ -265,6 +266,7 @@ export async function POST(request: NextRequest) {
           recipients: recipientPhones,
           content: message,
           type: messageCheck.type,
+          title: messageCheck.title, // LMS일 때 제목
         });
 
         console.log(`✅ 배치 발송 성공!`);

@@ -208,6 +208,7 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
           recipients: recipientPhones,
           content: message,
           type: messageCheck.type,
+          title: messageCheck.title, // LMS일 때 제목
         });
 
         console.log(`[Webhook Process] 배치 SMS 발송 성공:`, result);

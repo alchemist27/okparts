@@ -26,49 +26,33 @@ function generateProductUrl(params: SmsTemplateParams): string {
   return "https://okparts.com";
 }
 
-// 기본 템플릿 - 신규 상품 알림
+// 기본 템플릿 - 신규 상품 알림 (간결 버전)
 export function getNewProductTemplate(params: SmsTemplateParams): string {
   const keywordText = params.keywords.join(", ");
   const productUrl = generateProductUrl(params);
 
-  // SMS는 90byte 제한이 있으므로 간결하게
-  const message = `[OK파츠] ${keywordText} 신규 상품 등록!
+  // 최소한의 정보만 포함 (LMS 비용 절감)
+  const message = `[OK중고부품] ${keywordText}
 ${params.productName}
-상세보기: ${productUrl}`;
+${productUrl}`;
 
   return message;
 }
 
-// 간단 템플릿 (더 짧은 버전)
+// 간단 템플릿 (키워드만)
 export function getSimpleTemplate(params: SmsTemplateParams): string {
   const keywordText = params.keywords.join(", ");
   const productUrl = generateProductUrl(params);
 
-  return `[OK파츠] ${keywordText} 상품 등록
+  return `[OK중고부품] ${keywordText}
 ${params.productName}
 ${productUrl}`;
 }
 
-// 상세 템플릿 (LMS용 - 2000byte)
+// 상세 템플릿 (사용 안 함 - 비용 절감)
 export function getDetailedTemplate(params: SmsTemplateParams): string {
-  const keywordText = params.keywords.join(", ");
-  const productUrl = generateProductUrl(params);
-
-  const message = `━━━━━━━━━━━━━━━━━
-🚗 [OK파츠] 신규 상품 알림
-
-📌 매칭 키워드: ${keywordText}
-
-🛒 상품명
-${params.productName}
-
-👉 상세보기
-${productUrl}
-
-※ 알림 해제는 쇼핑몰 마이페이지에서 가능합니다.
-━━━━━━━━━━━━━━━━━`;
-
-  return message;
+  // 기본 템플릿과 동일하게 처리 (비용 절감)
+  return getNewProductTemplate(params);
 }
 
 // 템플릿 타입
@@ -95,6 +79,7 @@ export function checkMessageLength(message: string): {
   length: number;
   type: "SMS" | "LMS";
   isValid: boolean;
+  title?: string; // LMS일 때 제목
 } {
   // 한글은 2byte, 영문/숫자는 1byte
   const byteLength = new Blob([message]).size;
@@ -102,8 +87,18 @@ export function checkMessageLength(message: string): {
   if (byteLength <= 90) {
     return { length: byteLength, type: "SMS", isValid: true };
   } else if (byteLength <= 2000) {
-    return { length: byteLength, type: "LMS", isValid: true };
+    return {
+      length: byteLength,
+      type: "LMS",
+      isValid: true,
+      title: "[OK중고부품] 신규상품" // 간결한 제목
+    };
   } else {
-    return { length: byteLength, type: "LMS", isValid: false };
+    return {
+      length: byteLength,
+      type: "LMS",
+      isValid: false,
+      title: "[OK중고부품] 신규상품"
+    };
   }
 }
