@@ -670,7 +670,7 @@ export default function SignupPage() {
                 className="btn btn-primary btn-xl btn-block"
                 style={{ marginTop: '1rem' }}
               >
-                {loading ? "처리 중... (약 30초 소요)" : "회원가입"}
+                {loading ? "계정 생성 중..(30초 이상 소요 가능)" : "회원가입"}
               </button>
 
               {loading && (

@@ -3,5 +3,11 @@
     "app/api/**/*.ts": {
       "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/internal/process-pending-cafe24-users",
+      "schedule": "*/5 * * * *"
+    }
+  ]
 }
