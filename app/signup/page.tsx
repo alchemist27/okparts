@@ -92,11 +92,33 @@ export default function SignupPage() {
     }
 
     // 비밀번호 연속 문자 검증 (4개 이상)
-    const hasConsecutiveChars = /(.)\1{3,}/.test(formData.password); // 같은 문자 4개 이상
-    const hasConsecutiveNumbers = /\d{4,}/.test(formData.password); // 숫자 4개 이상 연속
+    const hasConsecutiveChars = /(.)\1{3,}/.test(formData.password); // 같은 문자 4개 이상 (aaaa, 1111)
 
-    if (hasConsecutiveChars || hasConsecutiveNumbers) {
-      setError("비밀번호에 동일한 문자 4개 이상(예: aaaa, 1111) 또는 연속된 숫자 4개 이상(예: 1234, 5678)을 사용할 수 없습니다");
+    // 연속된 숫자 패턴 체크 (오름차순/내림차순)
+    const hasSequentialNumbers = (() => {
+      for (let i = 0; i <= formData.password.length - 4; i++) {
+        const substr = formData.password.substring(i, i + 4);
+        if (/^\d{4}$/.test(substr)) {
+          const chars = substr.split('').map(Number);
+          // 오름차순 체크: 1234, 5678, 0123
+          const isAscending = chars.every((num, idx) => idx === 0 || num === chars[idx - 1] + 1);
+          // 내림차순 체크: 4321, 8765, 3210
+          const isDescending = chars.every((num, idx) => idx === 0 || num === chars[idx - 1] - 1);
+          if (isAscending || isDescending) {
+            return true;
+          }
+        }
+      }
+      return false;
+    })();
+
+    if (hasConsecutiveChars) {
+      setError("비밀번호에 동일한 문자 4개 이상(예: aaaa, 1111)을 사용할 수 없습니다");
+      return;
+    }
+
+    if (hasSequentialNumbers) {
+      setError("비밀번호에 연속된 숫자 4개 이상(예: 1234, 5678, 4321)을 사용할 수 없습니다");
       return;
     }
 
@@ -330,7 +352,7 @@ export default function SignupPage() {
                   maxLength={16}
                 />
                 <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                  ※ 동일/연속 문자 4개 이상 금지 (예: aaaa, 1111, 1234)
+                  ※ 동일 문자 4개 이상(aaaa, 1111) 또는 연속 숫자(1234, 5678, 4321) 금지
                 </p>
               </div>
 
