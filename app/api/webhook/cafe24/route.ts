@@ -378,16 +378,14 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    console.log("[Webhook] 즉시 응답 반환 (200 OK)");
-    console.log("========== [Webhook] 수신 완료 ==========\n");
-
-    // Queue 제거 - 직접 실행 (서버리스 환경 최적화)
+    // 백그라운드 처리 시작 (응답 전에 실행)
     console.log(`[Webhook] 처리 시작: ${payload.resource?.product_no} - ${payload.resource?.product_name}`);
 
-    // 비동기로 실행하되 응답은 즉시 반환 (fire-and-forget)
-    processWebhookAsync(payload).catch((error) => {
-      console.error(`[Webhook] 처리 실패: ${payload.resource?.product_no}`, error);
-    });
+    // 처리 완료 대기
+    await processWebhookAsync(payload);
+
+    console.log("[Webhook] 처리 완료, 응답 반환");
+    console.log("========== [Webhook] 수신 완료 ==========\n");
 
     return response;
   } catch (error: any) {
