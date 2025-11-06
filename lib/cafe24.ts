@@ -65,65 +65,83 @@ export class Cafe24ApiClient {
     console.log(`[Cafe24 API] ${method} ${endpoint} 요청 시작`);
     const startTime = Date.now();
 
-    const response = await fetch(url, options);
-    const elapsed = Date.now() - startTime;
+    // 타임아웃 설정 (50초)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 50000);
 
-    console.log(`[Cafe24 API] ${method} ${endpoint} 응답: ${response.status} (${elapsed}ms)`);
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timeoutId);
+      const elapsed = Date.now() - startTime;
 
-    if (!response.ok) {
-      const errorText = await response.text();
+      console.log(`[Cafe24 API] ${method} ${endpoint} 응답: ${response.status} (${elapsed}ms)`);
 
-      console.error(`[Cafe24 API] 에러 발생 - Status: ${response.status}`);
-      console.error(`[Cafe24 API] 에러 응답:`, errorText);
+      if (!response.ok) {
+        const errorText = await response.text();
 
-      // JSON 파싱 시도
-      try {
-        const errorJson = JSON.parse(errorText);
-        console.error(`[Cafe24 API] 파싱된 에러:`, JSON.stringify(errorJson, null, 2));
-      } catch (e) {
-        console.error(`[Cafe24 API] JSON 파싱 실패, 원본 텍스트:`, errorText);
-      }
+        console.error(`[Cafe24 API] 에러 발생 - Status: ${response.status}`);
+        console.error(`[Cafe24 API] 에러 응답:`, errorText);
 
-      // 401 에러이고 아직 재시도하지 않았으며 리프레시 토큰이 있는 경우
-      if (response.status === 401 && !isRetry && this.refreshToken && this.clientId && this.clientSecret) {
-        console.log("[Cafe24 API] Access token expired, attempting refresh...");
-
+        // JSON 파싱 시도
         try {
-          const tokenData = await this.refreshAccessToken(
-            this.clientId,
-            this.clientSecret,
-            this.refreshToken
-          );
-
-          // 새 토큰으로 업데이트
-          this.accessToken = tokenData.access_token;
-          this.refreshToken = tokenData.refresh_token;
-
-          console.log("[Cafe24 API] Token refreshed successfully");
-
-          // 콜백 함수가 있으면 Firestore 업데이트
-          if (this.onTokenRefresh) {
-            await this.onTokenRefresh(
-              tokenData.access_token,
-              tokenData.refresh_token,
-              tokenData.expires_at
-            );
-          }
-
-          // 새 토큰으로 재시도
-          return this.request<T>(method, endpoint, data, true);
-        } catch (refreshError) {
-          console.error("[Cafe24 API] Token refresh failed:", refreshError);
-          throw new Error(`Token refresh failed: ${refreshError}`);
+          const errorJson = JSON.parse(errorText);
+          console.error(`[Cafe24 API] 파싱된 에러:`, JSON.stringify(errorJson, null, 2));
+        } catch (e) {
+          console.error(`[Cafe24 API] JSON 파싱 실패, 원본 텍스트:`, errorText);
         }
+
+        // 401 에러이고 아직 재시도하지 않았으며 리프레시 토큰이 있는 경우
+        if (response.status === 401 && !isRetry && this.refreshToken && this.clientId && this.clientSecret) {
+          console.log("[Cafe24 API] Access token expired, attempting refresh...");
+
+          try {
+            const tokenData = await this.refreshAccessToken(
+              this.clientId,
+              this.clientSecret,
+              this.refreshToken
+            );
+
+            // 새 토큰으로 업데이트
+            this.accessToken = tokenData.access_token;
+            this.refreshToken = tokenData.refresh_token;
+
+            console.log("[Cafe24 API] Token refreshed successfully");
+
+            // 콜백 함수가 있으면 Firestore 업데이트
+            if (this.onTokenRefresh) {
+              await this.onTokenRefresh(
+                tokenData.access_token,
+                tokenData.refresh_token,
+                tokenData.expires_at
+              );
+            }
+
+            // 새 토큰으로 재시도
+            return this.request<T>(method, endpoint, data, true);
+          } catch (refreshError) {
+            console.error("[Cafe24 API] Token refresh failed:", refreshError);
+            throw new Error(`Token refresh failed: ${refreshError}`);
+          }
+        }
+
+        throw new Error(
+          `Cafe24 API Error: ${response.status} - ${errorText}`
+        );
       }
 
-      throw new Error(
-        `Cafe24 API Error: ${response.status} - ${errorText}`
-      );
-    }
+      return response.json();
+    } catch (error: any) {
+      clearTimeout(timeoutId);
 
-    return response.json();
+      // AbortError는 타임아웃을 의미
+      if (error.name === 'AbortError') {
+        const elapsed = Date.now() - startTime;
+        console.error(`[Cafe24 API] ${method} ${endpoint} 타임아웃 (${elapsed}ms)`);
+        throw new Error(`Cafe24 API Timeout: ${method} ${endpoint} took more than 50 seconds`);
+      }
+
+      throw error;
+    }
   }
 
   // Token refresh
