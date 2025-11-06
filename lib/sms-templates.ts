@@ -30,7 +30,7 @@ function generateProductUrl(params: SmsTemplateParams): string {
 export function getNewProductTemplate(params: SmsTemplateParams): string {
   const keywordText = params.keywords.join(", ");
   const prefix = `[OK중고부품] ${keywordText}\n`;
-  const suffix = `\n신규상품`;
+  const suffix = `\n상품 등록`;
 
   // 90byte 제한 계산
   const maxProductNameBytes = 90 - new Blob([prefix + suffix]).size;
