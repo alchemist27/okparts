@@ -94,10 +94,15 @@ export default function NewProductPage() {
         const data = await response.json();
         const categories = data.categories || [];
 
-        setAllCategories(categories);
+        // 306, 307번 카테고리 제외 (사용하지 않는 카테고리)
+        const filteredCategories = categories.filter((cat: CategoryData) =>
+          cat.category_no !== 306 && cat.category_no !== 307
+        );
+
+        setAllCategories(filteredCategories);
 
         // 대분류 (depth 1, parent가 1인 카테고리)
-        const main = categories.filter((cat: CategoryData) =>
+        const main = filteredCategories.filter((cat: CategoryData) =>
           cat.category_depth === 1 || cat.parent_category_no === 1
         );
         setMainCategories(main);
