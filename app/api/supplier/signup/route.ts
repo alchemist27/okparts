@@ -331,10 +331,24 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // 타임아웃 에러
+      const isTimeoutError = errorMessage.includes("Timeout") || errorMessage.includes("timeout");
+
+      if (isTimeoutError) {
+        console.error("[SIGNUP] 카페24 API 타임아웃:", errorMessage);
+        return NextResponse.json(
+          {
+            error: "회원가입 처리 중 시간이 초과되었습니다",
+            details: "카페24 서버 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요. (Firestore 계정은 자동 삭제되었습니다)"
+          },
+          { status: 408 }
+        );
+      }
+
       return NextResponse.json(
         {
           error: "카페24 연동 중 오류가 발생했습니다",
-          details: "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+          details: "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요. (Firestore 계정은 자동 삭제되었습니다)"
         },
         { status: 500 }
       );
