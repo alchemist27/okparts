@@ -458,6 +458,7 @@ export class Cafe24ApiClient {
       const batch = params.recipients.slice(i, i + BATCH_SIZE);
 
       console.log(`[Cafe24 API] 배치 ${Math.floor(i / BATCH_SIZE) + 1}: ${batch.length}명`);
+      console.log(`[Cafe24 API] 수신자 번호:`, batch.join(", "));
 
       const requestData = {
         shop_no: 1,
@@ -470,6 +471,8 @@ export class Cafe24ApiClient {
           ...(params.title && { title: params.title }),
         },
       };
+
+      console.log(`[Cafe24 API] 요청 데이터:`, JSON.stringify(requestData, null, 2));
 
       try {
         const response = await this.request<{ sms: { queue_code: string } }>("POST", "/admin/sms", requestData);

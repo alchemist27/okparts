@@ -23,7 +23,7 @@ function generateDummyData() {
     passwordConfirm: password,
     name: `테스터${randomNum}`,
     companyName: `테스트회사${randomNum}`,
-    phone: `010-${String(randomNum).padStart(4, '0')}-${String(randomNum).padStart(4, '0')}`,
+    phone: `010${String(randomNum).padStart(4, '0')}${String(randomNum).padStart(4, '0')}`,
     businessNumber: `${bizNum1}-${bizNum2}-${bizNum3}`,
     presidentName: `대표${randomNum}`,
     // 계좌 정보는 보류
@@ -402,18 +402,30 @@ export default function SignupPage() {
                 <label style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   휴대폰 *
                   <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
-                    (하이픈(-) 포함하여 입력)
+                    (숫자만 입력하면 자동으로 하이픈 추가됩니다)
                   </span>
                 </label>
                 <input
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    let formatted = value;
+                    if (value.length <= 3) {
+                      formatted = value;
+                    } else if (value.length <= 7) {
+                      formatted = `${value.slice(0, 3)}-${value.slice(3)}`;
+                    } else if (value.length <= 11) {
+                      formatted = `${value.slice(0, 3)}-${value.slice(3, 7)}-${value.slice(7, 11)}`;
+                    }
+                    setFormData({ ...formData, phone: formatted });
+                  }}
                   onTouchStart={(e) => e.currentTarget.focus()}
-                  placeholder="010-1234-5678"
+                  placeholder="01012345678"
                   style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
                   autoComplete="off"
-                  inputMode="tel"
+                  inputMode="numeric"
+                  maxLength={13}
                   required
                 />
               </div>

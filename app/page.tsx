@@ -1,6 +1,40 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 로그인 상태 확인
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+      // 로그인되어 있으면 대시보드로 리다이렉트
+      router.push("/dashboard");
+    } else {
+      setIsLoggedIn(false);
+      setLoading(false);
+    }
+  }, [router]);
+
+  // 로딩 중이거나 로그인되어 있으면 빈 화면
+  if (loading || isLoggedIn) {
+    return (
+      <main id="main" className="min-h-screen hero flex items-center justify-center">
+        <div className="container">
+          <div className="hero-card">
+            <p className="text-center">로딩 중...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main id="main" className="min-h-screen hero flex items-center justify-center">
       <div className="container">
