@@ -207,14 +207,22 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
 
       console.log(`[Webhook Process] 매칭 성공: ${userData.phone} - 키워드: ${matchedKeywords.join(", ")}`);
 
-      // 중복 발송 체크
+      // 중복 발송 체크 (24시간 이내 같은 상품 발송 방지)
       console.log(`[Webhook Process] 상품 번호 체크: ${productNo}, last_notified:`, userData.last_notified);
-      const alreadySent = userData.last_notified[productNo];
-      if (alreadySent) {
-        console.log(`[Webhook Process] 건너뛰기: ${userData.phone} (이미 발송됨: ${alreadySent})`);
-        continue;
+      const lastSentTime = userData.last_notified[productNo];
+
+      if (lastSentTime) {
+        const hoursSinceLastSent = (Date.now() - new Date(lastSentTime).getTime()) / (1000 * 60 * 60);
+        console.log(`[Webhook Process] 마지막 발송: ${lastSentTime} (${hoursSinceLastSent.toFixed(2)}시간 전)`);
+
+        if (hoursSinceLastSent < 24) {
+          console.log(`[Webhook Process] 건너뛰기: ${userData.phone} (24시간 이내 발송됨)`);
+          continue;
+        }
+        console.log(`[Webhook Process] 24시간 경과 - 재발송 허용`);
       }
-      console.log(`[Webhook Process] 중복 아님: ${userData.phone} - 발송 진행`);
+
+      console.log(`[Webhook Process] 발송 진행: ${userData.phone}`);
 
       // 큐에 추가
       sendQueue.push({ userData, matchedKeywords });
