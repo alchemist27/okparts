@@ -4,14 +4,17 @@ import { collection, getDocs, doc, getDoc, updateDoc, addDoc } from "firebase/fi
 import type { UserNotification, NotificationLog } from "@/lib/types/notifications";
 import { getSmsTemplate, checkMessageLength } from "@/lib/sms-templates";
 
-// 키워드 매칭 함수
+// 키워드 매칭 함수 (띄어쓰기 무시)
 function matchKeywords(productName: string, keywords: string[]): string[] {
   const matched: string[] = [];
-  const lowerProductName = productName.toLowerCase();
+  // 상품명에서 띄어쓰기 제거 후 소문자 변환
+  const normalizedProductName = productName.toLowerCase().replace(/\s+/g, '');
 
   for (const keyword of keywords) {
-    const lowerKeyword = keyword.toLowerCase().trim();
-    if (lowerProductName.includes(lowerKeyword)) {
+    // 키워드에서 띄어쓰기 제거 후 소문자 변환
+    const normalizedKeyword = keyword.toLowerCase().trim().replace(/\s+/g, '');
+
+    if (normalizedProductName.includes(normalizedKeyword)) {
       matched.push(keyword);
     }
   }
