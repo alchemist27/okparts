@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebase-admin";
+import { db } from "@/lib/firebase-admin";
+import { doc, getDoc } from "firebase/firestore";
 
 // 내부 토큰 상태 확인용 API
 export async function GET(request: NextRequest) {
@@ -7,12 +8,10 @@ export async function GET(request: NextRequest) {
     const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID || "okayparts";
 
     // Firestore에서 토큰 조회
-    const tokenDoc = await adminDb
-      .collection("cafe24_tokens")
-      .doc(mallId)
-      .get();
+    const tokenRef = doc(db, "cafe24_tokens", mallId);
+    const tokenDoc = await getDoc(tokenRef);
 
-    if (!tokenDoc.exists) {
+    if (!tokenDoc.exists()) {
       return NextResponse.json(
         { error: "토큰이 존재하지 않습니다" },
         { status: 404 }
