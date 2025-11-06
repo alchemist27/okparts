@@ -315,16 +315,17 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // 비밀번호 연속 문자 에러
+      // 비밀번호 형식 에러
       const isPasswordError = errorMessage.includes("Password cannot contain more than four consecutive characters")
-        || errorMessage.includes("parameter.password");
+        || errorMessage.includes("parameter.password")
+        || errorMessage.includes("Password should be");
 
       if (isPasswordError) {
-        console.error("[SIGNUP] 비밀번호 형식 오류 - 연속된 문자 4개 이상 사용");
+        console.error("[SIGNUP] 비밀번호 형식 오류:", errorMessage);
         return NextResponse.json(
           {
             error: "비밀번호 형식이 올바르지 않습니다",
-            details: "비밀번호에 4개 이상 연속된 문자(예: aaaa, 1111)를 사용할 수 없습니다. 다른 비밀번호를 입력해주세요."
+            details: "비밀번호는 영문 소문자와 숫자를 조합하여 10~16자로 입력해주세요. 동일하거나 연속된 문자 4개 이상은 사용할 수 없습니다."
           },
           { status: 400 }
         );

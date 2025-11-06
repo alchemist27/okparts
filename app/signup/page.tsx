@@ -76,6 +76,30 @@ export default function SignupPage() {
       return;
     }
 
+    // 비밀번호 길이 체크
+    if (formData.password.length < 10 || formData.password.length > 16) {
+      setError("비밀번호는 10~16자여야 합니다");
+      return;
+    }
+
+    // 비밀번호 복잡도 체크: 소문자 + 숫자 필수
+    const hasLowerCase = /[a-z]/.test(formData.password);
+    const hasNumber = /[0-9]/.test(formData.password);
+
+    if (!hasLowerCase || !hasNumber) {
+      setError("비밀번호는 영문 소문자와 숫자를 모두 포함해야 합니다");
+      return;
+    }
+
+    // 비밀번호 연속 문자 검증 (4개 이상)
+    const hasConsecutiveChars = /(.)\1{3,}/.test(formData.password); // 같은 문자 4개 이상
+    const hasConsecutiveNumbers = /\d{4,}/.test(formData.password); // 숫자 4개 이상 연속
+
+    if (hasConsecutiveChars || hasConsecutiveNumbers) {
+      setError("비밀번호에 동일한 문자 4개 이상(예: aaaa, 1111) 또는 연속된 숫자 4개 이상(예: 1234, 5678)을 사용할 수 없습니다");
+      return;
+    }
+
     // 사업자회원 유효성 검사
     if (accountType === "business") {
       // 사업자등록번호 형식 검사 (XXX-XX-XXXXX)
@@ -287,7 +311,7 @@ export default function SignupPage() {
                 <label htmlFor="password" style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   비밀번호 *
                   <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
-                    (영문/숫자/특수문자 조합 6자 이상, 연속 문자 4개 이상 금지)
+                    (영문 소문자 + 숫자 조합, 10~16자)
                   </span>
                 </label>
                 <input
@@ -300,12 +324,13 @@ export default function SignupPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   onTouchStart={(e) => e.currentTarget.focus()}
                   style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
-                  placeholder="pass12!@"
+                  placeholder="mypassword135"
                   required
-                  minLength={6}
+                  minLength={10}
+                  maxLength={16}
                 />
                 <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                  ※ 연속된 문자 사용 불가 (예: aaaa, 1111, abcd 등)
+                  ※ 동일/연속 문자 4개 이상 금지 (예: aaaa, 1111, 1234)
                 </p>
               </div>
 
@@ -313,9 +338,6 @@ export default function SignupPage() {
               <div>
                 <label htmlFor="passwordConfirm" style={{ fontSize: '1.125rem', fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>
                   비밀번호 확인 *
-                  <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#3b82f6', marginLeft: '0.5rem' }}>
-                    (위와 동일하게 입력)
-                  </span>
                 </label>
                 <input
                   id="passwordConfirm"
@@ -327,8 +349,10 @@ export default function SignupPage() {
                   onChange={(e) => setFormData({ ...formData, passwordConfirm: e.target.value })}
                   onTouchStart={(e) => e.currentTarget.focus()}
                   style={{ fontSize: '1.125rem', padding: '0.875rem', borderRadius: '8px', WebkitUserSelect: 'text', WebkitTouchCallout: 'default' }}
-                  placeholder="pass1234!@"
+                  placeholder="mypassword135"
                   required
+                  minLength={10}
+                  maxLength={16}
                 />
               </div>
 
