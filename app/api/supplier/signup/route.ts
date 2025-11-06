@@ -234,26 +234,45 @@ export async function POST(request: NextRequest) {
       //   // 계좌 정보 업데이트 실패는 치명적이지 않으므로 계속 진행
       // }
 
-      // 카페24 공급사 사용자 생성
-      console.log("[SIGNUP Step 7] 카페24 공급사 사용자 생성 시작");
+      // 카페24 공급사 사용자 생성 (타임아웃 방지를 위해 별도 timeout 적용)
+      console.log("[SIGNUP Step 7] 카페24 공급사 사용자 생성 시작 (20초 타임아웃)");
 
-      const cafe24UserResponse = await cafe24Client.createSupplierUser(supplierCode, {
-        user_id: userId,
-        user_name: name,
-        password: password, // 원본 비밀번호 사용
-        phone: phone
-      });
+      try {
+        // 사용자 생성 타임아웃 20초로 제한
+        const userCreationPromise = cafe24Client.createSupplierUser(supplierCode, {
+          user_id: userId,
+          user_name: name,
+          password: password,
+          phone: phone
+        });
 
-      console.log("[SIGNUP Step 7] 카페24 사용자 생성 완료, ID:", userId);
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("User creation timeout after 20 seconds")), 20000)
+        );
 
-      // 카페24 공급사 사용자 접속 비밀번호 업데이트
-      console.log("[SIGNUP Step 7-1] 카페24 공급사 사용자 접속 비밀번호 업데이트 시작");
+        await Promise.race([userCreationPromise, timeoutPromise]);
 
-      await cafe24Client.updateSupplierUser(userId, {
-        password: password, // 원본 비밀번호로 접속 비밀번호 설정
-      });
+        console.log("[SIGNUP Step 7] 카페24 사용자 생성 완료, ID:", userId);
 
-      console.log("[SIGNUP Step 7-1] 카페24 사용자 접속 비밀번호 업데이트 완료");
+        // 카페24 공급사 사용자 접속 비밀번호 업데이트
+        console.log("[SIGNUP Step 7-1] 카페24 공급사 사용자 접속 비밀번호 업데이트 시작");
+
+        const passwordUpdatePromise = cafe24Client.updateSupplierUser(userId, {
+          password: password,
+        });
+
+        const passwordTimeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Password update timeout after 20 seconds")), 20000)
+        );
+
+        await Promise.race([passwordUpdatePromise, passwordTimeoutPromise]);
+
+        console.log("[SIGNUP Step 7-1] 카페24 사용자 접속 비밀번호 업데이트 완료");
+      } catch (userError: any) {
+        console.warn("[SIGNUP] 카페24 사용자 생성 실패 (공급사는 생성됨):", userError.message);
+        console.warn("[SIGNUP] 사용자 생성 없이 회원가입 진행");
+        // 사용자 생성 실패해도 공급사는 생성되었으므로 계속 진행
+      }
 
       // Firestore에 카페24 연동 정보 업데이트
       console.log("[SIGNUP Step 8] Firestore에 카페24 연동 정보 업데이트");
