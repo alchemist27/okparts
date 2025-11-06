@@ -26,16 +26,28 @@ function generateProductUrl(params: SmsTemplateParams): string {
   return "https://okparts.com";
 }
 
-// 기본 템플릿 - 신규 상품 알림 (간결 버전)
+// 기본 템플릿 - 신규 상품 알림 (90byte 이내 강제)
 export function getNewProductTemplate(params: SmsTemplateParams): string {
   const keywordText = params.keywords.join(", ");
-  const productUrl = generateProductUrl(params);
+  const prefix = `[OK중고부품] ${keywordText}\n`;
+  const suffix = `\n신규상품`;
 
-  // 최소한의 정보만 포함 (LMS 비용 절감)
-  const message = `[OK중고부품] ${keywordText}
-${params.productName}
-${productUrl}`;
+  // 90byte 제한 계산
+  const maxProductNameBytes = 90 - new Blob([prefix + suffix]).size;
 
+  // 상품명 자르기 (바이트 단위)
+  let productName = params.productName;
+  let productNameBytes = new Blob([productName]).size;
+
+  if (productNameBytes > maxProductNameBytes) {
+    // 바이트가 초과하면 글자 단위로 잘라내기
+    while (new Blob([productName + "..."]).size > maxProductNameBytes && productName.length > 0) {
+      productName = productName.slice(0, -1);
+    }
+    productName = productName + "...";
+  }
+
+  const message = `${prefix}${productName}${suffix}`;
   return message;
 }
 
