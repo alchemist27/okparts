@@ -208,11 +208,13 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
       console.log(`[Webhook Process] 매칭 성공: ${userData.phone} - 키워드: ${matchedKeywords.join(", ")}`);
 
       // 중복 발송 체크
+      console.log(`[Webhook Process] 상품 번호 체크: ${productNo}, last_notified:`, userData.last_notified);
       const alreadySent = userData.last_notified[productNo];
       if (alreadySent) {
         console.log(`[Webhook Process] 건너뛰기: ${userData.phone} (이미 발송됨: ${alreadySent})`);
         continue;
       }
+      console.log(`[Webhook Process] 중복 아님: ${userData.phone} - 발송 진행`);
 
       // 큐에 추가
       sendQueue.push({ userData, matchedKeywords });
