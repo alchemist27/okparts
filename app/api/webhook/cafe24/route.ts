@@ -50,19 +50,52 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
   console.log("\n========== [Webhook Process] 비동기 처리 시작 ==========");
 
   try {
-    // 1. 이벤트 유효성 검증
-    if (payload.event_no !== 90001) {
-      console.log("[Webhook Process] 무시: 상품 등록 이벤트 아님 (event_no:", payload.event_no, ")");
-      return;
-    }
-
     const productNo = String(payload.resource.product_no);
     const productName = payload.resource.product_name;
 
+    console.log("[Webhook Process] 이벤트 번호:", payload.event_no);
     console.log("[Webhook Process] 상품 번호:", productNo);
     console.log("[Webhook Process] 상품명:", productName);
 
-    // 2. 카페24 API 클라이언트 초기화 (SMS 발송용)
+    // 1. 이벤트 타입별 처리
+    if (payload.event_no === 90003) {
+      // 상품 삭제 이벤트
+      console.log("[Webhook Process] 상품 삭제 이벤트 처리");
+
+      // Firestore에서 해당 상품 삭제
+      const { query, where, deleteDoc } = await import("firebase/firestore");
+      const productsRef = collection(db, "products");
+      const q = query(productsRef, where("cafe24ProductNo", "==", productNo));
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        for (const docSnapshot of snapshot.docs) {
+          await deleteDoc(doc(db, "products", docSnapshot.id));
+          console.log(`[Webhook Process] Firestore 상품 삭제: ${docSnapshot.id}`);
+        }
+      } else {
+        console.log("[Webhook Process] Firestore에 해당 상품 없음");
+      }
+
+      return;
+    }
+
+    if (payload.event_no === 90002) {
+      // 상품 수정 이벤트
+      console.log("[Webhook Process] 상품 수정 이벤트 (현재 알림 발송 없음)");
+      // TODO: 필요시 수정 이벤트 처리 추가
+      return;
+    }
+
+    if (payload.event_no !== 90001) {
+      console.log("[Webhook Process] 무시: 처리 대상 이벤트 아님 (event_no:", payload.event_no, ")");
+      return;
+    }
+
+    // 2. 상품 등록 이벤트 처리 (기존 로직)
+    console.log("[Webhook Process] 상품 등록 이벤트 - 알림 발송 시작");
+
+    // 3. 카페24 API 클라이언트 초기화 (SMS 발송용)
     const { Cafe24ApiClient } = await import("@/lib/cafe24");
     const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID;
 
@@ -95,7 +128,7 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
       onTokenRefresh,
     });
 
-    // 3. 모든 사용자 키워드 조회
+    // 4. 모든 사용자 키워드 조회
     console.log("[Webhook Process] 등록된 사용자 키워드 조회 중...");
     const usersRef = collection(db, "users_notifications");
     const usersSnapshot = await getDocs(usersRef);
@@ -107,7 +140,7 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
       return;
     }
 
-    // 4. 키워드 매칭 및 배치 SMS 발송 (최대 100명)
+    // 5. 키워드 매칭 및 배치 SMS 발송 (최대 100명)
     const matchedUsers: Array<{ phone: string; keywords: string[] }> = [];
     const sentPhones: string[] = [];
 
@@ -233,7 +266,7 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
       }
     }
 
-    // 5. 로그 저장
+    // 6. 로그 저장
     const logData: NotificationLog = {
       webhook_event_id: `webhook_${Date.now()}`,
       product_no: productNo,
