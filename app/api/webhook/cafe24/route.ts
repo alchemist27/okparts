@@ -130,21 +130,28 @@ async function processWebhookAsync(payload: Cafe24WebhookPayload) {
     console.log("[Webhook Process] 상품 등록 이벤트 - 알림 발송 시작");
 
     // 3. 카페24 API 클라이언트 초기화 (SMS 발송용)
+    console.log("[Webhook Process] Cafe24 모듈 import 시작");
     const { Cafe24ApiClient } = await import("@/lib/cafe24");
+    console.log("[Webhook Process] Cafe24 모듈 import 성공");
+
     const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID;
+    console.log("[Webhook Process] Mall ID:", mallId);
 
     if (!mallId) {
       throw new Error("Mall ID not configured");
     }
 
+    console.log("[Webhook Process] Firestore에서 설치 정보 조회 중...");
     const installDocRef = doc(db, "installs", mallId);
     const installDoc = await getDoc(installDocRef);
+    console.log("[Webhook Process] 설치 정보 조회 완료, exists:", installDoc.exists());
 
     if (!installDoc.exists()) {
       throw new Error("Cafe24 app not installed");
     }
 
     const installData = installDoc.data();
+    console.log("[Webhook Process] Access Token 존재:", !!installData.accessToken);
 
     const onTokenRefresh = async (newAccessToken: string, newRefreshToken: string, expiresAt: string) => {
       await updateDoc(installDocRef, {
