@@ -26,6 +26,8 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [userId, setUserId] = useState<string>("");
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     // 로그인 확인
@@ -37,10 +39,33 @@ export default function DashboardPage() {
       return;
     }
 
+    // 사용자 정보 가져오기
+    if (supplierData) {
+      try {
+        const supplier = JSON.parse(supplierData);
+        setUserId(supplier.email || supplier.userId || "");
+      } catch (error) {
+        console.error("Failed to parse supplier data:", error);
+      }
+    }
+
+    // 모바일 감지
+    const checkIsMobile = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsMobile(isMobileDevice || (isTouchDevice && window.innerWidth < 768));
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
     // 인증 확인 완료
     setCheckingAuth(false);
 
     loadProducts();
+
+    return () => window.removeEventListener('resize', checkIsMobile);
   }, [router]);
 
   const loadProducts = async () => {
@@ -198,9 +223,55 @@ export default function DashboardPage() {
           width: '100%',
           maxWidth: '600px'
         }}>
-          {/* 페이지 타이틀 */}
+          {/* 제목, 사용자 정보 및 로그아웃 버튼 */}
           <div className="mb-6">
-            <h1 className="hero-title" style={{ fontSize: '1.75rem', margin: 0, marginBottom: '0.5rem' }}>상품 관리</h1>
+            <h1 className="hero-title" style={{ fontSize: '1.75rem', margin: 0, marginBottom: '1rem' }}>상품 관리</h1>
+
+            {/* 사용자 정보 및 로그아웃 버튼 - 모바일 반응형 */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: isMobile ? '0.75rem' : '0'
+            }}>
+              {/* 사용자 정보 */}
+              {userId && (
+                <div style={{
+                  fontSize: '1.125rem',
+                  fontWeight: '700',
+                  color: '#1f2937',
+                  textAlign: isMobile ? 'center' : 'left',
+                  width: isMobile ? '100%' : 'auto'
+                }}>
+                  <span style={{ color: 'var(--primary)' }}>{userId}</span>님 반갑습니다
+                </div>
+              )}
+
+              {/* 로그아웃 버튼 */}
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("supplier");
+                  router.push("/login");
+                }}
+                style={{
+                  fontSize: '1rem',
+                  padding: '0.625rem 1.25rem',
+                  backgroundColor: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  width: isMobile ? '100%' : 'auto',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                로그아웃
+              </button>
+            </div>
           </div>
 
           {/* 에러 메시지 */}
