@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initializeApp, getApps } from "firebase/app";
-import { getFirestore, collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase-admin";
+import { collection, addDoc, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { hashPassword, generateToken } from "@/lib/auth";
 import { SignupRequest, AuthResponse } from "@/types";
 import { Cafe24ApiClient } from "@/lib/cafe24";
-import { doc, getDoc } from "firebase/firestore";
 
 export async function POST(request: NextRequest) {
   console.log("\n========== [SIGNUP] 회원가입 시작 ==========");
