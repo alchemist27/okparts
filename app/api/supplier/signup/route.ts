@@ -66,20 +66,7 @@ export async function POST(request: NextRequest) {
 
     // Firebase 초기화
     console.log("[SIGNUP Step 2] Firebase 초기화");
-    let firestore;
-    if (getApps().length === 0) {
-      const app = initializeApp({
-        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-      });
-      firestore = getFirestore(app);
-    } else {
-      firestore = getFirestore(getApps()[0]);
-    }
+    const firestore = db; // firebase-admin에서 가져온 db 사용
 
     // 아이디 중복 체크
     console.log("[SIGNUP Step 3] 아이디 중복 체크:", userId);
@@ -287,13 +274,19 @@ export async function POST(request: NextRequest) {
       try {
         console.log("[SIGNUP] 카페24 연동 실패로 인한 Firestore 데이터 롤백 시작");
         console.log("[SIGNUP] 삭제할 Firestore 문서 ID:", supplierDoc.id);
+        console.log("[SIGNUP] Firestore 인스턴스 존재:", !!firestore);
+        console.log("[SIGNUP] supplierDoc 존재:", !!supplierDoc);
 
         const { deleteDoc } = await import("firebase/firestore");
-        await deleteDoc(doc(firestore, "suppliers", supplierDoc.id));
+        const docRef = doc(firestore, "suppliers", supplierDoc.id);
+        console.log("[SIGNUP] Document Reference 생성 완료");
 
-        console.log("[SIGNUP] Firestore 데이터 삭제 완료 - 사용자는 동일 아이디로 재시도 가능");
+        await deleteDoc(docRef);
+
+        console.log("[SIGNUP] ✅ Firestore 데이터 삭제 완료 - 사용자는 동일 아이디로 재시도 가능");
       } catch (deleteError: any) {
-        console.error("[SIGNUP] Firestore 데이터 삭제 실패:", deleteError.message);
+        console.error("[SIGNUP] ❌ Firestore 데이터 삭제 실패:", deleteError.message);
+        console.error("[SIGNUP] 에러 스택:", deleteError.stack);
         console.error("[SIGNUP] 경고: 미승인 계정이 Firestore에 남아있을 수 있음 (문서 ID:", supplierDoc.id, ")");
       }
 
