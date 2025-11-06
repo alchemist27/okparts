@@ -4,8 +4,8 @@ import { collection, getDocs, doc, getDoc, updateDoc, addDoc } from "firebase/fi
 import type { UserNotification, NotificationLog } from "@/lib/types/notifications";
 import { getSmsTemplate, checkMessageLength } from "@/lib/sms-templates";
 
-// Promise Queue for sequential webhook processing (Rate Limit 방지)
-let processingQueue = Promise.resolve();
+// Promise Queue 제거 - 서버리스 환경에서 문제 발생 가능
+// let processingQueue = Promise.resolve();
 
 // 카페24 Webhook 페이로드 타입
 interface Cafe24WebhookPayload {
@@ -381,15 +381,13 @@ export async function POST(request: NextRequest) {
     console.log("[Webhook] 즉시 응답 반환 (200 OK)");
     console.log("========== [Webhook] 수신 완료 ==========\n");
 
-    // Promise Queue에 추가하여 순차 처리 (Rate Limit 방지)
-    processingQueue = processingQueue
-      .then(() => {
-        console.log(`[Webhook Queue] 처리 시작: ${payload.resource?.product_no} - ${payload.resource?.product_name}`);
-        return processWebhookAsync(payload);
-      })
-      .catch((error) => {
-        console.error(`[Webhook Queue] 처리 실패: ${payload.resource?.product_no}`, error);
-      });
+    // Queue 제거 - 직접 실행 (서버리스 환경 최적화)
+    console.log(`[Webhook] 처리 시작: ${payload.resource?.product_no} - ${payload.resource?.product_name}`);
+
+    // 비동기로 실행하되 응답은 즉시 반환 (fire-and-forget)
+    processWebhookAsync(payload).catch((error) => {
+      console.error(`[Webhook] 처리 실패: ${payload.resource?.product_no}`, error);
+    });
 
     return response;
   } catch (error: any) {
