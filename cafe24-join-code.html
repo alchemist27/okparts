@@ -1,0 +1,123 @@
+<!--
+  ========================================
+  카페24 회원가입 폼 - localStorage 저장 코드
+  ========================================
+
+  📋 사용 방법:
+  1. 카페24 관리자 > 디자인 편집 > HTML 편집
+  2. join.html 파일 열기
+  3. 파일 맨 끝 (</body> 전)에 아래 코드 복사-붙여넣기
+  4. 저장 후 캐시 초기화
+
+  ⚠️ 주의: 이 코드는 회원가입 폼 제출 시 추가항목을 localStorage에 저장합니다.
+-->
+
+<!-- 판매자 앱 연동: 회원가입 데이터 저장 -->
+<script>
+(function() {
+  console.log('🚀 판매자 앱 연동 스크립트 (join.html)');
+
+  // 회원가입 폼 찾기
+  var joinForm = document.getElementById('joinForm');
+
+  if (!joinForm) {
+    console.log('⚠️ #joinForm을 찾을 수 없음, name 속성으로 재시도');
+    joinForm = document.querySelector('form[name="joinForm"]');
+  }
+
+  if (!joinForm) {
+    console.log('⚠️ form을 찾을 수 없음, action 속성으로 재시도');
+    joinForm = document.querySelector('form[action*="Member/join"]');
+  }
+
+  if (!joinForm) {
+    console.error('❌ 회원가입 폼을 찾을 수 없습니다');
+    return;
+  }
+
+  console.log('✅ 회원가입 폼 찾음:', joinForm.id || joinForm.name || 'unknown');
+
+  // 폼 제출 이벤트 리스너
+  joinForm.addEventListener('submit', function(e) {
+    console.log('📝 회원가입 폼 제출 감지');
+
+    try {
+      // 입력 필드 값 가져오기
+      var memberId = document.getElementById('member_id') || document.querySelector('input[name="member_id"]');
+      var email1 = document.getElementById('email1') || document.querySelector('input[name="email1"]');
+      var email2 = document.getElementById('email2') || document.querySelector('input[name="email2"]') || document.querySelector('select[name="email2"]');
+      var nameField = document.getElementById('name') || document.querySelector('input[name="name"]');
+
+      // 추가항목 (카페24가 자동 생성한 필드)
+      var add1 = document.getElementById('add1') || document.querySelector('input[name="add1"]');
+      var add2 = document.getElementById('add2') || document.querySelector('input[name="add2"]');
+      var add3 = document.getElementById('add3') || document.querySelector('input[name="add3"]');
+
+      // 이메일 조합
+      var email = '';
+      if (email1 && email2) {
+        var email2Value = email2.value;
+        // select 박스인 경우 option value 가져오기
+        if (email2.tagName === 'SELECT') {
+          email2Value = email2.options[email2.selectedIndex].value;
+        }
+        email = email1.value + '@' + email2Value;
+      }
+
+      // 데이터 객체 생성
+      var signupData = {
+        member_id: memberId ? memberId.value : '',
+        email: email,
+        name: nameField ? nameField.value : '',
+        businessNumber: add1 ? add1.value : '',
+        president: add2 ? add2.value : '',
+        phone: add3 ? add3.value : '',
+        timestamp: new Date().toISOString()
+      };
+
+      console.log('📦 저장할 데이터:', signupData);
+
+      // 사업자번호가 있을 때만 localStorage에 저장
+      if (signupData.businessNumber && signupData.businessNumber.trim() !== '') {
+        localStorage.setItem('pendingSellerSignup', JSON.stringify(signupData));
+        console.log('✅ 판매자 가입 정보 localStorage에 저장 완료');
+        console.log('   → 사업자번호:', signupData.businessNumber);
+      } else {
+        console.log('⚠️ 사업자번호 없음 - 일반 고객 가입');
+        // 혹시 이전 데이터가 있으면 삭제
+        localStorage.removeItem('pendingSellerSignup');
+      }
+
+    } catch (error) {
+      console.error('❌ 데이터 저장 중 에러:', error);
+    }
+
+    // 카페24 폼 제출은 정상적으로 진행
+    // (return true 또는 아무것도 하지 않음)
+  });
+
+  console.log('✅ 회원가입 폼 이벤트 리스너 등록 완료');
+})();
+</script>
+
+<!--
+  ========================================
+  설치 완료!
+  ========================================
+
+  ✅ 다음 단계:
+  1. 저장 버튼 클릭
+  2. 캐시 초기화 (카페24 관리자 > 디자인 편집 > 캐시 초기화)
+  3. member_result.html 파일에도 코드 추가
+  4. 테스트 회원가입
+
+  🔍 디버깅:
+  - F12 > Console 탭에서 로그 확인
+  - F12 > Application 탭 > Local Storage 확인
+  - 'pendingSellerSignup' 키에 데이터 저장되는지 확인
+
+  📝 참고:
+  - 이 코드는 회원가입 폼 제출을 방해하지 않습니다
+  - 단순히 데이터를 localStorage에 복사 저장합니다
+  - 회원가입 완료 페이지에서 이 데이터를 사용합니다
+-->

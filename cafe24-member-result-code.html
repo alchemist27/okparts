@@ -1,0 +1,154 @@
+<!--
+  ========================================
+  판매자 앱 자동 연동 코드
+  ========================================
+
+  📋 사용 방법:
+  1. 카페24 관리자 > 디자인 편집 > HTML 편집
+  2. member_result.html 또는 join_result.html 파일 열기
+  3. 파일 맨 끝 (마지막 </div> 또는 </body> 전)에 아래 코드 전체 복사-붙여넣기
+  4. 저장 후 캐시 초기화
+
+  ⚠️ 주의: 이 코드는 okparts.vercel.app 도메인으로 설정되어 있습니다.
+-->
+
+<!-- 판매자 앱 자동 연동 버튼 -->
+<script>
+(function() {
+  console.log('🚀 판매자 앱 연동 스크립트 시작 (okparts.vercel.app)');
+
+  // 회원 정보
+  var memberInfo = {
+    member_id: '{$member_id}',
+    member_name: '{$member_name}',
+    email: '{$member_email}'
+  };
+
+  console.log('📋 회원 정보:', memberInfo);
+
+  // 회원 정보 유효성 검사
+  if (!memberInfo.member_id || memberInfo.member_id.trim() === '' || memberInfo.member_id.includes('{$')) {
+    console.log('⚠️ 회원 정보 없음 - 종료');
+    return;
+  }
+
+  // 버튼을 추가할 위치 찾기
+  var targetElement = document.querySelector('.ec-base-button.gBottom');
+
+  if (!targetElement) {
+    console.log('⚠️ .gBottom을 찾을 수 없음, 대체 위치 시도');
+    targetElement = document.querySelector('.joinComplete');
+  }
+
+  if (!targetElement) {
+    console.log('⚠️ .joinComplete을 찾을 수 없음, 대체 위치 시도');
+    targetElement = document.querySelector('.memberArea');
+  }
+
+  if (!targetElement) {
+    console.error('❌ 버튼 삽입 위치를 찾을 수 없습니다');
+    return;
+  }
+
+  console.log('✅ 버튼 삽입 위치 확인:', targetElement.className);
+
+  // 판매자 앱 섹션 생성
+  var sellerSection = document.createElement('div');
+  sellerSection.id = 'seller-app-section';
+  sellerSection.style.cssText = 'margin-top: 30px; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);';
+
+  // 모바일 대응
+  if (window.innerWidth <= 768) {
+    sellerSection.style.padding = '20px';
+  }
+
+  // 제목
+  var title = document.createElement('h3');
+  title.style.cssText = 'color: white; font-size: 22px; margin-bottom: 10px; font-weight: bold; margin-top: 0;';
+  if (window.innerWidth <= 768) {
+    title.style.fontSize = '18px';
+  }
+  title.textContent = '사업자 회원이신가요?';
+
+  // 설명
+  var description = document.createElement('p');
+  description.style.cssText = 'color: rgba(255,255,255,0.95); font-size: 16px; margin-bottom: 20px; line-height: 1.6; margin-top: 0;';
+  if (window.innerWidth <= 768) {
+    description.style.fontSize = '14px';
+  }
+  description.innerHTML = '<strong>' + memberInfo.member_name + '</strong> 님,<br/>판매자 앱에서 상품을 등록하고 판매를 시작할 수 있습니다';
+
+  // 버튼 생성
+  var loginBtn = document.createElement('a');
+
+  // ✅ okparts.vercel.app 도메인 적용
+  var targetUrl = 'https://okparts.vercel.app/api/signup-redirect?' +
+                  'member_id=' + encodeURIComponent(memberInfo.member_id) +
+                  '&email=' + encodeURIComponent(memberInfo.email);
+
+  console.log('🔗 리디렉션 URL:', targetUrl);
+
+  loginBtn.href = targetUrl;
+  loginBtn.style.cssText = 'display: inline-block; padding: 16px 50px; background: white; color: #667eea; ' +
+                          'text-decoration: none; border-radius: 30px; font-size: 18px; font-weight: bold; ' +
+                          'box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s; margin-top: 10px;';
+  if (window.innerWidth <= 768) {
+    loginBtn.style.fontSize = '16px';
+    loginBtn.style.padding = '14px 30px';
+  }
+  loginBtn.textContent = '판매자 앱 확인하기 →';
+
+  // 호버 효과
+  loginBtn.onmouseover = function() {
+    this.style.transform = 'translateY(-2px)';
+    this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)';
+  };
+  loginBtn.onmouseout = function() {
+    this.style.transform = 'translateY(0)';
+    this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+  };
+
+  // 안내 문구
+  var note = document.createElement('p');
+  note.style.cssText = 'color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 15px; margin-bottom: 0;';
+  if (window.innerWidth <= 768) {
+    note.style.fontSize = '12px';
+  }
+  note.textContent = '사업자가 아니신 경우 무시하셔도 됩니다';
+
+  // 조립
+  sellerSection.appendChild(title);
+  sellerSection.appendChild(description);
+  sellerSection.appendChild(loginBtn);
+  sellerSection.appendChild(note);
+
+  // DOM에 삽입
+  if (targetElement.parentNode) {
+    targetElement.parentNode.insertBefore(sellerSection, targetElement.nextSibling);
+  } else {
+    document.body.appendChild(sellerSection);
+  }
+
+  console.log('✅ 판매자 앱 버튼 추가 완료 (okparts.vercel.app)');
+})();
+</script>
+
+<!--
+  ========================================
+  설치 완료!
+  ========================================
+
+  ✅ 다음 단계:
+  1. 저장 버튼 클릭
+  2. 캐시 초기화 (카페24 관리자 > 디자인 편집 > 캐시 초기화)
+  3. 테스트 회원가입
+  4. F12 Console에서 로그 확인
+
+  🔍 디버깅:
+  - Console 로그 확인: F12 > Console 탭
+  - 버튼이 안 보이면: 캐시 삭제 후 새로고침 (Ctrl+Shift+R)
+
+  📞 문제 발생 시:
+  - Console에 에러 메시지 확인
+  - Network 탭에서 리디렉션 확인
+-->

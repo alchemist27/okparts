@@ -13,7 +13,51 @@ export default function LoginPage() {
 
   // 자동 로그인 체크
   useEffect(() => {
-    const checkAutoLogin = () => {
+    const checkAutoLogin = async () => {
+      // URL에서 token 파라미터 확인 (카페24 Webhook 자동가입)
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlToken = searchParams.get("token");
+
+      if (urlToken) {
+        console.log("[Auto Login] URL 토큰 발견, 자동 로그인 시도");
+        try {
+          // JWT 토큰 디코드 (검증은 서버에서)
+          const payload = JSON.parse(atob(urlToken.split('.')[1]));
+          console.log("[Auto Login] 토큰 페이로드:", payload);
+
+          // 토큰으로 사용자 정보 가져오기
+          const response = await fetch("/api/supplier/me", {
+            headers: {
+              Authorization: `Bearer ${urlToken}`,
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+
+            // localStorage에 저장
+            localStorage.setItem("token", urlToken);
+            localStorage.setItem("supplier", JSON.stringify(data.supplier));
+
+            console.log("[Auto Login] 자동 로그인 성공, 대시보드로 이동");
+
+            // URL에서 token 파라미터 제거
+            window.history.replaceState({}, document.title, "/dashboard");
+            router.push("/dashboard");
+            return;
+          } else {
+            console.error("[Auto Login] 토큰 검증 실패");
+            setError("자동 로그인에 실패했습니다. 다시 로그인해주세요.");
+          }
+        } catch (err: any) {
+          console.error("[Auto Login] 에러:", err);
+          setError("자동 로그인 처리 중 오류가 발생했습니다.");
+        }
+        setCheckingAuth(false);
+        return;
+      }
+
+      // 기존 localStorage 토큰 확인
       const token = localStorage.getItem("token");
       const supplier = localStorage.getItem("supplier");
 

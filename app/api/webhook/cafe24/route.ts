@@ -7,7 +7,7 @@ import { getSmsTemplate, checkMessageLength } from "@/lib/sms-templates";
 // Promise Queue 제거 - 서버리스 환경에서 문제 발생 가능
 // let processingQueue = Promise.resolve();
 
-// 카페24 Webhook 페이로드 타입
+// 카페24 Webhook 페이로드 타입 - 상품 이벤트
 interface Cafe24WebhookPayload {
   event_no: number; // 이벤트 번호 (90001 = 상품 등록)
   resource: {
@@ -23,6 +23,25 @@ interface Cafe24WebhookPayload {
     price: string;
     category_no: string;
     // ... 기타 필드들
+  };
+}
+
+// 카페24 Webhook 페이로드 타입 - 고객가입 이벤트 (90032)
+interface Cafe24CustomerSignupPayload {
+  event_no: number; // 90032
+  resource: {
+    mall_id: string;
+    shop_no: string;
+    member_id: string;
+    email: string;
+    name: string;
+    customer_id: number;
+    created_date: string;
+    member_authentication?: string;
+    extra_1?: string; // 사업자번호
+    extra_2?: string; // 사업자대표
+    extra_3?: string; // 연락처
+    [key: string]: any; // 기타 필드
   };
 }
 
@@ -42,6 +61,174 @@ function matchKeywords(productName: string, keywords: string[]): string[] {
   }
 
   return matched;
+}
+
+// userId 생성 함수 (영문 소문자 + 숫자만)
+function sanitizeUserId(input: string): string {
+  // @ 있으면 @ 앞부분만 사용, 없으면 전체 사용
+  const baseId = input.includes('@') ? input.split('@')[0] : input;
+  // 영문 소문자 + 숫자만 남김
+  return baseId.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// 랜덤 비밀번호 생성 (10~16자, 영문소문자+숫자)
+function generateRandomPassword(): string {
+  const letters = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+
+  let password = '';
+  // 7자리 영문소문자
+  for (let i = 0; i < 7; i++) {
+    password += letters[Math.floor(Math.random() * letters.length)];
+  }
+  // 5자리 숫자
+  for (let i = 0; i < 5; i++) {
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+  }
+
+  // 섞기
+  password = password.split('').sort(() => Math.random() - 0.5).join('');
+
+  return password;
+}
+
+// 고객가입 Webhook 처리 함수
+async function processCustomerSignupAsync(payload: Cafe24CustomerSignupPayload) {
+  const startTime = Date.now();
+  console.log("\n========== [Customer Signup] 고객가입 Webhook 처리 시작 ==========");
+
+  try {
+    const customer = payload.resource;
+    console.log("[Customer Signup] 고객 정보:", {
+      member_id: customer.member_id,
+      email: customer.email,
+      name: customer.name,
+      extra_1: customer.extra_1, // 사업자번호
+      extra_2: customer.extra_2, // 사업자대표
+      extra_3: customer.extra_3, // 연락처
+    });
+
+    // 1. 판매자 등록 여부 확인 (사업자번호가 있으면 판매자)
+    const businessNumber = customer.extra_1;
+    const isSellerSignup = businessNumber && businessNumber.trim().length > 0;
+
+    if (!isSellerSignup) {
+      console.log("[Customer Signup] 건너뛰기: 사업자번호 없음 (일반 고객)");
+      return;
+    }
+
+    console.log("[Customer Signup] 사업자번호 확인 완료, 판매자 자동 가입 진행");
+
+    // 2. userId 생성 (email 또는 member_id 기반)
+    const userId = sanitizeUserId(customer.email || customer.member_id);
+    if (userId.length < 4) {
+      throw new Error(`생성된 userId가 너무 짧습니다: ${userId}`);
+    }
+
+    console.log("[Customer Signup] userId 생성:", userId);
+
+    // 3. 이메일 중복 체크
+    const { query, where, getDocs } = await import("firebase/firestore");
+    const suppliersRef = collection(db, "suppliers");
+    const emailQuery = query(suppliersRef, where("userId", "==", userId));
+    const existingSuppliers = await getDocs(emailQuery);
+
+    if (!existingSuppliers.empty) {
+      console.log("[Customer Signup] 건너뛰기: 이미 존재하는 계정 (userId:", userId, ")");
+      return;
+    }
+
+    // 4. 랜덤 비밀번호 생성
+    const randomPassword = generateRandomPassword();
+    console.log("[Customer Signup] 랜덤 비밀번호 생성 완료");
+
+    // 5. 필드 매핑
+    // extra_1: 사업자번호
+    // extra_2: 사업자대표
+    // extra_3: 연락처
+    const accountType = "business"; // 사업자번호 있으면 무조건 사업자회원
+    const companyName = customer.name || ""; // 회사명
+    const presidentName = customer.extra_2 || customer.name; // 사업자대표
+    const phone = customer.extra_3 || ""; // 연락처
+
+    console.log("[Customer Signup] 계정 타입:", accountType);
+    console.log("[Customer Signup] 회사명:", companyName);
+    console.log("[Customer Signup] 사업자번호:", businessNumber);
+
+    // 6. 비밀번호 해시
+    const { hashPassword } = await import("@/lib/auth");
+    const hashedPassword = await hashPassword(randomPassword);
+
+    // 7. Firestore에 계정 생성
+    const supplierData = {
+      accountType,
+      userId,
+      password: hashedPassword,
+      companyName,
+      name: presidentName, // 사업자대표
+      phone,
+      businessNumber: businessNumber, // 사업자번호
+      presidentName: presidentName, // 사업자대표
+      commission: "0.00",
+      status: "active",
+      cafe24SupplierNo: null, // 백그라운드에서 생성 예정
+      cafe24UserId: null,
+      cafe24UserStatus: "not_started",
+      cafe24UserRetryCount: 0,
+      cafe24UserLastAttempt: null,
+      cafe24UserPassword: randomPassword,
+      cafe24CustomerNo: String(customer.customer_id),
+      signupSource: "cafe24_webhook", // 가입 경로
+      createdAt: new Date().toISOString(),
+    };
+
+    const supplierDoc = await addDoc(suppliersRef, supplierData);
+    console.log("[Customer Signup] Firestore 계정 생성 완료, ID:", supplierDoc.id);
+
+    // 8. JWT 토큰 생성
+    const { generateToken } = await import("@/lib/auth");
+    const token = generateToken({
+      supplierId: supplierDoc.id,
+      email: userId,
+    });
+
+    console.log("[Customer Signup] JWT 토큰 생성 완료");
+
+    // 9. 로그인 URL 생성
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const loginUrl = `${baseUrl}/login?token=${token}`;
+
+    console.log("[Customer Signup] 자동 로그인 URL:", loginUrl);
+
+    // 10. 로그인 정보를 Firestore에 저장 (나중에 이메일/SMS 발송용)
+    await updateDoc(doc(db, "suppliers", supplierDoc.id), {
+      autoLoginToken: token,
+      autoLoginUrl: loginUrl,
+      autoLoginTokenCreatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    // TODO: 이메일 또는 SMS로 로그인 정보 발송
+    // - 로그인 URL
+    // - 임시 비밀번호 (또는 비밀번호 재설정 링크)
+    console.log("[Customer Signup] 📧 TODO: 이메일 발송 필요");
+    console.log(`  - 수신자: ${customer.email}`);
+    console.log(`  - 로그인 URL: ${loginUrl}`);
+    console.log(`  - 임시 비밀번호: ${randomPassword}`);
+
+    const elapsed = Date.now() - startTime;
+    console.log(`[Customer Signup] 처리 완료: ${elapsed}ms`);
+    console.log("========== [Customer Signup] 처리 완료 ==========\n");
+
+  } catch (error: any) {
+    const elapsed = Date.now() - startTime;
+    console.error("\n========== [Customer Signup] 처리 실패 ==========");
+    console.error("[Customer Signup] 에러 메시지:", error.message);
+    console.error("[Customer Signup] 에러 스택:", error.stack);
+    console.error(`[Customer Signup] 실패 시간: ${elapsed}ms`);
+    console.error("=================================================\n");
+    throw error;
+  }
 }
 
 // 비동기 Webhook 처리 함수
@@ -369,30 +556,59 @@ export async function POST(request: NextRequest) {
 
   try {
     // Webhook 페이로드 파싱
-    const payload: Cafe24WebhookPayload = await request.json();
+    const payload: any = await request.json();
 
     console.log("[Webhook] 수신 데이터:", {
       event_no: payload.event_no,
-      product_no: payload.resource?.product_no,
-      product_name: payload.resource?.product_name,
+      resource_type: payload.resource?.product_no ? 'product' : (payload.resource?.member_id ? 'customer' : 'unknown'),
     });
 
+    // 이벤트 타입별 처리
+    let processingPromise: Promise<void>;
+
+    if (payload.event_no === 90032) {
+      // 고객가입 이벤트
+      console.log("[Webhook] 이벤트 타입: 고객가입 (90032)");
+      console.log("[Webhook] 고객 정보:", {
+        member_id: payload.resource?.member_id,
+        email: payload.resource?.email,
+        extra_1: payload.resource?.extra_1,
+      });
+      processingPromise = processCustomerSignupAsync(payload as Cafe24CustomerSignupPayload);
+    } else if ([90001, 90002, 90003].includes(payload.event_no)) {
+      // 상품 이벤트
+      console.log("[Webhook] 이벤트 타입: 상품 이벤트 (", payload.event_no, ")");
+      console.log("[Webhook] 상품 정보:", {
+        product_no: payload.resource?.product_no,
+        product_name: payload.resource?.product_name,
+      });
+      processingPromise = processWebhookAsync(payload as Cafe24WebhookPayload);
+    } else {
+      console.log("[Webhook] 알 수 없는 이벤트 타입:", payload.event_no);
+      return NextResponse.json(
+        {
+          received: true,
+          event_no: payload.event_no,
+          message: "Unsupported event type",
+        },
+        { status: 200 }
+      );
+    }
+
     // 즉시 200 OK 반환 (카페24 Webhook 신뢰성 확보)
-    // 실제 처리는 백그라운드에서 비동기로 수행
     const response = NextResponse.json(
       {
         received: true,
         event_no: payload.event_no,
-        product_no: payload.resource?.product_no,
       },
       { status: 200 }
     );
 
     // 백그라운드 처리 시작 (응답 전에 실행)
-    console.log(`[Webhook] 처리 시작: ${payload.resource?.product_no} - ${payload.resource?.product_name}`);
+    console.log("[Webhook] 처리 시작...");
 
     // 처리 완료 대기
-    await processWebhookAsync(payload);
+    await processingPromise;
 
     console.log("[Webhook] 처리 완료, 응답 반환");
     console.log("========== [Webhook] 수신 완료 ==========\n");

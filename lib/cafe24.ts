@@ -505,6 +505,54 @@ export class Cafe24ApiClient {
     console.log(`[Cafe24 API] SMS 발송 완료: 총 ${results.length}개 배치`);
     return results;
   }
+
+  // 고객 조회 (회원가입 후 리디렉션 처리용)
+  async getCustomers(params?: {
+    member_id?: string;
+    email?: string;
+    customer_id?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<any[]> {
+    console.log("[Cafe24 API] 고객 조회", params);
+
+    // 쿼리 파라미터 구성
+    const queryParams = new URLSearchParams();
+
+    if (params?.member_id) {
+      queryParams.append("member_id", params.member_id);
+    }
+    if (params?.email) {
+      queryParams.append("email", params.email);
+    }
+    if (params?.customer_id) {
+      queryParams.append("customer_id", params.customer_id);
+    }
+    if (params?.limit) {
+      queryParams.append("limit", String(params.limit));
+    }
+    if (params?.offset) {
+      queryParams.append("offset", String(params.offset));
+    }
+
+    const query = queryParams.toString();
+    const endpoint = `/admin/customers${query ? `?${query}` : ""}`;
+
+    const response = await this.request<{ customers: any[] }>("GET", endpoint);
+    return response.customers || [];
+  }
+
+  // 특정 고객 상세 조회
+  async getCustomer(memberId: string): Promise<any> {
+    console.log("[Cafe24 API] 고객 상세 조회:", memberId);
+
+    const response = await this.request<{ customer: any }>(
+      "GET",
+      `/admin/customers/${memberId}`
+    );
+
+    return response.customer;
+  }
 }
 
 // OAuth helper functions
@@ -527,6 +575,7 @@ export function getOAuthUrl(
     "mall.write_notification",
     "mall.read_collection",
     "mall.read_promotion",
+    // "mall.read_customer", // 고객 조회 권한 (방법1 사용 시 불필요)
   ].join(",");
 
   return `https://${mallId}.cafe24api.com/api/v2/oauth/authorize?response_type=code&client_id=${clientId}&state=${state}&redirect_uri=${encodeURIComponent(
