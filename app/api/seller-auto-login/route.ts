@@ -67,7 +67,12 @@ export async function GET(request: NextRequest) {
       return baseId.toLowerCase().replace(/[^a-z0-9]/g, '');
     };
 
-    const userId = sanitizeUserId(email || memberId);
+    const userIdInput = email || memberId;
+    if (!userIdInput) {
+      throw new Error("이메일 또는 회원 ID가 필요합니다");
+    }
+
+    const userId = sanitizeUserId(userIdInput);
     if (userId.length < 4) {
       throw new Error(`생성된 userId가 너무 짧습니다: ${userId}`);
     }
