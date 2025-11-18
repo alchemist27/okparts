@@ -1,6 +1,7 @@
 // Supplier types
 export interface Supplier {
   id: string;
+  userId?: string; // 로그인 아이디
   email: string;
   companyName: string;
   phone: string;
