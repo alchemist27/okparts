@@ -56,24 +56,48 @@ export async function GET(request: NextRequest) {
       name: companyName,
     };
 
-    console.log("[Signup Redirect] 추출된 정보:", {
+    console.log("[Signup Redirect] 원본 추출 정보:", {
       business_number: businessNumber,
       president_name: presidentName,
       phone: phone,
     });
 
-    // 판매자 등록 여부 확인 (사업자번호가 있으면 판매자)
-    const isSellerSignup = businessNumber && businessNumber.trim().length > 0;
+    // 회원 유형 결정 (사업자번호가 있으면 사업자회원, 없으면 개인회원)
+    const accountType = (businessNumber && businessNumber.trim().length > 0) ? "business" : "individual";
 
-    if (!isSellerSignup) {
-      console.log("[Signup Redirect] 사업자번호 없음, 일반 고객으로 간주");
-      // 일반 고객 - 쇼핑몰 메인으로 리디렉션
-      const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID;
-      const shopUrl = `https://${mallId}.cafe24.com`;
-      return NextResponse.redirect(shopUrl);
+    // 사업자회원인데 추가정보 중 하나라도 비어있으면 더미 데이터로 채우기
+    if (accountType === "business") {
+      let needsDummyData = false;
+
+      if (!businessNumber || businessNumber.trim() === "") {
+        businessNumber = "682-35-01496"; // 더미 사업자번호
+        needsDummyData = true;
+      }
+      if (!presidentName || presidentName.trim() === "") {
+        presidentName = companyName || "대표자"; // 회사명 또는 기본값
+        needsDummyData = true;
+      }
+      if (!phone || phone.trim() === "") {
+        phone = "010-0000-0000"; // 더미 연락처
+        needsDummyData = true;
+      }
+
+      if (needsDummyData) {
+        console.log("[Signup Redirect] ⚠️ 추가정보 일부 누락 - 더미 데이터로 보완");
+        console.log("[Signup Redirect] 보완된 정보:", {
+          businessNumber,
+          presidentName,
+          phone,
+        });
+      }
     }
 
-    console.log("[Signup Redirect] 사업자번호 확인 완료, 판매자 자동 가입 진행");
+    console.log("[Signup Redirect] 회원 유형:", accountType);
+    if (accountType === "business") {
+      console.log("[Signup Redirect] 사업자 판매자로 가입 진행");
+    } else {
+      console.log("[Signup Redirect] 개인 판매자로 가입 진행");
+    }
 
     // userId 생성 (영문 소문자 + 숫자만)
     const sanitizeUserId = (input: string): string => {
@@ -126,8 +150,7 @@ export async function GET(request: NextRequest) {
     // businessNumber: 사업자번호
     // presidentName: 사업자대표
     // phone: 연락처
-    // companyName: 회사명
-    const accountType = "business"; // 사업자번호 있으면 무조건 사업자회원
+    // companyName: 회사명 또는 개인명
 
     // 비밀번호 해시
     const hashedPassword = await hashPassword(randomPassword);
@@ -137,11 +160,11 @@ export async function GET(request: NextRequest) {
       accountType,
       userId,
       password: hashedPassword,
-      companyName,
-      name: presidentName, // 사업자대표
-      phone,
-      businessNumber: businessNumber, // 사업자번호
-      presidentName: presidentName, // 사업자대표
+      companyName: accountType === "individual" ? companyName : companyName,
+      name: accountType === "individual" ? companyName : presidentName, // 개인회원: 개인명, 사업자회원: 대표자명
+      phone: phone || "",
+      businessNumber: accountType === "business" ? businessNumber : null,
+      presidentName: accountType === "business" ? presidentName : null,
       commission: "0.00",
       status: "active",
       cafe24SupplierNo: null,

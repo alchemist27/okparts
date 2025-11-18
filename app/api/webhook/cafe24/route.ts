@@ -108,16 +108,16 @@ async function processCustomerSignupAsync(payload: Cafe24CustomerSignupPayload) 
       extra_3: customer.extra_3, // 연락처
     });
 
-    // 1. 판매자 등록 여부 확인 (사업자번호가 있으면 판매자)
-    const businessNumber = customer.extra_1;
-    const isSellerSignup = businessNumber && businessNumber.trim().length > 0;
+    // 1. 회원 유형 결정 (사업자번호가 있으면 사업자회원, 없으면 개인회원)
+    let businessNumber = customer.extra_1;
+    const accountType = (businessNumber && businessNumber.trim().length > 0) ? "business" : "individual";
 
-    if (!isSellerSignup) {
-      console.log("[Customer Signup] 건너뛰기: 사업자번호 없음 (일반 고객)");
-      return;
+    console.log("[Customer Signup] 회원 유형:", accountType);
+    if (accountType === "business") {
+      console.log("[Customer Signup] 사업자 판매자로 가입 진행");
+    } else {
+      console.log("[Customer Signup] 개인 판매자로 가입 진행");
     }
-
-    console.log("[Customer Signup] 사업자번호 확인 완료, 판매자 자동 가입 진행");
 
     // 2. userId 생성 (email 또는 member_id 기반)
     const userId = sanitizeUserId(customer.email || customer.member_id);
@@ -146,14 +146,44 @@ async function processCustomerSignupAsync(payload: Cafe24CustomerSignupPayload) 
     // extra_1: 사업자번호
     // extra_2: 사업자대표
     // extra_3: 연락처
-    const accountType = "business"; // 사업자번호 있으면 무조건 사업자회원
-    const companyName = customer.name || ""; // 회사명
-    const presidentName = customer.extra_2 || customer.name; // 사업자대표
-    const phone = customer.extra_3 || ""; // 연락처
+    const companyName = customer.name || ""; // 회사명 또는 개인명
+    let presidentName = customer.extra_2 || customer.name; // 사업자대표
+    let phone = customer.extra_3 || ""; // 연락처
 
-    console.log("[Customer Signup] 계정 타입:", accountType);
-    console.log("[Customer Signup] 회사명:", companyName);
-    console.log("[Customer Signup] 사업자번호:", businessNumber);
+    console.log("[Customer Signup] 원본 정보:", {
+      accountType,
+      companyName,
+      businessNumber,
+      presidentName,
+      phone,
+    });
+
+    // 사업자회원인데 추가정보 중 하나라도 비어있으면 더미 데이터로 채우기
+    if (accountType === "business") {
+      let needsDummyData = false;
+
+      if (!businessNumber || businessNumber.trim() === "") {
+        businessNumber = "682-35-01496"; // 더미 사업자번호
+        needsDummyData = true;
+      }
+      if (!presidentName || presidentName.trim() === "") {
+        presidentName = companyName || "대표자"; // 회사명 또는 기본값
+        needsDummyData = true;
+      }
+      if (!phone || phone.trim() === "") {
+        phone = "010-0000-0000"; // 더미 연락처
+        needsDummyData = true;
+      }
+
+      if (needsDummyData) {
+        console.log("[Customer Signup] ⚠️ 추가정보 일부 누락 - 더미 데이터로 보완");
+        console.log("[Customer Signup] 보완된 정보:", {
+          businessNumber,
+          presidentName,
+          phone,
+        });
+      }
+    }
 
     // 6. 비밀번호 해시
     const { hashPassword } = await import("@/lib/auth");
@@ -164,11 +194,11 @@ async function processCustomerSignupAsync(payload: Cafe24CustomerSignupPayload) 
       accountType,
       userId,
       password: hashedPassword,
-      companyName,
-      name: presidentName, // 사업자대표
+      companyName: accountType === "individual" ? companyName : companyName,
+      name: accountType === "individual" ? companyName : presidentName, // 개인회원: 개인명, 사업자회원: 대표자명
       phone,
-      businessNumber: businessNumber, // 사업자번호
-      presidentName: presidentName, // 사업자대표
+      businessNumber: accountType === "business" ? businessNumber : null,
+      presidentName: accountType === "business" ? presidentName : null,
       commission: "0.00",
       status: "active",
       cafe24SupplierNo: null, // 백그라운드에서 생성 예정

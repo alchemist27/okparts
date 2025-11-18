@@ -36,30 +36,54 @@ export async function GET(request: NextRequest) {
     }
 
     // 사업자 정보 추출
-    const businessNumber = extraFromUrl.extra_1;
-    const presidentName = extraFromUrl.extra_2;
-    const phone = extraFromUrl.extra_3;
+    let businessNumber = extraFromUrl.extra_1;
+    let presidentName = extraFromUrl.extra_2;
+    let phone = extraFromUrl.extra_3;
     const companyName = name || memberId || email?.split('@')[0] || ""; // 회사명은 name 우선 사용
 
-    console.log("[Seller Auto Login] 추출된 정보:", {
+    console.log("[Seller Auto Login] 원본 추출 정보:", {
       business_number: businessNumber,
       president_name: presidentName,
       phone: phone,
       company_name: companyName,
     });
 
-    // 판매자 등록 여부 확인 (사업자번호가 있으면 판매자)
-    const isSellerSignup = businessNumber && businessNumber.trim().length > 0;
+    // 회원 유형 결정 (사업자번호가 있으면 사업자회원, 없으면 개인회원)
+    const accountType = (businessNumber && businessNumber.trim().length > 0) ? "business" : "individual";
 
-    if (!isSellerSignup) {
-      console.log("[Seller Auto Login] 사업자번호 없음, 일반 고객으로 간주");
-      // 일반 고객 - 쇼핑몰 메인으로 리디렉션
-      const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID;
-      const shopUrl = `https://${mallId}.cafe24.com`;
-      return NextResponse.redirect(shopUrl);
+    // 사업자회원인데 추가정보 중 하나라도 비어있으면 더미 데이터로 채우기
+    if (accountType === "business") {
+      let needsDummyData = false;
+
+      if (!businessNumber || businessNumber.trim() === "") {
+        businessNumber = "682-35-01496"; // 더미 사업자번호
+        needsDummyData = true;
+      }
+      if (!presidentName || presidentName.trim() === "") {
+        presidentName = companyName || "대표자"; // 회사명 또는 기본값
+        needsDummyData = true;
+      }
+      if (!phone || phone.trim() === "") {
+        phone = "010-0000-0000"; // 더미 연락처
+        needsDummyData = true;
+      }
+
+      if (needsDummyData) {
+        console.log("[Seller Auto Login] ⚠️ 추가정보 일부 누락 - 더미 데이터로 보완");
+        console.log("[Seller Auto Login] 보완된 정보:", {
+          business_number: businessNumber,
+          president_name: presidentName,
+          phone: phone,
+        });
+      }
     }
 
-    console.log("[Seller Auto Login] 사업자번호 확인 완료");
+    console.log("[Seller Auto Login] 회원 유형:", accountType);
+    if (accountType === "business") {
+      console.log("[Seller Auto Login] 사업자 판매자로 가입 진행");
+    } else {
+      console.log("[Seller Auto Login] 개인 판매자로 가입 진행");
+    }
 
     // userId 생성 (영문 소문자 + 숫자만)
     const sanitizeUserId = (input: string): string => {
@@ -119,8 +143,6 @@ export async function GET(request: NextRequest) {
     const randomPassword = generateRandomPassword();
     console.log("[Seller Auto Login] 랜덤 비밀번호 생성 완료");
 
-    const accountType = "business"; // 사업자번호 있으면 무조건 사업자회원
-
     // 비밀번호 해시
     const hashedPassword = await hashPassword(randomPassword);
 
@@ -129,11 +151,11 @@ export async function GET(request: NextRequest) {
       accountType,
       userId,
       password: hashedPassword,
-      companyName,
-      name: presidentName || name, // 사업자대표 또는 name
-      phone,
-      businessNumber: businessNumber, // 사업자번호
-      presidentName: presidentName || name, // 사업자대표
+      companyName: accountType === "individual" ? name : companyName,
+      name: accountType === "individual" ? name : (presidentName || name), // 개인회원: name, 사업자회원: 대표자명
+      phone: phone || "",
+      businessNumber: accountType === "business" ? businessNumber : null,
+      presidentName: accountType === "business" ? (presidentName || name) : null,
       commission: "0.00",
       status: "active",
       cafe24SupplierNo: null,
@@ -192,7 +214,7 @@ export async function GET(request: NextRequest) {
 
       // 카페24 공급사 생성 데이터
       const cafe24SupplierData: any = {
-        supplier_name: companyName,
+        supplier_name: accountType === "individual" ? name : companyName,
         use_supplier: "T",
         trading_type: "C",
         supplier_type: "BS",
@@ -204,22 +226,24 @@ export async function GET(request: NextRequest) {
         payment_method: "30",
         payment_start_date: 9,
         payment_end_date: 30,
-        phone: phone,
+        phone: phone || "",
         country_code: "KOR",
         zipcode: "00000",
         address1: "주소 미입력",
         address2: "",
         manager_information: [{
           no: 1,
-          name: presidentName || name,
-          phone: phone
+          name: accountType === "individual" ? name : (presidentName || name),
+          phone: phone || ""
         }]
       };
 
-      // 사업자회원 추가 정보
-      cafe24SupplierData.company_registration_no = businessNumber;
-      cafe24SupplierData.company_name = companyName;
-      cafe24SupplierData.president_name = presidentName || name;
+      // 사업자회원만 추가 정보
+      if (accountType === "business") {
+        cafe24SupplierData.company_registration_no = businessNumber;
+        cafe24SupplierData.company_name = companyName;
+        cafe24SupplierData.president_name = presidentName || name;
+      }
 
       console.log("[Seller Auto Login] 카페24 공급사 생성 요청:", {
         supplier_name: cafe24SupplierData.supplier_name,
