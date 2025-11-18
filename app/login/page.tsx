@@ -20,6 +20,12 @@ export default function LoginPage() {
 
       if (urlToken) {
         console.log("[Auto Login] URL 토큰 발견, 자동 로그인 시도");
+
+        // 기존 localStorage 데이터 삭제 (다른 계정으로 로그인 중일 수 있음)
+        console.log("[Auto Login] 기존 localStorage 데이터 삭제");
+        localStorage.removeItem("token");
+        localStorage.removeItem("supplier");
+
         try {
           // JWT 토큰 디코드 (검증은 서버에서)
           const payload = JSON.parse(atob(urlToken.split('.')[1]));
@@ -40,6 +46,7 @@ export default function LoginPage() {
             localStorage.setItem("supplier", JSON.stringify(data.supplier));
 
             console.log("[Auto Login] 자동 로그인 성공, 대시보드로 이동");
+            console.log("[Auto Login] 로그인된 계정:", data.supplier.userId || data.supplier.email);
 
             // URL에서 token 파라미터 제거
             window.history.replaceState({}, document.title, "/dashboard");
