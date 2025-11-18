@@ -119,13 +119,14 @@ async function processCustomerSignupAsync(payload: Cafe24CustomerSignupPayload) 
       console.log("[Customer Signup] 개인 판매자로 가입 진행");
     }
 
-    // 2. userId 생성 (email 또는 member_id 기반)
-    const userId = sanitizeUserId(customer.email || customer.member_id);
+    // 2. userId 생성 (member_id 우선, 없으면 email 사용)
+    const userIdInput = customer.member_id || customer.email;
+    const userId = sanitizeUserId(userIdInput);
     if (userId.length < 4) {
       throw new Error(`생성된 userId가 너무 짧습니다: ${userId}`);
     }
 
-    console.log("[Customer Signup] userId 생성:", userId);
+    console.log("[Customer Signup] userId 생성:", userId, "(출처:", customer.member_id ? "member_id" : "email", ")");
 
     // 3. 이메일 중복 체크
     const { query, where, getDocs } = await import("firebase/firestore");

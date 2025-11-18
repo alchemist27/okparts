@@ -91,7 +91,8 @@ export async function GET(request: NextRequest) {
       return baseId.toLowerCase().replace(/[^a-z0-9]/g, '');
     };
 
-    const userIdInput = email || memberId;
+    // memberId 우선, 없으면 email 사용
+    const userIdInput = memberId || email;
     if (!userIdInput) {
       throw new Error("이메일 또는 회원 ID가 필요합니다");
     }
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
       throw new Error(`생성된 userId가 너무 짧습니다: ${userId}`);
     }
 
-    console.log("[Seller Auto Login] userId 생성:", userId);
+    console.log("[Seller Auto Login] userId 생성:", userId, "(출처:", memberId ? "member_id" : "email", ")");
 
     // 기존 회원 확인
     const suppliersRef = collection(db, "suppliers");

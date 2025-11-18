@@ -105,12 +105,14 @@ export async function GET(request: NextRequest) {
       return baseId.toLowerCase().replace(/[^a-z0-9]/g, '');
     };
 
-    const userId = sanitizeUserId(customer.email || customer.member_id);
+    // memberId 우선, 없으면 email 사용
+    const userIdInput = customer.member_id || customer.email;
+    const userId = sanitizeUserId(userIdInput);
     if (userId.length < 4) {
       throw new Error(`생성된 userId가 너무 짧습니다: ${userId}`);
     }
 
-    console.log("[Signup Redirect] userId 생성:", userId);
+    console.log("[Signup Redirect] userId 생성:", userId, "(출처:", customer.member_id ? "member_id" : "email", ")");
 
     // 중복 체크
     const suppliersRef = collection(db, "suppliers");
