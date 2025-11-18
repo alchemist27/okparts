@@ -432,8 +432,8 @@ async function registerSingleProduct(
 
     // 8. 메인 진열 영역에 추가
     try {
-      console.log(`[Bulk Product Create] [${index}] 메인 진열 영역(product_listmain_1)에 추가`);
-      await cafe24Client.addProductToMain(2, [parseInt(cafe24ProductNo)]);
+      console.log(`[Bulk Product Create] [${index}] 메인 진열 영역(product_listmain_2)에 추가`);
+      await cafe24Client.addProductToMain(3, [parseInt(cafe24ProductNo)]);
       console.log(`[Bulk Product Create] [${index}] 메인 진열 영역 추가 성공`);
     } catch (mainError: any) {
       console.error(

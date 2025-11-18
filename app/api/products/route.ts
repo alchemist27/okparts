@@ -625,11 +625,11 @@ export async function POST(request: NextRequest) {
         }
 
         // Step 6: 메인 진열 영역에 상품 추가
-        // display_group: 2 = "Main Recommendations" (product_listmain_1)
+        // display_group: 4 = "Main Recommendations" (product_listmain_3)
         try {
-          console.log("[Product Create] Step 6: 메인 진열 영역(product_listmain_1)에 추가");
-          await cafe24Client.addProductToMain(2, [parseInt(cafe24ProductNo)]);
-          console.log("[Product Create] 메인 진열 영역(product_listmain_1) 추가 성공!");
+          console.log("[Product Create] Step 6: 메인 진열 영역(product_listmain_3)에 추가");
+          await cafe24Client.addProductToMain(4, [parseInt(cafe24ProductNo)]);
+          console.log("[Product Create] 메인 진열 영역(product_listmain_3) 추가 성공!");
         } catch (mainError: any) {
           console.error("[Product Create] 메인 진열 영역 추가 실패:", mainError.message);
           // 실패해도 상품은 등록되었으므로 계속 진행

@@ -43,3 +43,13 @@ next-env.d.ts
 !package.json
 !package-lock.json
 !tsconfig.json
+
+# bulk product registration scripts and data
+bulk-register*.js
+test-bulk-register.js
+full-bulk-register.js
+test-bumper-register.js
+full-bumper-register.js
+bumper-batch-register.js
+products_*.json
+*-result.json
