@@ -14,16 +14,31 @@ export default function Header() {
 
   useEffect(() => {
     // 사용자 정보 가져오기
-    const supplierData = localStorage.getItem("supplier");
-    if (supplierData) {
-      try {
-        const supplier = JSON.parse(supplierData);
-        setUserId(supplier.email || supplier.userId || "");
-      } catch (error) {
-        console.error("Failed to parse supplier data:", error);
+    const updateUserId = () => {
+      const supplierData = localStorage.getItem("supplier");
+      if (supplierData) {
+        try {
+          const supplier = JSON.parse(supplierData);
+          setUserId(supplier.userId || supplier.email || "");
+        } catch (error) {
+          console.error("Failed to parse supplier data:", error);
+        }
       }
-    }
-  }, []);
+    };
+
+    // 초기 로드 시 업데이트
+    updateUserId();
+
+    // storage 이벤트 리스너 (다른 탭에서 변경 시)
+    window.addEventListener('storage', updateUserId);
+
+    // pathname 변경 시 업데이트 (같은 탭에서 로그인/로그아웃 시)
+    updateUserId();
+
+    return () => {
+      window.removeEventListener('storage', updateUserId);
+    };
+  }, [pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
