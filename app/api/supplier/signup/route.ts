@@ -344,7 +344,8 @@ export async function POST(request: NextRequest) {
       token,
       supplier: {
         id: supplierDoc.id,
-        email: userId,
+        userId: userId,
+        email: userId, // 호환성을 위해 유지
         companyName: companyName || name,
         phone: phone,
         status: "active",
