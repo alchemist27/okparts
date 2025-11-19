@@ -20,6 +20,9 @@ export interface BulkProductInput {
   sellingPrice?: number;
   supplyPrice?: number;
 
+  // 메인 진열 그룹 (선택) - null이면 진열 안함
+  displayGroup?: number | null;
+
   // 고정 값 (API에서 자동 설정됨 - 제공하지 않아도 됨)
   // categoryNo: 192 또는 48 등
   // summaryDescription: 공급사별로 다름

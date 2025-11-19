@@ -28,7 +28,7 @@ function parsePrice(priceStr) {
 }
 
 // 상품 데이터 변환
-const products = jsonData.products.map(item => {
+const products = jsonData.products.map((item, index) => {
   const allImages = item.images || [];
 
   // 첫 3장은 썸네일 이미지로
@@ -50,7 +50,9 @@ const products = jsonData.products.map(item => {
     productName: item.title,
     images: thumbnailImages,
     sellingPrice: price,
-    supplyPrice: price
+    supplyPrice: price,
+    // 첫 200개: product_listmain_4 (display_group: 5), 나머지: 진열 안함 (null)
+    displayGroup: index < 200 ? 5 : null
   };
 
   // 상세설명 이미지가 있으면 추가
@@ -67,7 +69,12 @@ products.slice(0, 3).forEach((product, idx) => {
   console.log(`   - 가격: ${product.sellingPrice.toLocaleString()}원`);
   console.log(`   - 썸네일: ${product.images.length}장`);
   console.log(`   - 상세이미지: ${product.descriptionImages?.length || 0}장`);
+  console.log(`   - 진열: ${product.displayGroup === 5 ? 'product_listmain_4' : '진열 안함'}`);
 });
+
+console.log(`\n진열 설정:`);
+console.log(`- 첫 200개: product_listmain_4 (display_group: 5)`);
+console.log(`- 나머지 ${products.length - 200}개: 진열 안함`);
 
 // 배치로 나누기
 const batches = [];
@@ -86,7 +93,7 @@ async function registerBatch(batchIndex, products) {
 
   // route_2 API 사용 (가격 지원)
   const requestData = {
-    supplierCode: "S00000D1", // 원클릭카 공급사 코드
+    supplierCode: "S00000CC", // 원클릭카 공급사 코드
     products: products
   };
 

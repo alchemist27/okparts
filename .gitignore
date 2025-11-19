@@ -27,6 +27,9 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.tokens
+.env.tokens.example
+
 
 # vercel
 .vercel
@@ -48,6 +51,13 @@ next-env.d.ts
 bulk-register*.js
 test-bulk-register.js
 full-bulk-register.js
+bulk-register-batch.js
+check-supplier.js
+create-supplier.js
+oneclickcar-bulk-register.js
+set-supplier-code.js
+test-oneclickcar-register.js
+check-supplier-by-code.js
 test-bumper-register.js
 full-bumper-register.js
 bumper-batch-register.js

@@ -2,7 +2,7 @@
 const fs = require('fs');
 
 //const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdXBwbGllcklkIjoiWFBjNjkzQUo1RXRyS2s3eDJRUUUiLCJlbWFpbCI6ImprMTQzNyIsImlhdCI6MTc2MjkzNDM2MywiZXhwIjoxNzYzNTM5MTYzfQ.lnWUM7unft5Sc5elXnOAxwuQ5gEbpI5l6I0CKzZ89wU';
-const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdXBwbGllcklkIjoiZEo3UjFObHRxcXFUQUhUM3dVOVkiLCJlbWFpbCI6Im9uZWNsaWNrY2FyIiwiaWF0IjoxNzYzNTU2NDgzLCJleHAiOjE3NjQxNjEyODN9.qs9UCltS84_JHvGFQr09jzBJgdrherYPyfOpe__Jjgk';
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdXBwbGllcklkIjoidHZ3bzNPTXJBd0syaWd2d1JEaGUiLCJlbWFpbCI6Im9uZWNsaWNrY2FyMjciLCJpYXQiOjE3NjM1NjAxMzUsImV4cCI6MTc2NDE2NDkzNX0.Y_FVNkMrnTi0ISaaWry5ay3Z0Hc-7LCJTUi6eMVn2rg';
 const BATCH_SIZE = 50; // 배치당 상품 수
 const BATCH_DELAY = 2000; // 배치 간 대기 시간 (2초)
 

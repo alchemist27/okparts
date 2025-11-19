@@ -1,6 +1,6 @@
 // 공급사 코드 설정
 const supplierId = 'dJ7R1NltqqqTAHT3wU9Y';
-const supplierCode = 'S00000D1';
+const supplierCode = 'S00000CC';
 
 console.log(`공급사 ${supplierId}에 코드 ${supplierCode} 설정 중...\n`);
 

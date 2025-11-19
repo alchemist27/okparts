@@ -415,17 +415,22 @@ async function registerSingleProduct(
       cafe24ImageUrls.push(...uploadedImageUrls);
     }
 
-    // 8. 메인 진열 영역에 추가
-    try {
-      console.log(`[Bulk Product Create] [${index}] 메인 진열 영역(product_listmain_2)에 추가`);
-      await cafe24Client.addProductToMain(3, [parseInt(cafe24ProductNo)]);
-      console.log(`[Bulk Product Create] [${index}] 메인 진열 영역 추가 성공`);
-    } catch (mainError: any) {
-      console.error(
-        `[Bulk Product Create] [${index}] 메인 진열 영역 추가 실패:`,
-        mainError.message
-      );
-      // 실패해도 상품은 등록되었으므로 계속 진행
+    // 8. 메인 진열 영역에 추가 (displayGroup이 지정된 경우에만)
+    if (product.displayGroup !== null && product.displayGroup !== undefined) {
+      try {
+        const displayGroupName = product.displayGroup === 5 ? 'product_listmain_4' : `display_group_${product.displayGroup}`;
+        console.log(`[Bulk Product Create] [${index}] 메인 진열 영역(${displayGroupName})에 추가`);
+        await cafe24Client.addProductToMain(product.displayGroup, [parseInt(cafe24ProductNo)]);
+        console.log(`[Bulk Product Create] [${index}] 메인 진열 영역 추가 성공`);
+      } catch (mainError: any) {
+        console.error(
+          `[Bulk Product Create] [${index}] 메인 진열 영역 추가 실패:`,
+          mainError.message
+        );
+        // 실패해도 상품은 등록되었으므로 계속 진행
+      }
+    } else {
+      console.log(`[Bulk Product Create] [${index}] 메인 진열 건너뛰기 (displayGroup: null)`);
     }
 
     // 9. Firestore 업데이트
