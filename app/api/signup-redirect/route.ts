@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebase-admin";
-import { collection, addDoc, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc } from "firebase/firestore";
 import { hashPassword, generateToken } from "@/lib/auth";
+import { Cafe24ApiClient } from "@/lib/cafe24";
 
 // 카페24 회원가입 후 리디렉션 처리
 // 카페24 회원가입 완료 페이지에서 return_url로 설정
@@ -182,6 +183,130 @@ export async function GET(request: NextRequest) {
 
     const supplierDoc = await addDoc(suppliersRef, supplierData);
     console.log("[Signup Redirect] Firestore 계정 생성 완료, ID:", supplierDoc.id);
+
+    // 카페24 공급사 생성
+    let supplierCode: string | null = null;
+    try {
+      console.log("\n[Signup Redirect] 카페24 공급사 생성 시작");
+
+      // 카페24 토큰 가져오기
+      const mallId = process.env.NEXT_PUBLIC_CAFE24_MALL_ID;
+      if (!mallId) {
+        throw new Error("Mall ID not configured");
+      }
+
+      const installDocRef = doc(db, "installs", mallId);
+      const installDoc = await getDoc(installDocRef);
+      if (!installDoc.exists()) {
+        throw new Error("카페24 앱이 설치되지 않았습니다");
+      }
+
+      const installData = installDoc.data();
+
+      // 토큰 갱신 시 Firestore 업데이트 콜백
+      const onTokenRefresh = async (newAccessToken: string, newRefreshToken: string, expiresAt: string) => {
+        await updateDoc(installDocRef, {
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+          expiresAt: expiresAt,
+          updatedAt: new Date().toISOString(),
+        });
+        console.log("[Signup Redirect] Firestore 토큰 업데이트 완료");
+      };
+
+      const cafe24Client = new Cafe24ApiClient(mallId, installData.accessToken, {
+        refreshToken: installData.refreshToken,
+        clientId: process.env.CAFE24_CLIENT_ID,
+        clientSecret: process.env.CAFE24_CLIENT_SECRET,
+        onTokenRefresh,
+      });
+
+      // 카페24 공급사 생성 데이터
+      const cafe24SupplierData: any = {
+        supplier_name: companyName || "공급사",
+        use_supplier: "T",
+        trading_type: "C",
+        supplier_type: "BS",
+        status: "A",
+        business_item: "중고부품",
+        payment_type: "P",
+        commission: "0.00",
+        payment_period: "A",
+        payment_method: "30",
+        payment_start_date: 9,
+        payment_end_date: 30,
+        phone: phone || "010-0000-0000",
+        country_code: "KOR",
+        zipcode: "00000",
+        address1: "주소 미입력",
+        address2: "",
+        manager_information: [{
+          no: 1,
+          name: presidentName || companyName || "담당자",
+          phone: phone || "010-0000-0000"
+        }]
+      };
+
+      // 사업자회원만 추가 정보
+      if (accountType === "business" && businessNumber) {
+        console.log("[Signup Redirect] 사업자등록번호 처리:", {
+          businessNumber: businessNumber,
+          format: "하이픈 포함 형식으로 전송"
+        });
+
+        cafe24SupplierData.company_registration_no = businessNumber;
+        cafe24SupplierData.company_name = companyName;
+        cafe24SupplierData.president_name = presidentName;
+      }
+
+      console.log("[Signup Redirect] 카페24 공급사 생성 요청:", {
+        supplier_name: cafe24SupplierData.supplier_name,
+        accountType,
+        commission: cafe24SupplierData.commission,
+        company_registration_no: cafe24SupplierData.company_registration_no,
+      });
+
+      const cafe24SupplierResponse = await cafe24Client.createSupplier(cafe24SupplierData);
+      supplierCode = cafe24SupplierResponse.supplier?.supplier_code;
+
+      if (!supplierCode) {
+        throw new Error("카페24 공급사 코드를 받지 못했습니다");
+      }
+
+      console.log("[Signup Redirect] 카페24 공급사 생성 완료, 코드:", supplierCode);
+
+      // Firestore에 카페24 연동 정보 업데이트
+      console.log("[Signup Redirect] Firestore에 카페24 연동 정보 업데이트");
+      await updateDoc(doc(db, "suppliers", supplierDoc.id), {
+        cafe24SupplierNo: supplierCode,
+        cafe24UserId: null,
+        cafe24UserStatus: "pending",
+        updatedAt: new Date().toISOString(),
+      });
+
+      console.log("[Signup Redirect] 카페24 연동 정보 업데이트 완료 (공급사 코드:", supplierCode, ")");
+
+    } catch (cafe24Error: any) {
+      console.error("\n[Signup Redirect] 카페24 공급사 생성 실패:", cafe24Error.message);
+      console.error("[Signup Redirect] 카페24 에러 상세:", cafe24Error);
+
+      // 카페24 연동 실패 시 Firestore 데이터 삭제 (롤백)
+      try {
+        console.log("[Signup Redirect] 카페24 연동 실패로 인한 Firestore 데이터 롤백 시작");
+        const { deleteDoc } = await import("firebase/firestore");
+        await deleteDoc(doc(db, "suppliers", supplierDoc.id));
+        console.log("[Signup Redirect] ✅ Firestore 데이터 삭제 완료 - 사용자는 동일 아이디로 재시도 가능");
+      } catch (deleteError: any) {
+        console.error("[Signup Redirect] ❌ Firestore 데이터 삭제 실패:", deleteError.message);
+        console.error("[Signup Redirect] 경고: 미승인 계정이 Firestore에 남아있을 수 있음 (문서 ID:", supplierDoc.id, ")");
+      }
+
+      // 에러 메시지 생성 및 리디렉션
+      const errorMessage = cafe24Error.message || "카페24 공급사 생성 중 오류가 발생했습니다";
+      return NextResponse.redirect(
+        new URL(`/signup?error=${encodeURIComponent(errorMessage)}`, request.url)
+      );
+    }
 
     // JWT 토큰 생성
     const token = generateToken({

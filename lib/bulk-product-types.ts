@@ -16,12 +16,15 @@ export interface BulkProductInput {
   maximumQuantity?: number;
   minimumQuantity?: number;
 
+  // 가격 (선택) - 제공하지 않으면 0원으로 설정됨
+  sellingPrice?: number;
+  supplyPrice?: number;
+
   // 고정 값 (API에서 자동 설정됨 - 제공하지 않아도 됨)
-  // sellingPrice: 0원 고정
-  // categoryNo: 192 고정
-  // summaryDescription: "부품문의 : 010 - 7125 - 5474" 고정
-  // description: "장안동 장한평역 중고부품 네바퀴" 고정
-  // sellerPhone: "010-7125-5474" 고정
+  // categoryNo: 192 또는 48 등
+  // summaryDescription: 공급사별로 다름
+  // description: 공급사별로 다름
+  // sellerPhone: 공급사별로 다름
 }
 
 export interface BulkProductImage {
