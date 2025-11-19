@@ -47,7 +47,8 @@ export async function GET(request: NextRequest) {
     }
 
     const supplierDoc = querySnapshot.docs[0];
-    const supplierData = { id: supplierDoc.id, ...supplierDoc.data() };
+    const data = supplierDoc.data();
+    const supplierData: any = { id: supplierDoc.id, ...data };
 
     console.log(`[Admin] ✅ "${searchKey}" 계정 발견!`);
     console.log("[Admin] 계정 정보:");
